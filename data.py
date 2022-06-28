@@ -136,7 +136,7 @@ def get_DI_aran(hdf5_path, keep_cols = False):
         if df is None:
             df = variables
         else:
-            df = pd.concat((df,variables), axis = 1)
+            df = pd.concat((df,variables), axis = 1)    
     alligsum = (3*df['AlligCracksSmall'] + 4*df['AlligCracksMed'] + 5*df['AlligCracksLarge'])**0.3
     medalligsum = (4*df['AlligCracksMed'] + 5*df['AlligCracksLarge'])**0.3
     cracksum = (df['CracksLongitudinalSmall']**2 + df['CracksLongitudinalMed']**3 + df['CracksLongitudinalLarge']**4 + \
