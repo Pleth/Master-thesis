@@ -1,4 +1,5 @@
 import pandas as pd
+import math
 
 def calc_DI(allig, cracks, potholes):
 
@@ -15,3 +16,14 @@ def calc_DI(allig, cracks, potholes):
                   5*potholes['PotholeAreaAffectedDelam'])**0.1
     DI = alligsum + cracksum + potholesum
     return DI
+
+def rm_aligned(gps,gt):
+
+    dist = []
+    for i in range(len(gps.index)-1):
+        dist.append(math.dist([gps['lat'][i],gps['lon'][i]],[gps['lat'][i+1],gps['lon'][i+1]]))
+
+    return dist
+
+
+
