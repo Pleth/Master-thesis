@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 from functions import *
 import matplotlib.pyplot as plt
+from scipy import signal
+import scaleogram as scg
 
 hdf5file = h5py.File('aligned_data/CPH1_VH.hdf5', 'r')
 passage = hdf5file.attrs['GM_full_passes']
@@ -14,6 +16,7 @@ aligned_gps = pd.DataFrame(passagefile['aligned_gps'], columns = passagefile['al
 
 acc = pd.DataFrame(passagefile['acc.xyz'], columns = passagefile['acc.xyz'].attrs['chNames'])
 acc_fs_50 = pd.DataFrame(passagefile['acc_fs_50'], columns = passagefile['acc_fs_50'].attrs['chNames'])
+f_dist = pd.DataFrame(passagefile['f_dist'], columns = passagefile['f_dist'].attrs['chNames'])
 
 aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
 aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns = hdf5file['aran/trip_1/pass_1']['Allig'].attrs['chNames'])
@@ -24,15 +27,21 @@ DI = pd.DataFrame(calc_DI(aran_alligator,aran_cracks,aran_potholes))
 DI.columns=['DI']
 gt = pd.concat([aran_location,DI],axis=1)
 
-plt.scatter(x=gt['LongitudeFrom'], y=gt['LatitudeFrom'],s=gt['DI']**2,c="red")#c=gt['DI'],cmap='gray')
-plt.scatter(x=aligned_gps['lon'], y=aligned_gps['lat'],s=1,c="blue")
-plt.show()
+start = 1800#1400
+end = 2200#3000
 
-#plt.specgram(acc_fs_50['acc_z'], Fs=50)
-#plt.show()
+plt.scatter(x=gt['LongitudeFrom'], y=gt['LatitudeFrom'],s=gt['DI']**2,c="red")#c=gt['DI'],cmap='gray')
+plt.scatter(x=aligned_gps['lon'][start:end], y=aligned_gps['lat'][start:end],s=1,c="blue")
+plt.show()
 
 dist = np.asarray(rm_aligned(aligned_gps,gt))
 plt.plot(dist)
 plt.show()
 
 max = np.argpartition(dist,-11)[-11:]
+
+plt.plot(acc_fs_50['acc_z'][start:end])
+#plt.specgram(acc_fs_50['acc_z'][0:1000], Fs=50,cmap='rainbow')
+scales = scg.periods2scales(np.arange(1,10))
+scg.cws(acc_fs_50['acc_z'][start:end],scales=scales)
+plt.show()
