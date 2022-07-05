@@ -1,3 +1,4 @@
+# %%
 import h5py
 import numpy as np
 import pandas as pd
@@ -27,29 +28,36 @@ DI = pd.DataFrame(calc_DI(aran_alligator,aran_cracks,aran_potholes))
 DI.columns=['DI']
 gt = pd.concat([aran_location,DI],axis=1)
 
+plt.scatter(x=gt['LongitudeFrom'], y=gt['LatitudeFrom'],s=gt['DI']**2,c="red")#c=gt['DI'],cmap='gray')
+plt.scatter(x=aligned_gps['lon'], y=aligned_gps['lat'],s=1,c="blue")
+plt.show()
+# %%
+#dist = np.asarray(rm_aligned(aligned_gps,gt))
+#plt.plot(dist)
+#plt.show()
+#max = np.argpartition(dist,-11)[-11:]
+
 start = 0#1800#1400
 end = 1600#2200#3000
 
-plt.scatter(x=gt['LongitudeFrom'], y=gt['LatitudeFrom'],s=gt['DI']**2,c="red")#c=gt['DI'],cmap='gray')
-plt.scatter(x=aligned_gps['lon'][start:end], y=aligned_gps['lat'][start:end],s=1,c="blue")
-plt.show()
-
-dist = np.asarray(rm_aligned(aligned_gps,gt))
-plt.plot(dist)
-plt.show()
-
-max = np.argpartition(dist,-11)[-11:]
+scales = scg.periods2scales(np.arange(1,60))
 
 plt.plot(acc_fs_50['acc_z'][start:end])
-#plt.specgram(acc_fs_50['acc_z'][0:1000], Fs=50,cmap='rainbow')
-scales = scg.periods2scales(np.arange(1,60))
+plt.xlabel("time step")
+plt.ylabel("acc_fs_50_z")
 scg.cws(acc_fs_50['acc_z'][start:end]-acc_fs_50['acc_z'][start:end].mean(),yscale='log')
 plt.show()
 
 plt.plot(acc_fs_50['acc_z'][1800:2200])
+plt.xlabel("time step")
+plt.ylabel("acc_fs_50_z")
 scg.cws(acc_fs_50['acc_z'][1800:2200]-acc_fs_50['acc_z'][1800:2200].mean(),yscale='log')
 plt.show()
 
 plt.plot(acc_fs_50['acc_z'][1400:3000])
+plt.xlabel("time step")
+plt.ylabel("acc_fs_50_z")
 scg.cws(acc_fs_50['acc_z'][1400:3000]-acc_fs_50['acc_z'][1400:3000].mean(),yscale='log')
 plt.show()
+
+# %%
