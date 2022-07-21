@@ -1,4 +1,4 @@
-# %%
+
 import h5py
 import numpy as np
 import pandas as pd
@@ -15,9 +15,15 @@ passagefile = hdf5file[aligned_passes[0]]
 gps = pd.DataFrame(passagefile['gps'], columns = passagefile['gps'].attrs['chNames'])
 aligned_gps = pd.DataFrame(passagefile['aligned_gps'], columns = passagefile['aligned_gps'].attrs['chNames'])
 
+#sppeed = pd.DataFrame(passagefile['obd.spd_veh'], columns = passagefile['obd.spd_veh'].attrs['chNames'])
+#lazer = pd.DataFrame(hdf5file["p79/trip_1/pass_1/TransversalProfile"],columns = hdf5file["p79/trip_1/pass_1/TransversalProfile"].attrs['chNames'])
+
 acc = pd.DataFrame(passagefile['acc.xyz'], columns = passagefile['acc.xyz'].attrs['chNames'])
 acc_fs_50 = pd.DataFrame(passagefile['acc_fs_50'], columns = passagefile['acc_fs_50'].attrs['chNames'])
 f_dist = pd.DataFrame(passagefile['f_dist'], columns = passagefile['f_dist'].attrs['chNames'])
+
+plt.plot(acc_fs_50["acc_z"])
+plt.show()
 
 aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
 aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns = hdf5file['aran/trip_1/pass_1']['Allig'].attrs['chNames'])
@@ -31,7 +37,7 @@ gt = pd.concat([aran_location,DI],axis=1)
 plt.scatter(x=gt['LongitudeFrom'], y=gt['LatitudeFrom'],s=gt['DI']**2,c="red")#c=gt['DI'],cmap='gray')
 plt.scatter(x=aligned_gps['lon'], y=aligned_gps['lat'],s=1,c="blue")
 plt.show()
-# %%
+
 #dist = np.asarray(rm_aligned(aligned_gps,gt))
 #plt.plot(dist)
 #plt.show()
@@ -60,4 +66,3 @@ plt.ylabel("acc_fs_50_z")
 scg.cws(acc_fs_50['acc_z'][1400:3000]-acc_fs_50['acc_z'][1400:3000].mean(),yscale='log')
 plt.show()
 
-# %%
