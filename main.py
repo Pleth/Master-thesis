@@ -17,14 +17,14 @@ if __name__ == '__main__':
     
     
     # # arg1 - Train or eval
-    # if arg1 == "SVM":
+    # if arg1 == "SVR":
     #     print(arg1)
     # elif arg1 == "KNN":
     #     print(arg1)
     # elif arg1 == "DT":
     #     print(arg1)
     # else:
-    #     print("Choose argument 1 (Method): SVM, KNN or DT")
+    #     print("Choose argument 1 (Method): SVR, KNN or DT")
     #     sys.exit(1)
     
     # # arg2 - Train or eval
@@ -45,31 +45,15 @@ if __name__ == '__main__':
     #     print("Choose argument 3 (Real data or simulated data): real or sim")
     #     sys.exit(1)
     
-
-    # #Synth data
-    # file_p79 = "tosend/data/p79_data.csv"
-    # file_gm = "tosend/data/green_mob_data.csv"
-
-    # df_gm = pd.read_csv(file_gm) # speed_gm,times
-    # df_p79 = pd.read_csv(file_p79) #distances,laser5,laser21
-
-    # synth_data = synthetic_data = create_synthetic_signal(
-    #                         p79_distances=np.array(df_p79["distances"]),
-    #                         p79_laser5=np.array(df_p79["laser5"]),
-    #                         p79_laser21=np.array(df_p79["laser21"]),
-    #                         gm_times=np.array(df_gm["times"]),
-    #                         gm_speed=np.array(df_gm["speed_gm"]))
-
-    # synth_acc = pd.DataFrame(synth_data["synth_acc"],columns = ['synth_acc'])
-    # #plt.plot(synth_data["times"],synth_data["synth_acc"])
-    # #plt.show()
-    # synth_acc.to_csv("synth_data/synth.csv",index=False)
     synth_acc = synthetic_data()
     
     out = pd.DataFrame(data_window(synth_acc))
-    out.insert(0,"id",np.ones(125,))
+    ids = pd.DataFrame(np.ones(125,),columns=["id"])
+    
+    data, feature_names = feature_extraction(out,ids)
 
-    from tsfresh import extract_features, extract_relevant_features
-    extracted_features = extract_features(out.iloc[:,0:2],column_id="id")
-
+    from sklearn.svm import SVR
+    y = np.random.randn(np.shape(data)[1])
+    regr = SVR(kernel='rbf')
+    regr.fit(np.transpose(data.values),y)
 

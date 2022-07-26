@@ -1,7 +1,11 @@
+from faulthandler import disable
 import os
 import pandas as pd
 import math
 import numpy as np
+from tsfresh import extract_features
+from tsfresh.utilities.dataframe_functions import impute
+from tqdm import tqdm
 
 from LiRA_functions import *
 
@@ -65,3 +69,27 @@ def synthetic_data():
         data.to_csv("synth_data/synth.csv",index=False)
 
     return data
+
+
+def feature_extraction(data,ids):
+    #extracted_features = extract_features(out.iloc[:,0:2],column_id="id")
+    if os.path.isfile("synth_data/extracted_features.csv"):
+        feature_names = extract_features(pd.concat([ids,data.iloc[:,1]],axis=1),column_id="id",disable_progressbar=True)
+        feature_names = np.transpose(feature_names)
+        data = pd.read_csv("synth_data/extracted_features.csv")
+    else:
+        extracted_features = []
+        for i in tqdm(range(np.shape(data)[1])):
+            #print("current iteration:",i,"out of:",np.shape(data)[1])
+            if(i==0):   
+                feature_names = extract_features(pd.concat([ids,data.iloc[:,i]],axis=1),column_id="id",disable_progressbar=True)
+                extracted_features.append(np.transpose(feature_names))
+                feature_names = np.transpose(feature_names)
+            else:
+                extracted_features.append(np.transpose(extract_features(pd.concat([ids,data.iloc[:,i]],axis=1),column_id="id",disable_progressbar=True)))
+        data = pd.DataFrame(np.concatenate(extracted_features,axis=1))
+        #data = data.fillna(0)
+        impute(data)
+        data.to_csv("synth_data/extracted_features.csv",index=False)
+
+    return data,feature_names
