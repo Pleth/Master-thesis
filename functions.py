@@ -60,10 +60,17 @@ def synthetic_data():
         p79_gps = files[i]
         p79_laser = files[i+1]
 
-        df_p79 = pd.read_csv(p79_laser,sep=" ") #distances,laser5,laser21
+        df_p79 = pd.read_csv(p79_laser,sep=" ")
         df_p79["Distance[m]|"] = df_p79["Distance[m]|"].str[:-1].astype(float)
         df_p79["Laser5[mm]|"] = df_p79["Laser5[mm]|"].str[:-1].astype(float)
         df_p79["Laser21[mm]|"] = df_p79["Laser21[mm]|"].str[:-1].astype(float)
+        df_p79.drop(df_p79.columns.difference(['Distance[m]|','Laser5[mm]|','Laser21[mm]|']),axis=1,inplace=True)
+
+        df_p79_gps = pd.read_csv(p79_gps,sep=" ")
+        df_p79_gps["Distance[m]|"] = df_p79_gps["Distance[m]|"].str[:-1].astype(float)
+        df_p79_gps["Latitude[dd.dddd]|"] = df_p79_gps["Latitude[dd.dddd]|"].str[:-1].astype(float)
+        df_p79_gps["Longitude[dd.dddd]|"] = df_p79_gps["Longitude[dd.dddd]|"].str[:-1].astype(float)
+        df_p79_gps.drop(df_p79_gps.columns.difference(['Distance[m]|','Latitude[dd.dddd]|','Longitude[dd.dddd]|']),axis=1,inplace=True)
             
         #Green Mobility
         file = files[i][4:11]
@@ -80,8 +87,9 @@ def synthetic_data():
         passage = np.array(new_passage,dtype=object)
         for j in range(len(passage)):
             name = (file+passage[j]).replace('/','_')
-            if os.path.isfile("synth_data/"+name+".csv"):
+            if os.path.isfile("synth_data/"+name+".csv"): # Load synthetic profile if already calculated
                 df_dict[k] = pd.read_csv("synth_data/"+name+".csv")
+                df_dict[k].rename_axis(name,inplace=True)
                 print("Loaded Synthetic Profile for trip:",int(i/2)+1,"/",int(counter/2),"- passage:",j+1,"/",len(passage))                  
                 k += 1
             else:
@@ -98,12 +106,25 @@ def synthetic_data():
                 
                 df_dict[k] = pd.DataFrame({'time':synth_data["times"].reshape(np.shape(synth_data["times"])[0]),'synth_acc':synth_data["synth_acc"]})
                 df_dict[k].rename_axis(name,inplace=True)
-                k += 1
                 df_dict[k].to_csv("synth_data/"+name+".csv",index=False)
+                k += 1
 
     return df_dict
 
 def feature_extraction(data,ids):
+
+
+
+
+    Time_domain = []
+    Frequency_domain = []
+    Wavelet_domain = []
+
+
+
+
+
+
     #extracted_features = extract_features(out.iloc[:,0:2],column_id="id")
     if os.path.isfile("synth_data/extracted_features.csv"):
         feature_names = extract_features(pd.concat([ids,data.iloc[:,1]],axis=1),column_id="id",disable_progressbar=True)
