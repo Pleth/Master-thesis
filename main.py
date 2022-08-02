@@ -1,6 +1,7 @@
 import sys
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 from functions import *
 from LiRA_functions import *
@@ -46,14 +47,18 @@ if __name__ == '__main__':
     #     sys.exit(1)
     
     synth_acc = synthetic_data()
-    
+    routes = []
+    for i in range(len(synth_acc)): 
+        routes.append(synth_acc[i].axes[0].name)
+
+
     out = pd.DataFrame(data_window(synth_acc))
     ids = pd.DataFrame(np.ones(125,),columns=["id"])
     
-    data, feature_names = feature_extraction(out,ids)
+    # data, feature_names = feature_extraction(out,ids)
 
-    from sklearn.svm import SVR
-    y = np.random.randn(np.shape(data)[1])
-    regr = SVR(kernel='rbf')
-    regr.fit(np.transpose(data.values),y)
+    # from sklearn.svm import SVR
+    # y = np.random.randn(np.shape(data)[1])
+    # regr = SVR(kernel='rbf')
+    # regr.fit(np.transpose(data.values),y)
 

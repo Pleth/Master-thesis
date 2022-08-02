@@ -15,9 +15,6 @@ passagefile = hdf5file[aligned_passes[0]]
 gps = pd.DataFrame(passagefile['gps'], columns = passagefile['gps'].attrs['chNames'])
 aligned_gps = pd.DataFrame(passagefile['aligned_gps'], columns = passagefile['aligned_gps'].attrs['chNames'])
 
-#sppeed = pd.DataFrame(passagefile['obd.spd_veh'], columns = passagefile['obd.spd_veh'].attrs['chNames'])
-#lazer = pd.DataFrame(hdf5file["p79/trip_1/pass_1/TransversalProfile"],columns = hdf5file["p79/trip_1/pass_1/TransversalProfile"].attrs['chNames'])
-
 acc = pd.DataFrame(passagefile['acc.xyz'], columns = passagefile['acc.xyz'].attrs['chNames'])
 acc_fs_50 = pd.DataFrame(passagefile['acc_fs_50'], columns = passagefile['acc_fs_50'].attrs['chNames'])
 f_dist = pd.DataFrame(passagefile['f_dist'], columns = passagefile['f_dist'].attrs['chNames'])

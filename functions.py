@@ -6,6 +6,8 @@ import numpy as np
 from tsfresh import extract_features
 from tsfresh.utilities.dataframe_functions import impute
 from tqdm import tqdm
+import glob
+import h5py
 
 from LiRA_functions import *
 
@@ -48,28 +50,58 @@ def data_window(gm_data):
 
 def synthetic_data():
 
-    if os.path.isfile("synth_data/synth.csv"):
-        data = pd.read_csv("synth_data/synth.csv")
-    else:
-        file_p79 = "tosend/data/p79_data.csv"
-        file_gm = "tosend/data/green_mob_data.csv"
+    df_dict = {}
 
-        df_gm = pd.read_csv(file_gm) # speed_gm,times
-        df_p79 = pd.read_csv(file_p79) #distances,laser5,laser21
+    counter = len(glob.glob1("p79/","*.txt"))
+    files = glob.glob("p79/*.txt")
+    k=0
+    for i in range(0,counter,2):
+        #p79
+        p79_gps = files[i]
+        p79_laser = files[i+1]
 
-        synth_data = synthetic_data = create_synthetic_signal(
-                                p79_distances=np.array(df_p79["distances"]),
-                                p79_laser5=np.array(df_p79["laser5"]),
-                                p79_laser21=np.array(df_p79["laser21"]),
-                                gm_times=np.array(df_gm["times"]),
-                                gm_speed=np.array(df_gm["speed_gm"]))
-        
-        #data = pd.DataFrame(synth_data["synth_acc"],columns = ['synth_acc'])
-        data = pd.DataFrame({'time':synth_data["times"].reshape(np.shape(synth_data["times"])[0]),'synth_acc':synth_data["synth_acc"]})
-        data.to_csv("synth_data/synth.csv",index=False)
+        df_p79 = pd.read_csv(p79_laser,sep=" ") #distances,laser5,laser21
+        df_p79["Distance[m]|"] = df_p79["Distance[m]|"].str[:-1].astype(float)
+        df_p79["Laser5[mm]|"] = df_p79["Laser5[mm]|"].str[:-1].astype(float)
+        df_p79["Laser21[mm]|"] = df_p79["Laser21[mm]|"].str[:-1].astype(float)
+            
+        #Green Mobility
+        file = files[i][4:11]
+        gm_path = 'aligned_data/'+file+'.hdf5'
+        hdf5file = h5py.File(gm_path, 'r')
+        passage = hdf5file.attrs['GM_full_passes']
+            
+        new_passage = []
+        for j in range(len(passage)):
+            passagefile = hdf5file[passage[j]]
+            if "obd.spd_veh" in passagefile.keys(): # some passes only contain gps and gps_match
+                new_passage.append(passage[j])
+            
+        passage = np.array(new_passage,dtype=object)
+        for j in range(len(passage)):
+            name = (file+passage[j]).replace('/','_')
+            if os.path.isfile("synth_data/"+name+".csv"):
+                df_dict[k] = pd.read_csv("synth_data/"+name+".csv")
+                print("Loaded Synthetic Profile for trip:",int(i/2)+1,"/",int(counter/2),"- passage:",j+1,"/",len(passage))                  
+                k += 1
+            else:
+                passagefile = hdf5file[passage[j]]
+                gm_speed = pd.DataFrame(passagefile['obd.spd_veh'], columns = passagefile['obd.spd_veh'].attrs['chNames'])
+                
+                print("Generating Synthetic Profile for trip:",int(i/2)+1,"/",int(counter/2),"- passage:",j+1,"/",len(passage))
+                synth_data = synthetic_data = create_synthetic_signal(
+                                        p79_distances=np.array(df_p79["Distance[m]|"]),
+                                        p79_laser5=np.array(df_p79["Laser5[mm]|"]),
+                                        p79_laser21=np.array(df_p79["Laser21[mm]|"]),
+                                        gm_times=np.array(gm_speed["TS_or_Distance"]),
+                                        gm_speed=np.array(gm_speed["spd_veh"]))
+                
+                df_dict[k] = pd.DataFrame({'time':synth_data["times"].reshape(np.shape(synth_data["times"])[0]),'synth_acc':synth_data["synth_acc"]})
+                df_dict[k].rename_axis(name,inplace=True)
+                k += 1
+                df_dict[k].to_csv("synth_data/"+name+".csv",index=False)
 
-    return data
-
+    return df_dict
 
 def feature_extraction(data,ids):
     #extracted_features = extract_features(out.iloc[:,0:2],column_id="id")
