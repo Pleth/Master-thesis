@@ -113,12 +113,54 @@ def synthetic_data():
 
 def feature_extraction(data,ids):
 
+    Time_domain_names = ['Max','Min','Mean','Median','RMS','Peak_to_peak','Ten_point_average']
+    Frequency_domain_names = ['Average_band_power','RMS_band','Max_band']
+    Wavelet_domain_names = ['RMS_Mort4','Ten_point_Mort4','RMS_Mort5','Ten_point_Mort5','RMS_6Daub4','Ten_point_6Daub4',
+                            'RMS_6Daub5','Ten_point_6Daub5','RMS_10Daub4','Ten_point_10Daub4','RMS_10Daub5','Ten_point_10Daub5']
+
+    Features = {}
+
+    series = np.random.randn(10)
+
+    # Time domain features 
+    Features[Time_domain_names[0]] = [np.max(series)]
+    Features[Time_domain_names[1]] = [np.min(series)]
+    Features[Time_domain_names[2]] = [np.mean(series)]
+    Features[Time_domain_names[3]] = [np.median(series)]
+    Features[Time_domain_names[4]] = [np.square(series).mean()]
+    Features[Time_domain_names[5]] = [np.ptp(series)]
+    Features[Time_domain_names[6]] = [np.sum(-series[np.argpartition(series,5)[:5]]+series[np.argpartition(series,-5)[-5:]])/5]
+    
+    extracted_features_2 = pd.DataFrame(Features).T
+    extracted_features_2
+
+
+    
+    # Frequency domain features    
+    from scipy import signal
+    from scipy.integrate import simps
+    freqs, psd = signal.welch(series,250,nperseg=4*250)
+    freq_res = freqs[1]-freqs[0]
+    
+    low, high = 0.5, 4
+
+    # Find intersecting values in frequency vector
+    idx_delta = np.logical_and(freqs >= low, freqs <= high)
+    
+    delta_power = simps(psd[idx_delta],dx=freq_res)
+    
+    
+    
+    
+    
+    # Wavelet domain features
+    
 
 
 
-    Time_domain = []
-    Frequency_domain = []
-    Wavelet_domain = []
+
+
+
 
 
 
