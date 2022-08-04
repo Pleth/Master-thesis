@@ -52,26 +52,16 @@ def synthetic_data():
 
     df_dict = {}
 
-    counter = len(glob.glob1("p79/","*.txt"))
-    files = glob.glob("p79/*.txt")
+    counter = len(glob.glob1("p79/","*.csv"))
+    files = glob.glob("p79/*.csv")
     k=0
-    for i in range(0,counter,2):
+    for i in range(counter):
         #p79
-        p79_gps = files[i]
-        p79_laser = files[i+1]
+        p79_file = files[i]
 
-        df_p79 = pd.read_csv(p79_laser,sep=" ")
-        df_p79["Distance[m]|"] = df_p79["Distance[m]|"].str[:-1].astype(float)
-        df_p79["Laser5[mm]|"] = df_p79["Laser5[mm]|"].str[:-1].astype(float)
-        df_p79["Laser21[mm]|"] = df_p79["Laser21[mm]|"].str[:-1].astype(float)
-        df_p79.drop(df_p79.columns.difference(['Distance[m]|','Laser5[mm]|','Laser21[mm]|']),axis=1,inplace=True)
+        df_p79 = pd.read_csv(p79_file)
+        df_p79.drop(df_p79.columns.difference(['Distance','Laser5','Laser21','Latitude','Longitude']),axis=1,inplace=True)
 
-        df_p79_gps = pd.read_csv(p79_gps,sep=" ")
-        df_p79_gps["Distance[m]|"] = df_p79_gps["Distance[m]|"].str[:-1].astype(float)
-        df_p79_gps["Latitude[dd.dddd]|"] = df_p79_gps["Latitude[dd.dddd]|"].str[:-1].astype(float)
-        df_p79_gps["Longitude[dd.dddd]|"] = df_p79_gps["Longitude[dd.dddd]|"].str[:-1].astype(float)
-        df_p79_gps.drop(df_p79_gps.columns.difference(['Distance[m]|','Latitude[dd.dddd]|','Longitude[dd.dddd]|']),axis=1,inplace=True)
-            
         #Green Mobility
         file = files[i][4:11]
         gm_path = 'aligned_data/'+file+'.hdf5'
@@ -96,15 +86,15 @@ def synthetic_data():
                 passagefile = hdf5file[passage[j]]
                 gm_speed = pd.DataFrame(passagefile['obd.spd_veh'], columns = passagefile['obd.spd_veh'].attrs['chNames'])
                 
-                print("Generating Synthetic Profile for trip:",int(i/2)+1,"/",int(counter/2),"- passage:",j+1,"/",len(passage))
-                synth_data = synthetic_data = create_synthetic_signal(
-                                        p79_distances=np.array(df_p79["Distance[m]|"]),
-                                        p79_laser5=np.array(df_p79["Laser5[mm]|"]),
-                                        p79_laser21=np.array(df_p79["Laser21[mm]|"]),
+                print("Generating Synthetic Profile for trip:",i+1,"/",counter,"- passage:",j+1,"/",len(passage))
+                synth_data = create_synthetic_signal(
+                                        p79_distances=np.array(df_p79["Distance"]),
+                                        p79_laser5=np.array(df_p79["Laser5"]),
+                                        p79_laser21=np.array(df_p79["Laser21"]),
                                         gm_times=np.array(gm_speed["TS_or_Distance"]),
                                         gm_speed=np.array(gm_speed["spd_veh"]))
                 
-                df_dict[k] = pd.DataFrame({'time':synth_data["times"].reshape(np.shape(synth_data["times"])[0]),'synth_acc':synth_data["synth_acc"]})
+                df_dict[k] = pd.DataFrame({'time':synth_data["times"].reshape(np.shape(synth_data["times"])[0]),'synth_acc':synth_data["synth_acc"],'Distance':synth_data["p79_distances"].reshape(np.shape(synth_data["p79_distances"])[0])})
                 df_dict[k].rename_axis(name,inplace=True)
                 df_dict[k].to_csv("synth_data/"+name+".csv",index=False)
                 k += 1

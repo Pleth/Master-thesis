@@ -113,13 +113,13 @@ def create_synthetic_signal(p79_distances:np.array, p79_laser5:np.array, p79_las
     
     
     # interpolate to get the profile GM would observe, NOTE: the resulting profile is then sampled at 250 Hz
-    _, gm_profile = make_observation(y_reference=p79_profile, x_reference=p79_distances, x_observation=gm_distances)
+    gm_distances, gm_profile = make_observation(y_reference=p79_profile, x_reference=p79_distances, x_observation=gm_distances)
     
     # finally compute the synthetic accelerations
     print("Generating Synthetic Profile ...")
     synth_acc, _, _ = Car().drive(gm_times, gm_profile)
 
-    return {"times":gm_times, "synth_acc":synth_acc, "start_time":gm_start_time}
+    return {"times":gm_times, "synth_acc":synth_acc, "start_time":gm_start_time,"p79_distances": gm_distances+min_p79_distance}
 
 
 class Car:
