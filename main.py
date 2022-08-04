@@ -1,3 +1,4 @@
+from re import X
 import sys
 import matplotlib.pyplot as plt
 import numpy as np
@@ -52,7 +53,7 @@ if __name__ == '__main__':
     for i in range(len(synth_acc)): 
         routes.append(synth_acc[i].axes[0].name)
 
-    hdf5file = h5py.File('aligned_data/CPH1_VH.hdf5', 'r')
+    hdf5file = h5py.File('aligned_data/CPH1_HH.hdf5', 'r')
     
     aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
     aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns = hdf5file['aran/trip_1/pass_1']['Allig'].attrs['chNames'])
@@ -64,32 +65,40 @@ if __name__ == '__main__':
     gt = pd.concat([aran_location,DI],axis=1)
 
 
-    test = synth_acc[13]
+    test = synth_acc[0]
 
-    test2 = test[test['Distance'] < 50+np.min(test['Distance'])]
-
-    upper = round(test2['Distance'][test2.index[-1]]/10)*10
-    lower = round(test2['Distance'][0]/10)*10
+    Lat_cord = [aran_location['LatitudeFrom'][1000],aran_location['LatitudeTo'][1005]]
+    Lon_cord = [aran_location['LongitudeFrom'][1000],aran_location['LongitudeTo'][1005]]
 
     files = glob.glob("p79/*.csv")
-    p79_gps = files[1]
+    p79_gps = files[0]
     
     df_p79_gps = pd.read_csv(p79_gps)
     df_p79_gps.drop(df_p79_gps.columns.difference(['Distance','Latitude','Longitude']),axis=1,inplace=True)
-            
-    test3 = df_p79_gps[df_p79_gps['Distance'] <= upper]
 
-    start = [test3['Latitude'][0],test3['Longitude'][0]]
-    end = [test3['Latitude'][5],test3['Longitude'][5]]
+    dfdf = df_p79_gps[(((np.min(Lat_cord) <= df_p79_gps['Latitude']) & (df_p79_gps['Latitude'] <= np.max(Lat_cord))) & ((np.min(Lon_cord) <= df_p79_gps['Longitude']) & (df_p79_gps['Longitude'] <= np.max(Lon_cord))))]
+    dfdf = dfdf.reset_index(drop=True)   
 
-    test4 = aran_location[(aran_location['LatitudeFrom'] >= start[0]) & (aran_location['LongitudeFrom'] >= start[1])]
+    test2 = test[((test['Distance'] >= np.min(dfdf['Distance'])) & (test['Distance'] <= np.max(dfdf['Distance'])))]
+    test2 = test2.reset_index(drop=True)
+
+    plt.plot(test2['synth_acc'])
+    plt.xlabel("time step")
+    plt.ylabel("synth_acc")
+    plt.show()
+
+    from matplotlib.patches import Rectangle
+
+    plt.gca().add_patch(Rectangle((Lon_cord[0],Lat_cord[0]),Lon_cord[1]-Lon_cord[0],Lat_cord[1]-Lat_cord[0],edgecolor='green',facecolor='none',lw=1))
+    plt.scatter(x=aran_location['LongitudeFrom'][1000:1006], y=aran_location['LatitudeFrom'][1000:1006],s=1,c="red")
+    plt.scatter(x=dfdf["Longitude"], y=dfdf["Latitude"],s=1,c="blue")
+    plt.show()
+
 
 
     plt.scatter(x=aran_location['LongitudeFrom'], y=aran_location['LatitudeFrom'],s=1,c="red")#c=gt['DI'],cmap='gray')
     plt.scatter(x=df_p79_gps["Longitude"], y=df_p79_gps["Latitude"],s=1,c="blue")
     plt.show()
-
-
 
 
 
