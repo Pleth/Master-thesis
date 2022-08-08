@@ -80,7 +80,7 @@ def synthetic_data():
             if os.path.isfile("synth_data/"+name+".csv"): # Load synthetic profile if already calculated
                 df_dict[k] = pd.read_csv("synth_data/"+name+".csv")
                 df_dict[k].rename_axis(name,inplace=True)
-                print("Loaded Synthetic Profile for trip:",int(i/2)+1,"/",int(counter/2),"- passage:",j+1,"/",len(passage))                  
+                print("Loaded Synthetic Profile for trip:",i+1,"/",counter,"- passage:",j+1,"/",len(passage))                  
                 k += 1
             else:
                 passagefile = hdf5file[passage[j]]
@@ -94,7 +94,7 @@ def synthetic_data():
                                         gm_times=np.array(gm_speed["TS_or_Distance"]),
                                         gm_speed=np.array(gm_speed["spd_veh"]))
                 
-                df_dict[k] = pd.DataFrame({'time':synth_data["times"].reshape(np.shape(synth_data["times"])[0]),'synth_acc':synth_data["synth_acc"],'Distance':synth_data["p79_distances"].reshape(np.shape(synth_data["p79_distances"])[0])})
+                df_dict[k] = pd.DataFrame({'time':synth_data["times"].reshape(np.shape(synth_data["times"])[0]),'synth_acc':synth_data["synth_acc"],'Distance':synth_data["p79_distances"].reshape(np.shape(synth_data["p79_distances"])[0]),'gm_speed':synth_data["gm_speed"].reshape(np.shape(synth_data["gm_speed"])[0])})
                 df_dict[k].rename_axis(name,inplace=True)
                 df_dict[k].to_csv("synth_data/"+name+".csv",index=False)
                 k += 1

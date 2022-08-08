@@ -1,9 +1,11 @@
-from re import X
 import sys
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import h5py
+from tqdm import tqdm
+
+from matplotlib.patches import Rectangle
 
 from functions import *
 from LiRA_functions import *
@@ -66,6 +68,8 @@ if __name__ == '__main__':
 
 
     test = synth_acc[0]
+    test = test[test['gm_speed'] >= 20]
+    test = test.reset_index(drop=True)
 
     Lat_cord = [aran_location['LatitudeFrom'][1000],aran_location['LatitudeTo'][1005]]
     Lon_cord = [aran_location['LongitudeFrom'][1000],aran_location['LongitudeTo'][1005]]
@@ -82,22 +86,117 @@ if __name__ == '__main__':
     test2 = test[((test['Distance'] >= np.min(dfdf['Distance'])) & (test['Distance'] <= np.max(dfdf['Distance'])))]
     test2 = test2.reset_index(drop=True)
 
-    plt.plot(test2['synth_acc'])
-    plt.xlabel("time step")
-    plt.ylabel("synth_acc")
+
+    files = glob.glob("p79/*.csv")
+        
+    df_cph1_hh = pd.read_csv(files[0])
+    df_cph1_hh.drop(df_cph1_hh.columns.difference(['Distance','Latitude','Longitude']),axis=1,inplace=True)
+    df_cph1_vh = pd.read_csv(files[1])
+    df_cph1_vh.drop(df_cph1_vh.columns.difference(['Distance','Latitude','Longitude']),axis=1,inplace=True)
+    df_cph6_hh = pd.read_csv(files[2])
+    df_cph6_hh.drop(df_cph6_hh.columns.difference(['Distance','Latitude','Longitude']),axis=1,inplace=True)
+    df_cph6_vh = pd.read_csv(files[3])
+    df_cph6_vh.drop(df_cph6_vh.columns.difference(['Distance','Latitude','Longitude']),axis=1,inplace=True)
+
+    hdf5file_cph1_hh = h5py.File('aligned_data/CPH1_HH.hdf5', 'r')
+    hdf5file_cph1_vh = h5py.File('aligned_data/CPH1_VH.hdf5', 'r')
+    hdf5file_cph6_hh = h5py.File('aligned_data/CPH6_HH.hdf5', 'r')
+    hdf5file_cph6_vh = h5py.File('aligned_data/CPH6_VH.hdf5', 'r')    
+    
+    
+    iter = 0
+    segments = {}
+    for j in tqdm(range(len(routes))):
+        synth = synth_acc[j]
+        synth = synth[synth['synth_acc'].notna()]
+        synth = synth[synth['gm_speed'] >= 20]
+        synth = synth.reset_index(drop=True)
+        route = routes[j][:7]
+        if route == 'CPH1_HH':
+            p79_gps = df_cph1_hh
+            aran_location = pd.DataFrame(hdf5file_cph1_hh['aran/trip_1/pass_1']['Location'], columns = hdf5file_cph1_hh['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+        elif route == 'CPH1_VH':
+            p79_gps = df_cph1_vh
+            aran_location = pd.DataFrame(hdf5file_cph1_vh['aran/trip_1/pass_1']['Location'], columns = hdf5file_cph1_vh['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+        elif route == 'CPH6_HH':
+            p79_gps = df_cph6_hh
+            aran_location = pd.DataFrame(hdf5file_cph6_hh['aran/trip_1/pass_1']['Location'], columns = hdf5file_cph6_hh['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+        elif route == 'CPH6_VH':
+            p79_gps = df_cph6_vh
+            aran_location = pd.DataFrame(hdf5file_cph6_vh['aran/trip_1/pass_1']['Location'], columns = hdf5file_cph6_vh['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+
+        i,k = 0, 0
+        # Get 50m from ARAN -> Find gps signal from p79 -> Get measurements from synthetic data
+        while (i < (len(aran_location['LatitudeFrom'])-6) ):
+            Lat_cord = [aran_location['LatitudeFrom'][i],aran_location['LatitudeTo'][i+4]]
+            Lon_cord = [aran_location['LongitudeFrom'][i],aran_location['LongitudeTo'][i+4]]
+            # Lat_cord = [np.min([aran_location['LatitudeFrom'][i:i+5],aran_location['LatitudeTo'][i:i+5]]),np.max([aran_location['LatitudeFrom'][i:i+5],aran_location['LatitudeTo'][i:i+5]])]
+            # Lon_cord = [np.min([aran_location['LongitudeFrom'][i:i+5],aran_location['LongitudeTo'][i:i+5]]),np.max([aran_location['LongitudeFrom'][i:i+5],aran_location['LongitudeTo'][i:i+5]])]
+            
+
+            dfdf = p79_gps[(((np.min(Lat_cord) <= p79_gps['Latitude']) & (p79_gps['Latitude'] <= np.max(Lat_cord))) & ((np.min(Lon_cord) <= p79_gps['Longitude']) & (p79_gps['Longitude'] <= np.max(Lon_cord))))]
+            dfdf = dfdf.reset_index(drop=True)   
+
+            synth_seg = synth[((synth['Distance'] >= np.min(dfdf['Distance'])) & (synth['Distance'] <= np.max(dfdf['Distance'])))]
+            synth_seg = synth_seg.reset_index(drop=True)
+
+            stat1 = synth_seg['Distance'].empty
+            if stat1:
+                stat2 = True
+                stat3 = True
+            else:
+                stat2 = (synth_seg['Distance'][len(synth_seg['Distance'])-1]-synth_seg['Distance'][0]) <= 40
+                stat3 = (len(synth_seg['synth_acc'])) > 5000
+            if stat1 | stat2 | stat3:
+                i += 1
+            else:
+                k += 1
+                i += 5
+                segments[iter] = synth_seg['synth_acc']
+                if len(segments[iter]) > 5000:
+                    print('route:',route)
+                    print('length:',len(synth_seg['synth_acc']))
+                    print('length:',len(segments[iter]))
+                iter += 1
+    
+    leng = []
+    for g in range(len(segments)):
+        leng.append(len(segments[g]))
+
+    leng = np.array(leng)
+    plt.hist(leng,bins=100)
     plt.show()
 
-    from matplotlib.patches import Rectangle
 
-    plt.gca().add_patch(Rectangle((Lon_cord[0],Lat_cord[0]),Lon_cord[1]-Lon_cord[0],Lat_cord[1]-Lat_cord[0],edgecolor='green',facecolor='none',lw=1))
-    plt.scatter(x=aran_location['LongitudeFrom'][1000:1006], y=aran_location['LatitudeFrom'][1000:1006],s=1,c="red")
-    plt.scatter(x=dfdf["Longitude"], y=dfdf["Latitude"],s=1,c="blue")
+    leng[np.argpartition(leng,-5)[-5:]]
+
+
+    synth_segments = pd.DataFrame.from_dict(segments,orient='index').transpose()
+    
+
+
+    # plt.plot(test2['synth_acc'])
+    # plt.xlabel("time step")
+    # plt.ylabel("synth_acc")
+    # plt.show()
+
+    i = 0
+    while (i < (len(aran_location['LatitudeFrom'])-6) ):
+            Lat_cord = [np.min([aran_location['LatitudeFrom'][i:i+5],aran_location['LatitudeTo'][i:i+5]]),np.max([aran_location['LatitudeFrom'][i:i+5],aran_location['LatitudeTo'][i:i+5]])]
+            Lon_cord = [np.min([aran_location['LongitudeFrom'][i:i+5],aran_location['LongitudeTo'][i:i+5]]),np.max([aran_location['LongitudeFrom'][i:i+5],aran_location['LongitudeTo'][i:i+5]])]
+            plt.gca().add_patch(Rectangle((Lon_cord[0],Lat_cord[0]),Lon_cord[1]-Lon_cord[0],Lat_cord[1]-Lat_cord[0],edgecolor='green',facecolor='none',lw=1))
+            Lat_cord = [aran_location['LatitudeFrom'][i],aran_location['LatitudeTo'][i+4]]
+            Lon_cord = [aran_location['LongitudeFrom'][i],aran_location['LongitudeTo'][i+4]]
+            plt.gca().add_patch(Rectangle((Lon_cord[0],Lat_cord[0]),Lon_cord[1]-Lon_cord[0],Lat_cord[1]-Lat_cord[0],edgecolor='purple',facecolor='none',lw=1))
+            i += 5
+
+    plt.scatter(x=aran_location['LongitudeFrom'], y=aran_location['LatitudeFrom'],s=1,c="red")
+    plt.scatter(x=aran_location['LongitudeTo'], y=aran_location['LatitudeTo'],s=1,c="black")
+    plt.scatter(x=p79_gps[p79_gps["Longitude"] != 0]['Longitude'], y=p79_gps[p79_gps["Latitude"] != 0]['Latitude'],s=1,c="blue")
     plt.show()
 
-
-
-    plt.scatter(x=aran_location['LongitudeFrom'], y=aran_location['LatitudeFrom'],s=1,c="red")#c=gt['DI'],cmap='gray')
-    plt.scatter(x=df_p79_gps["Longitude"], y=df_p79_gps["Latitude"],s=1,c="blue")
+    plt.scatter(x=aran_location['LongitudeFrom'][80:250], y=aran_location['LatitudeFrom'][80:250],s=1,c="red")#c=gt['DI'],cmap='gray')
+    plt.scatter(x=p79_gps["Longitude"], y=p79_gps["Latitude"],s=1,c="blue")
     plt.show()
 
 
