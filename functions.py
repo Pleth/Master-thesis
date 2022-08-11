@@ -129,7 +129,7 @@ def find_min_gps_vector(drd,gm):
     
     # drd = np.tile(drd,(len(gm),1))
 
-    #res = haversine_vector(drd,gm,Unit.METERS)
+    # res = haversine_vector(drd,gm,Unit.METERS)
     res = haversine_np(drd[1],drd[0],gm[:,1],gm[:,0])
     min_idx = np.argmin(res)
     min_dist = np.min(res)
