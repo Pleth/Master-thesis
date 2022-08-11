@@ -4,8 +4,10 @@ import numpy as np
 import pandas as pd
 import h5py
 from tqdm import tqdm
+import time
 
 from matplotlib.patches import Rectangle
+from matplotlib.lines import Line2D
 
 from functions import *
 from LiRA_functions import *
@@ -134,21 +136,55 @@ if __name__ == '__main__':
 
 
         p79_start = p79_gps[['Latitude','Longitude']].iloc[0].values
-        _, aran_start_idx, _ = find_min_gps(p79_start[0], p79_start[1], aran_location['LatitudeFrom'].iloc[:100].values, aran_location['LongitudeFrom'].iloc[:100].values)
+        # _, aran_start_idx, _ = find_min_gps(p79_start[0], p79_start[1], aran_location['LatitudeFrom'].iloc[:100].values, aran_location['LongitudeFrom'].iloc[:100].values)
+        aran_start_idx, _ = find_min_gps_vector(p79_start,aran_location[['LatitudeFrom','LongitudeFrom']].iloc[:100].values)
         aran_loc = aran_location.iloc[aran_start_idx:].reset_index(drop=True)
 
-        i = 0
+        i = 100 # i = 0
         # Get 50m from ARAN -> Find gps signal from p79 -> Get measurements from synthetic data
-        while (i < 100):#(len(aran_location['LatitudeFrom'])-6) ):
+        while (i < 800):#(len(aran_location['LatitudeFrom'])-6) ):
             aran_start = [aran_loc['LatitudeFrom'][i],aran_loc['LongitudeFrom'][i]]
             aran_end = [aran_loc['LatitudeTo'][i+4],aran_loc['LongitudeTo'][i+4]]
-            _, p79_start_idx, start_dist = find_min_gps(aran_start[0], aran_start[1], p79_gps['Latitude'].values, p79_gps['Longitude'].values)
-            _, p79_end_idx, end_dist = find_min_gps(aran_end[0], aran_end[1], p79_gps['Latitude'].values, p79_gps['Longitude'].values)
 
+            # start = time.time()
+            # _, p79_start_idx, start_dist = find_min_gps(aran_start[0], aran_start[1], p79_gps['Latitude'].values, p79_gps['Longitude'].values)
+            # _, p79_end_idx, end_dist = find_min_gps(aran_end[0], aran_end[1], p79_gps['Latitude'].values, p79_gps['Longitude'].values)
+            # end = time.time()
+            # print('Iteration:',i)
+            # print('start_dist:',start_dist)
+            # print('end_dist:',end_dist)
+
+            p79_start_idx, start_dist = find_min_gps_vector(aran_start,p79_gps[['Latitude','Longitude']].values)
+            p79_end_idx, end_dist = find_min_gps_vector(aran_end,p79_gps[['Latitude','Longitude']].values)
+
+            start1 = time.time()
+            p79_start_idx, start_dist = find_min_gps_vector(aran_start,p79_gps[['Latitude','Longitude']].values)
+            end1 = time.time()
+            time1 = end1 - start1
+
+
+            start2 = time.time()
+            lon1 = aran_start[1]
+            lat1 = aran_start[0]
+            lon2 = p79_gps['Longitude'].values
+            lat2 = p79_gps['Latitude'].values
+
+            m = haversine_np(lon1, lat1, lon2, lat2)
+            end2 = time.time()
+            time2 = end2-start2
+
+            
+            # end1 = time.time()
             print('Iteration:',i)
             print('start_dist:',start_dist)
             print('end_dist:',end_dist)
 
+
+            # print('start_idx:',p79_start_idx,test_idx1)
+            # print('end_idx:',p79_end_idx,test_idx2)
+
+            # print('Time difference:',(end-start)-(end1-start1))
+            
             if start_dist < 15 and end_dist < 15:
                 dfdf = p79_gps['Distance'][p79_start_idx:p79_end_idx]
                 dfdf = dfdf.reset_index(drop=True)   
@@ -191,13 +227,13 @@ if __name__ == '__main__':
             else:
                 i +=1
 
-        tester = synth_acc[0]
+        tester = synth_acc[j]
         tester = tester[tester['synth_acc'].notna()]
         p79_gps = p79_gps[p79_gps['Longitude'] != 0]
         p79_gps = p79_gps[p79_gps['Latitude'] != 0]
         p79_gps = p79_gps.reset_index(drop=True)
-        plt.scatter(x=p79_gps[p79_gps["Longitude"] != 0]['Longitude'][:10000], y=p79_gps[p79_gps["Latitude"] != 0]['Latitude'][:10000],s=1,c="blue",label='p79 route')
-        for k in tqdm(range(10000)):#len(p79_gps)-1)):
+        plt.scatter(x=p79_gps[p79_gps["Longitude"] != 0]['Longitude'], y=p79_gps[p79_gps["Latitude"] != 0]['Latitude'],s=1,c="blue",label='p79 route')
+        for k in tqdm(range(len(p79_gps)-1)):
             x_val = [p79_gps['Longitude'][k],p79_gps['Longitude'][k+1]]
             y_val = [p79_gps['Latitude'][k],p79_gps['Latitude'][k+1]]
 
@@ -210,8 +246,8 @@ if __name__ == '__main__':
             if (np.min(speed['gm_speed']) < 20):
                 _ = plt.plot(x_val,y_val,'grey')
         
-        plt.scatter(x=aran_location['LongitudeFrom'][0:100], y=aran_location['LatitudeFrom'][0:100],s=1,c="red",label='AranFrom')
-        plt.scatter(x=aran_location['LongitudeTo'][0:100], y=aran_location['LatitudeTo'][0:100],s=1,c="black",label='AranTo')
+        plt.scatter(x=aran_location['LongitudeFrom'][100:800], y=aran_location['LatitudeFrom'][100:800],s=1,c="red",label='AranFrom')
+        plt.scatter(x=aran_location['LongitudeTo'][100:800], y=aran_location['LatitudeTo'][100:800],s=1,c="black",label='AranTo')
         # plt.scatter(x=p79_gps[p79_gps["Longitude"] != 0]['Longitude'], y=p79_gps[p79_gps["Latitude"] != 0]['Latitude'],s=1,c="blue")
 
         custom_lines = [Line2D([0], [0], color='blue', lw=2),
@@ -225,11 +261,6 @@ if __name__ == '__main__':
         plt.ylabel('Latitude')
 
         plt.show()
-
-    plt.hist(np.array(dists),bins=100)
-    plt.show()
-
-
 
 
 

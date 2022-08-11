@@ -1,18 +1,13 @@
 from faulthandler import disable
 import os
 import pandas as pd
-import math
 import numpy as np
 from tsfresh import extract_features
 from tsfresh.utilities.dataframe_functions import impute
 from tqdm import tqdm
-from haversine import haversine, Unit
+from haversine import haversine, haversine_vector, Unit
 import glob
 import h5py
-import matplotlib.pyplot as plt
-
-from matplotlib.patches import Rectangle
-from matplotlib.lines import Line2D
 
 from LiRA_functions import *
 
@@ -22,7 +17,6 @@ def calc_DI(allig, cracks, potholes):
     cracks = cracks.fillna(0)
     potholes = potholes.fillna(0)
 
-
     alligsum = (3*allig['AlligCracksSmall'] + 4*allig['AlligCracksMed'] + 5*allig['AlligCracksLarge'])**0.3
     cracksum = (cracks['CracksLongitudinalSmall']**2 + cracks['CracksLongitudinalMed']**3 + cracks['CracksLongitudinalLarge']**4 + \
                 cracks['CracksLongitudinalSealed']**2 + 3*cracks['CracksTransverseSmall'] + 4*cracks['CracksTransverseMed'] + \
@@ -31,15 +25,6 @@ def calc_DI(allig, cracks, potholes):
                   5*potholes['PotholeAreaAffectedDelam'])**0.1
     DI = alligsum + cracksum + potholesum
     return DI
-
-def rm_aligned(gps,gt):
-
-    dist = []
-    for i in range(len(gps.index)-1):
-        dist.append(math.dist([gps['lat'][i],gps['lon'][i]],[gps['lat'][i+1],gps['lon'][i+1]]))
-
-    return dist
-
 
 def synthetic_data():
 
@@ -128,6 +113,28 @@ def find_min_gps(drd_lat, drd_lon, gm_lat, gm_lon): # From Thea
 
     return drd_idx, gm_idx, dist[drd_idx]
 
+def haversine_np(lon1, lat1, lon2, lat2):
+    lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
+
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+
+    a = np.sin(dlat/2.0)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon/2.0)**2
+
+    c = 2 * np.arcsin(np.sqrt(a))
+    m = 6371000 * c # Eart radius in meters
+    return m
+
+def find_min_gps_vector(drd,gm):
+    
+    # drd = np.tile(drd,(len(gm),1))
+
+    #res = haversine_vector(drd,gm,Unit.METERS)
+    res = haversine_np(drd[1],drd[0],gm[:,1],gm[:,0])
+    min_idx = np.argmin(res)
+    min_dist = np.min(res)
+    return min_idx, min_dist
+
 
 def synthetic_segmentation(synth_acc,routes):
     files = glob.glob("p79/*.csv")
@@ -182,7 +189,8 @@ def synthetic_segmentation(synth_acc,routes):
             aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns = hdf5file['aran/trip_1/pass_1']['Pothole'].attrs['chNames'])
     
         p79_start = p79_gps[['Latitude','Longitude']].iloc[0].values
-        _, aran_start_idx, _ = find_min_gps(p79_start[0], p79_start[1], aran_location['LatitudeFrom'].iloc[:100].values, aran_location['LongitudeFrom'].iloc[:100].values)
+        # _, aran_start_idx, _ = find_min_gps(p79_start[0], p79_start[1], aran_location['LatitudeFrom'].iloc[:100].values, aran_location['LongitudeFrom'].iloc[:100].values)
+        aran_start_idx, _ = find_min_gps_vector(p79_start,aran_location[['LatitudeFrom','LongitudeFrom']].iloc[:100].values)
         aran_location = aran_location.iloc[aran_start_idx:].reset_index(drop=True)
 
         i = 0
@@ -190,8 +198,10 @@ def synthetic_segmentation(synth_acc,routes):
         while (i < (len(aran_location['LatitudeFrom'])-6) ):
             aran_start = [aran_location['LatitudeFrom'][i],aran_location['LongitudeFrom'][i]]
             aran_end = [aran_location['LatitudeTo'][i+4],aran_location['LongitudeTo'][i+4]]
-            _, p79_start_idx, start_dist = find_min_gps(aran_start[0], aran_start[1], p79_gps['Latitude'].values, p79_gps['Longitude'].values)
-            _, p79_end_idx, end_dist = find_min_gps(aran_end[0], aran_end[1], p79_gps['Latitude'].values, p79_gps['Longitude'].values)
+            p79_start_idx, start_dist = find_min_gps_vector(aran_start,p79_gps[['Latitude','Longitude']].values)
+            p79_end_idx, end_dist = find_min_gps_vector(aran_end,p79_gps[['Latitude','Longitude']].values)
+            # _, p79_start_idx, start_dist = find_min_gps(aran_start[0], aran_start[1], p79_gps['Latitude'].values, p79_gps['Longitude'].values)
+            # _, p79_end_idx, end_dist = find_min_gps(aran_end[0], aran_end[1], p79_gps['Latitude'].values, p79_gps['Longitude'].values)
             if start_dist < 15 and end_dist < 15:
                 dfdf = p79_gps['Distance'][p79_start_idx:p79_end_idx]
                 dfdf = dfdf.reset_index(drop=True)   
@@ -213,6 +223,7 @@ def synthetic_segmentation(synth_acc,routes):
                     stat2 = (synth_seg['Distance'][len(synth_seg['Distance'])-1]-synth_seg['Distance'][0]) <= 40
                     stat3 = (len(synth_seg['synth_acc'])) > 5000
                     stat4 = False if bool(large) == False else (np.max(large) > 5)
+                    
                 if stat1 | stat2 | stat3 | stat4:
                     i += 1
                 else:
