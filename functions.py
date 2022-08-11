@@ -12,6 +12,7 @@ import h5py
 import matplotlib.pyplot as plt
 
 from matplotlib.patches import Rectangle
+from matplotlib.lines import Line2D
 
 from LiRA_functions import *
 
@@ -129,17 +130,7 @@ def find_min_gps(drd_lat, drd_lon, gm_lat, gm_lon): # From Thea
 
 
 def synthetic_segmentation(synth_acc,routes):
-
-    synth_acc = synthetic_data()
-    routes = []
-    for i in range(len(synth_acc)): 
-        routes.append(synth_acc[i].axes[0].name)
-
-
-    segments = {}
-
     files = glob.glob("p79/*.csv")
-        
     df_cph1_hh = pd.read_csv(files[0])
     df_cph1_hh.drop(df_cph1_hh.columns.difference(['Distance','Latitude','Longitude']),axis=1,inplace=True)
     df_cph1_vh = pd.read_csv(files[1])
@@ -148,13 +139,6 @@ def synthetic_segmentation(synth_acc,routes):
     df_cph6_hh.drop(df_cph6_hh.columns.difference(['Distance','Latitude','Longitude']),axis=1,inplace=True)
     df_cph6_vh = pd.read_csv(files[3])
     df_cph6_vh.drop(df_cph6_vh.columns.difference(['Distance','Latitude','Longitude']),axis=1,inplace=True)
-
-    hdf5file_cph1_hh = h5py.File('aligned_data/CPH1_HH.hdf5', 'r')
-    hdf5file_cph1_vh = h5py.File('aligned_data/CPH1_VH.hdf5', 'r')
-    hdf5file_cph6_hh = h5py.File('aligned_data/CPH6_HH.hdf5', 'r')
-    hdf5file_cph6_vh = h5py.File('aligned_data/CPH6_VH.hdf5', 'r')    
-    
-    
     iter = 0
     segments = {}
     for j in tqdm(range(len(routes))):
@@ -163,31 +147,51 @@ def synthetic_segmentation(synth_acc,routes):
         synth = synth[synth['gm_speed'] >= 20]
         synth = synth.reset_index(drop=True)
         route = routes[j][:7]
+
         if route == 'CPH1_HH':
             p79_gps = df_cph1_hh
-            aran_location = pd.DataFrame(hdf5file_cph1_hh['aran/trip_1/pass_1']['Location'], columns = hdf5file_cph1_hh['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+            hdf5_route = ('aligned_data/'+route+'.hdf5')
+            hdf5file = h5py.File(hdf5_route, 'r')
+            aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+            aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns = hdf5file['aran/trip_1/pass_1']['Allig'].attrs['chNames'])
+            aran_cracks = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Cracks'], columns = hdf5file['aran/trip_1/pass_1']['Cracks'].attrs['chNames'])
+            aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns = hdf5file['aran/trip_1/pass_1']['Pothole'].attrs['chNames'])
         elif route == 'CPH1_VH':
             p79_gps = df_cph1_vh
-            aran_location = pd.DataFrame(hdf5file_cph1_vh['aran/trip_1/pass_1']['Location'], columns = hdf5file_cph1_vh['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+            hdf5_route = ('aligned_data/'+route+'.hdf5')
+            hdf5file = h5py.File(hdf5_route, 'r')
+            aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+            aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns = hdf5file['aran/trip_1/pass_1']['Allig'].attrs['chNames'])
+            aran_cracks = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Cracks'], columns = hdf5file['aran/trip_1/pass_1']['Cracks'].attrs['chNames'])
+            aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns = hdf5file['aran/trip_1/pass_1']['Pothole'].attrs['chNames'])
         elif route == 'CPH6_HH':
             p79_gps = df_cph6_hh
-            aran_location = pd.DataFrame(hdf5file_cph6_hh['aran/trip_1/pass_1']['Location'], columns = hdf5file_cph6_hh['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+            hdf5_route = ('aligned_data/'+route+'.hdf5')
+            hdf5file = h5py.File(hdf5_route, 'r')
+            aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+            aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns = hdf5file['aran/trip_1/pass_1']['Allig'].attrs['chNames'])
+            aran_cracks = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Cracks'], columns = hdf5file['aran/trip_1/pass_1']['Cracks'].attrs['chNames'])
+            aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns = hdf5file['aran/trip_1/pass_1']['Pothole'].attrs['chNames'])
         elif route == 'CPH6_VH':
             p79_gps = df_cph6_vh
-            aran_location = pd.DataFrame(hdf5file_cph6_vh['aran/trip_1/pass_1']['Location'], columns = hdf5file_cph6_vh['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+            hdf5_route = ('aligned_data/'+route+'.hdf5')
+            hdf5file = h5py.File(hdf5_route, 'r')
+            aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+            aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns = hdf5file['aran/trip_1/pass_1']['Allig'].attrs['chNames'])
+            aran_cracks = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Cracks'], columns = hdf5file['aran/trip_1/pass_1']['Cracks'].attrs['chNames'])
+            aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns = hdf5file['aran/trip_1/pass_1']['Pothole'].attrs['chNames'])
+    
+        p79_start = p79_gps[['Latitude','Longitude']].iloc[0].values
+        _, aran_start_idx, _ = find_min_gps(p79_start[0], p79_start[1], aran_location['LatitudeFrom'].iloc[:100].values, aran_location['LongitudeFrom'].iloc[:100].values)
+        aran_location = aran_location.iloc[aran_start_idx:].reset_index(drop=True)
 
-        i,k = 0, 0
+        i = 0
         # Get 50m from ARAN -> Find gps signal from p79 -> Get measurements from synthetic data
         while (i < (len(aran_location['LatitudeFrom'])-6) ):
             aran_start = [aran_location['LatitudeFrom'][i],aran_location['LongitudeFrom'][i]]
-            aran_end = [aran_location['LatitudeTo'][i+5],aran_location['LongitudeTo'][i+5]]
+            aran_end = [aran_location['LatitudeTo'][i+4],aran_location['LongitudeTo'][i+4]]
             _, p79_start_idx, start_dist = find_min_gps(aran_start[0], aran_start[1], p79_gps['Latitude'].values, p79_gps['Longitude'].values)
             _, p79_end_idx, end_dist = find_min_gps(aran_end[0], aran_end[1], p79_gps['Latitude'].values, p79_gps['Longitude'].values)
-
-            print('Iteration:',i)
-            print('start_dist:',start_dist)
-            print('end_dist:',end_dist)
-
             if start_dist < 15 and end_dist < 15:
                 dfdf = p79_gps['Distance'][p79_start_idx:p79_end_idx]
                 dfdf = dfdf.reset_index(drop=True)   
@@ -196,34 +200,32 @@ def synthetic_segmentation(synth_acc,routes):
                 synth_seg = synth_seg.reset_index(drop=True)
 
                 stat1 = synth_seg['Distance'].empty
+                lag = []
+                for h in range(len(synth_seg)-1):
+                    lag.append(synth_seg['Distance'][h+1]-synth_seg['Distance'][h])        
+                large = [y for y in lag if y > 5]
+                
                 if stat1:
                     stat2 = True
                     stat3 = True
+                    stat4 = True
                 else:
                     stat2 = (synth_seg['Distance'][len(synth_seg['Distance'])-1]-synth_seg['Distance'][0]) <= 40
                     stat3 = (len(synth_seg['synth_acc'])) > 5000
-                if stat1 | stat2 | stat3:
+                    stat4 = False if bool(large) == False else (np.max(large) > 5)
+                if stat1 | stat2 | stat3 | stat4:
                     i += 1
                 else:
-                    k += 1
                     i += 5
                     segments[iter] = synth_seg['synth_acc']
-                    Lat_cord = [p79_gps['Latitude'][p79_start_idx],p79_gps['Latitude'][p79_end_idx]]
-                    Lon_cord = [p79_gps['Longitude'][p79_start_idx],p79_gps['Longitude'][p79_end_idx]]
-                    _ = plt.gca().add_patch(Rectangle((Lon_cord[0],Lat_cord[0]),Lon_cord[1]-Lon_cord[0],Lat_cord[1]-Lat_cord[0],edgecolor='green',facecolor='none',lw=1))
-                
                     iter += 1
             else:
                 i +=1
 
-        
-        plt.scatter(x=aran_location['LongitudeFrom'][0:100], y=aran_location['LatitudeFrom'][0:100],s=1,c="red")
-        plt.scatter(x=aran_location['LongitudeTo'][0:100], y=aran_location['LatitudeTo'][0:100],s=1,c="black")
-        plt.scatter(x=p79_gps[p79_gps["Longitude"] != 0]['Longitude'], y=p79_gps[p79_gps["Latitude"] != 0]['Latitude'],s=1,c="blue")
-        plt.show()
 
     synth_segments = pd.DataFrame.from_dict(segments,orient='index').transpose()
-    return synth_segments
+    aran_details = {}
+    return synth_segments, aran_details
 
 
 

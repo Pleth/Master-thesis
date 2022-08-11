@@ -89,6 +89,11 @@ if __name__ == '__main__':
     test2 = test2.reset_index(drop=True)
 
 
+    synth_acc = synthetic_data()
+    routes = []
+    for i in range(len(synth_acc)): 
+        routes.append(synth_acc[i].axes[0].name)
+
     files = glob.glob("p79/*.csv")
         
     df_cph1_hh = pd.read_csv(files[0])
@@ -108,7 +113,7 @@ if __name__ == '__main__':
     
     iter = 0
     segments = {}
-    for j in tqdm(range(len(routes))):
+    for j in tqdm(range(1)):
         synth = synth_acc[j]
         synth = synth[synth['synth_acc'].notna()]
         synth = synth[synth['gm_speed'] >= 20]
@@ -127,107 +132,99 @@ if __name__ == '__main__':
             p79_gps = df_cph6_vh
             aran_location = pd.DataFrame(hdf5file_cph6_vh['aran/trip_1/pass_1']['Location'], columns = hdf5file_cph6_vh['aran/trip_1/pass_1']['Location'].attrs['chNames'])
 
-        i,k = 0, 0
+
+        p79_start = p79_gps[['Latitude','Longitude']].iloc[0].values
+        _, aran_start_idx, _ = find_min_gps(p79_start[0], p79_start[1], aran_location['LatitudeFrom'].iloc[:100].values, aran_location['LongitudeFrom'].iloc[:100].values)
+        aran_loc = aran_location.iloc[aran_start_idx:].reset_index(drop=True)
+
+        i = 0
         # Get 50m from ARAN -> Find gps signal from p79 -> Get measurements from synthetic data
-        while (i < (len(aran_location['LatitudeFrom'])-6) ):
-            Lat_cord = [aran_location['LatitudeFrom'][i],aran_location['LatitudeTo'][i+4]]
-            Lon_cord = [aran_location['LongitudeFrom'][i],aran_location['LongitudeTo'][i+4]]
-            # Lat_cord = [np.min([aran_location['LatitudeFrom'][i:i+5],aran_location['LatitudeTo'][i:i+5]]),np.max([aran_location['LatitudeFrom'][i:i+5],aran_location['LatitudeTo'][i:i+5]])]
-            # Lon_cord = [np.min([aran_location['LongitudeFrom'][i:i+5],aran_location['LongitudeTo'][i:i+5]]),np.max([aran_location['LongitudeFrom'][i:i+5],aran_location['LongitudeTo'][i:i+5]])]
+        while (i < 100):#(len(aran_location['LatitudeFrom'])-6) ):
+            aran_start = [aran_loc['LatitudeFrom'][i],aran_loc['LongitudeFrom'][i]]
+            aran_end = [aran_loc['LatitudeTo'][i+4],aran_loc['LongitudeTo'][i+4]]
+            _, p79_start_idx, start_dist = find_min_gps(aran_start[0], aran_start[1], p79_gps['Latitude'].values, p79_gps['Longitude'].values)
+            _, p79_end_idx, end_dist = find_min_gps(aran_end[0], aran_end[1], p79_gps['Latitude'].values, p79_gps['Longitude'].values)
+
+            print('Iteration:',i)
+            print('start_dist:',start_dist)
+            print('end_dist:',end_dist)
+
+            if start_dist < 15 and end_dist < 15:
+                dfdf = p79_gps['Distance'][p79_start_idx:p79_end_idx]
+                dfdf = dfdf.reset_index(drop=True)   
+
+                synth_seg = synth[((synth['Distance'] >= np.min(dfdf)) & (synth['Distance'] <= np.max(dfdf)))]
+                synth_seg = synth_seg.reset_index(drop=True)
+
+                stat1 = synth_seg['Distance'].empty
+                lag = []
+                for h in range(len(synth_seg)-1):
+                    lag.append(synth_seg['Distance'][h+1]-synth_seg['Distance'][h])        
+                large = [y for y in lag if y > 5]
+                
+                if stat1:
+                    stat2 = True
+                    stat3 = True
+                    stat4 = True
+                else:
+                    stat2 = (synth_seg['Distance'][len(synth_seg['Distance'])-1]-synth_seg['Distance'][0]) <= 40
+                    stat3 = (len(synth_seg['synth_acc'])) > 5000
+                    stat4 = False if bool(large) == False else (np.max(large) > 5)
+                if stat1 | stat2 | stat3 | stat4:
+                    i += 1
+                else:
+                    i += 5
+                    segments[iter] = synth_seg['synth_acc']
+                    Lat_cord = [p79_gps['Latitude'][p79_start_idx],p79_gps['Latitude'][p79_end_idx]]
+                    Lon_cord = [p79_gps['Longitude'][p79_start_idx],p79_gps['Longitude'][p79_end_idx]]
+                    _ = plt.gca().add_patch(Rectangle((Lon_cord[0],Lat_cord[0]),Lon_cord[1]-Lon_cord[0],Lat_cord[1]-Lat_cord[0],edgecolor='green',facecolor='none',lw=1))
+                    iter += 1
+
+                    x_val = [aran_start[1],p79_gps['Longitude'][p79_start_idx]]
+                    y_val = [aran_start[0],p79_gps['Latitude'][p79_start_idx]]
+                    _ = plt.plot(x_val,y_val,'r')
+
+                    x_val = [aran_end[1],p79_gps['Longitude'][p79_end_idx]]
+                    y_val = [aran_end[0],p79_gps['Latitude'][p79_end_idx]]
+                    _ = plt.plot(x_val,y_val,'k')
+
+            else:
+                i +=1
+
+        tester = synth_acc[0]
+        tester = tester[tester['synth_acc'].notna()]
+        p79_gps = p79_gps[p79_gps['Longitude'] != 0]
+        p79_gps = p79_gps[p79_gps['Latitude'] != 0]
+        p79_gps = p79_gps.reset_index(drop=True)
+        plt.scatter(x=p79_gps[p79_gps["Longitude"] != 0]['Longitude'][:10000], y=p79_gps[p79_gps["Latitude"] != 0]['Latitude'][:10000],s=1,c="blue",label='p79 route')
+        for k in tqdm(range(10000)):#len(p79_gps)-1)):
+            x_val = [p79_gps['Longitude'][k],p79_gps['Longitude'][k+1]]
+            y_val = [p79_gps['Latitude'][k],p79_gps['Latitude'][k+1]]
+
+            if (np.min(x_val) < 10):
+                print('x index:',k)
+            if (np.min(y_val) < 10):
+                print('y index:',k)
             
-
-            dfdf = p79_gps[(((np.min(Lat_cord) <= p79_gps['Latitude']) & (p79_gps['Latitude'] <= np.max(Lat_cord))) & ((np.min(Lon_cord) <= p79_gps['Longitude']) & (p79_gps['Longitude'] <= np.max(Lon_cord))))]
-            dfdf = dfdf.reset_index(drop=True)   
-
-            synth_seg = synth[((synth['Distance'] >= np.min(dfdf['Distance'])) & (synth['Distance'] <= np.max(dfdf['Distance'])))]
-            synth_seg = synth_seg.reset_index(drop=True)
-
-            stat1 = synth_seg['Distance'].empty
-            if stat1:
-                stat2 = True
-                stat3 = True
-            else:
-                stat2 = (synth_seg['Distance'][len(synth_seg['Distance'])-1]-synth_seg['Distance'][0]) <= 40
-                stat3 = (len(synth_seg['synth_acc'])) > 5000
-            if stat1 | stat2 | stat3:
-                i += 1
-            else:
-                k += 1
-                i += 5
-                segments[iter] = synth_seg['synth_acc']
-                if len(segments[iter]) > 5000:
-                    print('route:',route)
-                    print('length:',len(synth_seg['synth_acc']))
-                    print('length:',len(segments[iter]))
-                iter += 1
-    
-    synth_segments = pd.DataFrame.from_dict(segments,orient='index').transpose()
-    
-
-
-
-    
-    iter = 0
-    i = 0
-    dists = []
-    while (i < (len(aran_location['LatitudeFrom'])-6) ):
-            Lat_cord = [np.min([aran_location['LatitudeFrom'][i:i+5],aran_location['LatitudeTo'][i:i+5]]),np.max([aran_location['LatitudeFrom'][i:i+5],aran_location['LatitudeTo'][i:i+5]])]
-            Lon_cord = [np.min([aran_location['LongitudeFrom'][i:i+5],aran_location['LongitudeTo'][i:i+5]]),np.max([aran_location['LongitudeFrom'][i:i+5],aran_location['LongitudeTo'][i:i+5]])]
-            dfdf = p79_gps[(((np.min(Lat_cord) <= p79_gps['Latitude']) & (p79_gps['Latitude'] <= np.max(Lat_cord))) & ((np.min(Lon_cord) <= p79_gps['Longitude']) & (p79_gps['Longitude'] <= np.max(Lon_cord))))]
-            dfdf = dfdf.reset_index(drop=True)   
-
-            synth_seg = synth[((synth['Distance'] >= np.min(dfdf['Distance'])) & (synth['Distance'] <= np.max(dfdf['Distance'])))]
-            synth_seg = synth_seg.reset_index(drop=True)
-
-            stat1 = synth_seg['Distance'].empty
-            if stat1:
-                stat2 = True
-                stat3 = True
-            else:
-                stat2 = (synth_seg['Distance'][len(synth_seg['Distance'])-1]-synth_seg['Distance'][0]) <= 40
-                stat3 = (len(synth_seg['synth_acc'])) > 5000
-            if stat1 | stat2 | stat3:
-                i += 1
-            else:
-                i += 5
-                dists.append(synth_seg['Distance'][len(synth_seg['Distance'])-1]-synth_seg['Distance'][0])
-                _ = plt.gca().add_patch(Rectangle((Lon_cord[0],Lat_cord[0]),Lon_cord[1]-Lon_cord[0],Lat_cord[1]-Lat_cord[0],edgecolor='green',facecolor='none',lw=1))
-                iter += 1
-            # Lat_cord = [aran_location['LatitudeFrom'][i],aran_location['LatitudeTo'][i+4]]
-            # Lon_cord = [aran_location['LongitudeFrom'][i],aran_location['LongitudeTo'][i+4]]
-            # _ = plt.gca().add_patch(Rectangle((Lon_cord[0],Lat_cord[0]),Lon_cord[1]-Lon_cord[0],Lat_cord[1]-Lat_cord[0],edgecolor='purple',facecolor='none',lw=1))
-            # i += 5
-
-    tester = synth_acc[0]
-    tester = tester[tester['synth_acc'].notna()]
-    tester = tester[tester['synth_acc'] != 0]
-    p79_gps = p79_gps[p79_gps['Longitude'] != 0]
-    p79_gps = p79_gps[p79_gps['Latitude'] != 0]
-    p79_gps = p79_gps.reset_index(drop=True)
-    plt.scatter(x=p79_gps[p79_gps["Longitude"] != 0]['Longitude'], y=p79_gps[p79_gps["Latitude"] != 0]['Latitude'],s=1,c="blue")
-    for k in tqdm(range(len(p79_gps)-1)):
-        x_val = [p79_gps['Longitude'][k],p79_gps['Longitude'][k+1]]
-        y_val = [p79_gps['Latitude'][k],p79_gps['Latitude'][k+1]]
-
-        if (np.min(x_val) < 10):
-            print('x index:',k)
-        if (np.min(y_val) < 10):
-            print('y index:',k)
+            speed = tester[(tester['Distance'] >= p79_gps['Distance'][k]) & (tester['Distance'] <= p79_gps['Distance'][k+1])]
+            if (np.min(speed['gm_speed']) < 20):
+                _ = plt.plot(x_val,y_val,'grey')
         
+        plt.scatter(x=aran_location['LongitudeFrom'][0:100], y=aran_location['LatitudeFrom'][0:100],s=1,c="red",label='AranFrom')
+        plt.scatter(x=aran_location['LongitudeTo'][0:100], y=aran_location['LatitudeTo'][0:100],s=1,c="black",label='AranTo')
+        # plt.scatter(x=p79_gps[p79_gps["Longitude"] != 0]['Longitude'], y=p79_gps[p79_gps["Latitude"] != 0]['Latitude'],s=1,c="blue")
 
-        speed = tester[(tester['Distance'] >= p79_gps['Distance'][k]) & (tester['Distance'] <= p79_gps['Distance'][k+1])]
-        if (np.min(speed['gm_speed']) < 20):
-            _ = plt.plot(x_val,y_val,'r')
-        # else:
-        #     _ = plt.plot(x_val,y_val,'b')
+        custom_lines = [Line2D([0], [0], color='blue', lw=2),
+                Line2D([0], [0], color='red', lw=2),
+                Line2D([0], [0], color='black', lw=2),
+                Line2D([0], [0], color='green', lw=2),
+                Line2D([0], [0], color='grey', lw=2)]
+        plt.legend(custom_lines,['p79 route','AranFrom','AranTo','Segment','Speed < 20 km/h'])
+        plt.title('Segmentation algorithm')
+        plt.xlabel('Longitude')
+        plt.ylabel('Latitude')
 
-
-    plt.scatter(x=aran_location['LongitudeFrom'], y=aran_location['LatitudeFrom'],s=1,c="red")
-    plt.scatter(x=aran_location['LongitudeTo'], y=aran_location['LatitudeTo'],s=1,c="black")
-    # plt.scatter(x=p79_gps[p79_gps["Longitude"] != 0]['Longitude'], y=p79_gps[p79_gps["Latitude"] != 0]['Latitude'],s=1,c="blue")
-    plt.show()
-
-    #plt.savefig('plots/segmen_vali.pdf')
+        plt.show()
 
     plt.hist(np.array(dists),bins=100)
     plt.show()
