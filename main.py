@@ -8,6 +8,7 @@ import time
 
 from matplotlib.patches import Rectangle
 from matplotlib.lines import Line2D
+from haversine import haversine, inverse_haversine, Direction, Unit
 
 from functions import *
 from LiRA_functions import *
@@ -56,6 +57,9 @@ if __name__ == '__main__':
     routes = []
     for i in range(len(synth_acc)): 
         routes.append(synth_acc[i].axes[0].name)
+
+    synth_segments = synthetic_segmentation(synth_acc,routes)
+
 
     hdf5file = h5py.File('aligned_data/CPH1_HH.hdf5', 'r')
     
@@ -147,44 +151,39 @@ if __name__ == '__main__':
             aran_end = [aran_location['LatitudeTo'][i+4],aran_location['LongitudeTo'][i+4]]
 
             # start = time.time()
-            # _, p79_start_idx, start_dist = find_min_gps(aran_start[0], aran_start[1], p79_gps['Latitude'].values, p79_gps['Longitude'].values)
-            # _, p79_end_idx, end_dist = find_min_gps(aran_end[0], aran_end[1], p79_gps['Latitude'].values, p79_gps['Longitude'].values)
+            # _, p79_start_idx1, start_dist1 = find_min_gps(aran_start[0], aran_start[1], p79_gps['Latitude'].values, p79_gps['Longitude'].values)
+            # _, p79_end_idx1, end_dist1 = find_min_gps(aran_end[0], aran_end[1], p79_gps['Latitude'].values, p79_gps['Longitude'].values)
             # end = time.time()
             # print('Iteration:',i)
             # print('start_dist:',start_dist)
             # print('end_dist:',end_dist)
 
+            # p79_start1 = [p79_gps['Latitude'][p79_start_idx1],p79_gps['Longitude'][p79_start_idx1]]
+
+
+
             p79_start_idx, start_dist = find_min_gps_vector(aran_start,p79_gps[['Latitude','Longitude']].values)
             p79_end_idx, end_dist = find_min_gps_vector(aran_end,p79_gps[['Latitude','Longitude']].values)
+
+            # p79_start_idx2, start_dist2 = find_min_gps_cart(aran_start,p79_gps[['Latitude','Longitude']].values)
+            # p79_end_idx2, end_dist2 = find_min_gps_cart(aran_end,p79_gps[['Latitude','Longitude']].values)
+
+            p79_start_idx2, start_dist2 = tester_test(aran_start,p79_gps[['Latitude','Longitude']].values)
+            p79_end_idx2, end_dist2 = tester_test(aran_end,p79_gps[['Latitude','Longitude']].values)
+
+            # if p79_start_idx != p79_start_idx2:
+            #     print('Haversine vs Euclidian:',p79_start_idx,p79_start_idx2)
+
+            # p79_start = [p79_gps['Latitude'][p79_start_idx],p79_gps['Longitude'][p79_start_idx]]
 
             # start1 = time.time()
             # p79_start_idx, start_dist = find_min_gps_vector(aran_start,p79_gps[['Latitude','Longitude']].values)
             # end1 = time.time()
             # time1 = end1 - start1
 
+            # print('Distance difference start:',abs(start_dist-start_dist1))
+            # print('Distance difference end  :',abs(end_dist-end_dist1))
 
-            # start2 = time.time()
-            lon1 = aran_start[1]
-            lat1 = aran_start[0]
-            lon2 = p79_gps['Longitude'].values
-            lat2 = p79_gps['Latitude'].values
-
-            m = haversine_np(lon1, lat1, lon2, lat2)
-            end2 = time.time()
-            # time2 = end2-start2
-
-            
-            # end1 = time.time()
-            # print('Iteration:',i)
-            # print('start_dist:',start_dist)
-            # print('end_dist:',end_dist)
-
-
-            # print('start_idx:',p79_start_idx,test_idx1)
-            # print('end_idx:',p79_end_idx,test_idx2)
-
-            # print('Time difference:',(end-start)-(end1-start1))
-            
             if start_dist < 15 and end_dist < 15:
                 dfdf = p79_gps['Distance'][p79_start_idx:p79_end_idx]
                 dfdf = dfdf.reset_index(drop=True)   
@@ -224,15 +223,28 @@ if __name__ == '__main__':
                     y_val = [aran_end[0],p79_gps['Latitude'][p79_end_idx]]
                     _ = plt.plot(x_val,y_val,'k')
 
+                    x_val = [aran_start[1],p79_gps['Longitude'][p79_start_idx2]]
+                    y_val = [aran_start[0],p79_gps['Latitude'][p79_start_idx2]]
+                    _ = plt.plot(x_val,y_val,'magenta')
+
+                    x_val = [aran_end[1],p79_gps['Longitude'][p79_end_idx2]]
+                    y_val = [aran_end[0],p79_gps['Latitude'][p79_end_idx2]]
+                    _ = plt.plot(x_val,y_val,'yellow')
+
             else:
                 i +=1
 
         # tester = synth_acc[j]
         # tester = tester[tester['synth_acc'].notna()]
+
+        lat_len = 111332.67
+        lon_len = 63195.85
+
         p79_gps = p79_gps[p79_gps['Longitude'] != 0]
         p79_gps = p79_gps[p79_gps['Latitude'] != 0]
         p79_gps = p79_gps.reset_index(drop=True)
-        plt.scatter(x=p79_gps[p79_gps["Longitude"] != 0]['Longitude'], y=p79_gps[p79_gps["Latitude"] != 0]['Latitude'],s=1,c="blue",label='p79 route')
+        fig,ax = plt.subplots(figsize=(10,10))
+        plt.scatter(x=p79_gps['Longitude']*lon_len, y=p79_gps['Latitude']*lat_len,s=1,c="blue",label='p79 route')
         # for k in tqdm(range(len(p79_gps)-1)):
         #     x_val = [p79_gps['Longitude'][k],p79_gps['Longitude'][k+1]]
         #     y_val = [p79_gps['Latitude'][k],p79_gps['Latitude'][k+1]]
@@ -246,9 +258,41 @@ if __name__ == '__main__':
         #     if (np.min(speed['gm_speed']) < 20):
         #         _ = plt.plot(x_val,y_val,'grey')
         
-        plt.scatter(x=aran_location['LongitudeFrom'], y=aran_location['LatitudeFrom'],s=1,c="red",label='AranFrom')
-        plt.scatter(x=aran_location['LongitudeTo'], y=aran_location['LatitudeTo'],s=1,c="black",label='AranTo')
+        plt.scatter(x=aran_location['LongitudeFrom']*lon_len, y=aran_location['LatitudeFrom']*lat_len,s=1,c="red",label='AranFrom')
+        plt.scatter(x=aran_location['LongitudeTo']*lon_len, y=aran_location['LatitudeTo']*lat_len,s=1,c="black",label='AranTo')
         # plt.scatter(x=p79_gps[p79_gps["Longitude"] != 0]['Longitude'], y=p79_gps[p79_gps["Latitude"] != 0]['Latitude'],s=1,c="blue")
+           
+        aran_start = [aran_location['LatitudeFrom'][2450],aran_location['LongitudeFrom'][2450]]
+        aran_end = [aran_location['LatitudeTo'][2450+4],aran_location['LongitudeTo'][2450+4]]
+
+        plt.plot(aran_start[1]*lon_len,aran_start[0]*lat_len,'ro')
+
+        p79_start_idx, start_dist = find_min_gps_vector(aran_start,p79_gps[['Latitude','Longitude']].values)
+        p79_end_idx, end_dist = find_min_gps_vector(aran_end,p79_gps[['Latitude','Longitude']].values)
+
+        p79_start_idx2, start_dist2 = tester_test(aran_start,p79_gps[['Latitude','Longitude']].values)
+        p79_end_idx2, end_dist2 = tester_test(aran_end,p79_gps[['Latitude','Longitude']].values)
+
+        haversine(aran_start,p79_gps[['Latitude','Longitude']].values[p79_start_idx],unit=Unit.METERS)
+        haversine(aran_start,p79_gps[['Latitude','Longitude']].values[p79_start_idx-20],unit=Unit.METERS)
+        haversine(aran_start,p79_gps[['Latitude','Longitude']].values[p79_start_idx2],unit=Unit.METERS)
+        haversine(aran_start,p79_gps[['Latitude','Longitude']].values[p79_start_idx2-20],unit=Unit.METERS)
+
+        x_val = [aran_start[1]*lon_len,p79_gps['Longitude'][p79_start_idx]*lon_len]
+        y_val = [aran_start[0]*lat_len,p79_gps['Latitude'][p79_start_idx]*lat_len]
+        _ = plt.plot(x_val,y_val,'r')
+
+        x_val = [aran_end[1]*lon_len,p79_gps['Longitude'][p79_end_idx]*lon_len]
+        y_val = [aran_end[0]*lat_len,p79_gps['Latitude'][p79_end_idx]*lat_len]
+        _ = plt.plot(x_val,y_val,'k')
+
+        x_val = [aran_start[1]*lon_len,p79_gps['Longitude'][p79_start_idx2]*lon_len]
+        y_val = [aran_start[0]*lat_len,p79_gps['Latitude'][p79_start_idx2]*lat_len]
+        _ = plt.plot(x_val,y_val,'magenta')
+
+        x_val = [aran_end[1]*lon_len,p79_gps['Longitude'][p79_end_idx2]*lon_len]
+        y_val = [aran_end[0]*lat_len,p79_gps['Latitude'][p79_end_idx2]*lat_len]
+        _ = plt.plot(x_val,y_val,'yellow')
 
         custom_lines = [Line2D([0], [0], color='blue', lw=2),
                 Line2D([0], [0], color='red', lw=2),
@@ -259,12 +303,10 @@ if __name__ == '__main__':
         plt.xlabel('Longitude')
         plt.ylabel('Latitude')
 
+        plt.axis([(aran_start[1])*lon_len-10,(aran_start[1])*lon_len+10,(aran_start[0])*lat_len-10,(aran_start[0])*lat_len+10])
+        # plt.axis([(aran_start[1]-0.0002),(aran_start[1]+0.0002),(aran_start[0]-0.0002),(aran_start[0]+0.0002)])
+
         plt.show()
-
-
-
-
-
 
 
     #out = pd.DataFrame(data_window(synth_acc))
@@ -277,3 +319,73 @@ if __name__ == '__main__':
     # regr = SVR(kernel='rbf')
     # regr.fit(np.transpose(data.values),y)
 
+
+
+
+
+
+
+
+
+        ################################################## Haversine scaled plot #################################################
+
+        # lat_len = 111332.67
+        # lon_len = 63195.85
+
+        # p79_gps = p79_gps[p79_gps['Longitude'] != 0]
+        # p79_gps = p79_gps[p79_gps['Latitude'] != 0]
+        # p79_gps = p79_gps.reset_index(drop=True)
+        # plt.scatter(x=p79_gps['Longitude']*lon_len, y=p79_gps['Latitude']*lat_len,s=1,c="blue",label='p79 route')
+        
+        
+        # plt.scatter(x=aran_location['LongitudeFrom']*lon_len, y=aran_location['LatitudeFrom']*lat_len,s=1,c="red",label='AranFrom')
+        # plt.scatter(x=aran_location['LongitudeTo']*lon_len, y=aran_location['LatitudeTo']*lat_len,s=1,c="black",label='AranTo')
+           
+        # aran_start = [aran_location['LatitudeFrom'][2450],aran_location['LongitudeFrom'][2450]]
+        # aran_end = [aran_location['LatitudeTo'][2450+4],aran_location['LongitudeTo'][2450+4]]
+
+        # plt.plot(aran_start[1]*lon_len,aran_start[0]*lat_len,'ro')
+
+        # p79_start_idx, start_dist = find_min_gps_vector(aran_start,p79_gps[['Latitude','Longitude']].values)
+        # p79_end_idx, end_dist = find_min_gps_vector(aran_end,p79_gps[['Latitude','Longitude']].values)
+
+        # p79_start_idx2, start_dist2 = tester_test(aran_start,p79_gps[['Latitude','Longitude']].values)
+        # p79_end_idx2, end_dist2 = tester_test(aran_end,p79_gps[['Latitude','Longitude']].values)
+
+        # haversine(aran_start,p79_gps[['Latitude','Longitude']].values[p79_start_idx],unit=Unit.METERS)
+        # haversine(aran_start,p79_gps[['Latitude','Longitude']].values[p79_start_idx-20],unit=Unit.METERS)
+        # haversine(aran_start,p79_gps[['Latitude','Longitude']].values[p79_start_idx2],unit=Unit.METERS)
+        # haversine(aran_start,p79_gps[['Latitude','Longitude']].values[p79_start_idx2-20],unit=Unit.METERS)
+
+        # x_val = [aran_start[1]*lon_len,p79_gps['Longitude'][p79_start_idx]*lon_len]
+        # y_val = [aran_start[0]*lat_len,p79_gps['Latitude'][p79_start_idx]*lat_len]
+        # _ = plt.plot(x_val,y_val,'r')
+
+        # x_val = [aran_end[1]*lon_len,p79_gps['Longitude'][p79_end_idx]*lon_len]
+        # y_val = [aran_end[0]*lat_len,p79_gps['Latitude'][p79_end_idx]*lat_len]
+        # _ = plt.plot(x_val,y_val,'k')
+
+        # x_val = [aran_start[1]*lon_len,p79_gps['Longitude'][p79_start_idx2]*lon_len]
+        # y_val = [aran_start[0]*lat_len,p79_gps['Latitude'][p79_start_idx2]*lat_len]
+        # _ = plt.plot(x_val,y_val,'magenta')
+
+        # x_val = [aran_end[1]*lon_len,p79_gps['Longitude'][p79_end_idx2]*lon_len]
+        # y_val = [aran_end[0]*lat_len,p79_gps['Latitude'][p79_end_idx2]*lat_len]
+        # _ = plt.plot(x_val,y_val,'yellow')
+
+        # custom_lines = [Line2D([0], [0], color='blue', lw=2),
+        #         Line2D([0], [0], color='red', lw=2),
+        #         Line2D([0], [0], color='black', lw=2),
+        #         Line2D([0], [0], color='green', lw=2)]
+        # plt.legend(custom_lines,['p79 route','AranFrom','AranTo','Segment'])
+        # plt.title('Segmentation algorithm')
+        # plt.xlabel('Longitude')
+        # plt.ylabel('Latitude')
+
+
+        # plt.axis([(aran_start[1])*lon_len-10,(aran_start[1])*lon_len+10,(aran_start[0])*lat_len-10,(aran_start[0])*lat_len+10])
+        # # plt.axis([(aran_start[1]-0.0002),(aran_start[1]+0.0002),(aran_start[0]-0.0002),(aran_start[0]+0.0002)])
+
+        # plt.show()
+
+        #################################################################################################################################

@@ -114,6 +114,12 @@ def find_min_gps(drd_lat, drd_lon, gm_lat, gm_lon): # From Thea
     return drd_idx, gm_idx, dist[drd_idx]
 
 def haversine_np(lon1, lat1, lon2, lat2):
+
+    lon1 = np.tile(lon1,(1,len(lon2)))
+    lat1 = np.tile(lat1,(1,len(lat2)))
+    lon2 = np.reshape(lon2,(1,-1))
+    lat2 = np.reshape(lat2,(1,-1))
+
     lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
 
     dlon = lon2 - lon1
@@ -122,8 +128,8 @@ def haversine_np(lon1, lat1, lon2, lat2):
     a = np.sin(dlat/2.0)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon/2.0)**2
 
     c = 2 * np.arcsin(np.sqrt(a))
-    m = 6371000 * c # Eart radius in meters
-    return m
+    m = 6371 * c
+    return m*1000
 
 def find_min_gps_vector(drd,gm):
     
@@ -135,8 +141,47 @@ def find_min_gps_vector(drd,gm):
     min_dist = np.min(res)
     return min_idx, min_dist
 
+def tester_test(drd,gm):
 
-def synthetic_segmentation(synth_acc,routes):
+    res = (np.sqrt((drd[0]-gm[:,0])**2+(drd[1]-gm[:,1])**2))
+    min_idx = np.argmin(res)
+    min_dist = np.min(res)
+
+    if min_dist != res[min_idx]:
+        print('error')
+
+    return min_idx, min_dist
+
+def find_min_gps_cart(drd,gm):
+
+    res = latlon_cart_dist(drd,gm)
+    min_idx = np.argmin(res)
+    min_dist = np.min(res)
+
+    return min_idx, min_dist
+
+def latlon_cart_dist(p1,p2):
+    x = 6371 * np.cos(np.radians(p1[0])) * np.cos(np.radians(p1[1]))
+    y = 6371 * np.cos(np.radians(p1[0])) * np.sin(np.radians(p1[1]))
+                
+    x1 = 6371 * np.cos(np.radians(p2[:,0])) * np.cos(np.radians(p2[:,1]))
+    y1 = 6371 * np.cos(np.radians(p2[:,0])) * np.sin(np.radians(p2[:,1]))
+
+    dist1 = (np.sqrt((x1-x)**2+(y1-y)**2))*1000
+    return dist1
+
+def latlon_cart(p1):
+
+    if len(p1) > 2:
+        x = 6371 * np.cos(np.radians(p1[0])) * np.cos(np.radians(p1[1]))
+        y = 6371 * np.cos(np.radians(p1[0])) * np.sin(np.radians(p1[1]))
+    else:
+        x = 6371 * np.cos(np.radians(p1[:,0])) * np.cos(np.radians(p1[:,1]))
+        y = 6371 * np.cos(np.radians(p1[:,0])) * np.sin(np.radians(p1[:,1]))
+
+    return x, y
+
+def synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0):
     files = glob.glob("p79/*.csv")
     df_cph1_hh = pd.read_csv(files[0])
     df_cph1_hh.drop(df_cph1_hh.columns.difference(['Distance','Latitude','Longitude']),axis=1,inplace=True)
@@ -195,13 +240,11 @@ def synthetic_segmentation(synth_acc,routes):
 
         i = 0
         # Get 50m from ARAN -> Find gps signal from p79 -> Get measurements from synthetic data
-        while (i < (len(aran_location['LatitudeFrom'])-6) ):
+        while (i < (len(aran_location['LatitudeFrom'])-segment_size+1) ):
             aran_start = [aran_location['LatitudeFrom'][i],aran_location['LongitudeFrom'][i]]
-            aran_end = [aran_location['LatitudeTo'][i+4],aran_location['LongitudeTo'][i+4]]
+            aran_end = [aran_location['LatitudeTo'][i+segment_size-1],aran_location['LongitudeTo'][i+segment_size-1]]
             p79_start_idx, start_dist = find_min_gps_vector(aran_start,p79_gps[['Latitude','Longitude']].values)
             p79_end_idx, end_dist = find_min_gps_vector(aran_end,p79_gps[['Latitude','Longitude']].values)
-            # _, p79_start_idx, start_dist = find_min_gps(aran_start[0], aran_start[1], p79_gps['Latitude'].values, p79_gps['Longitude'].values)
-            # _, p79_end_idx, end_dist = find_min_gps(aran_end[0], aran_end[1], p79_gps['Latitude'].values, p79_gps['Longitude'].values)
             if start_dist < 15 and end_dist < 15:
                 dfdf = p79_gps['Distance'][p79_start_idx:p79_end_idx]
                 dfdf = dfdf.reset_index(drop=True)   
@@ -227,7 +270,7 @@ def synthetic_segmentation(synth_acc,routes):
                 if stat1 | stat2 | stat3 | stat4:
                     i += 1
                 else:
-                    i += 5
+                    i += segment_size
                     segments[iter] = synth_seg['synth_acc']
                     iter += 1
             else:
