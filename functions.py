@@ -8,6 +8,7 @@ from tqdm import tqdm
 from haversine import haversine, haversine_vector, Unit
 import glob
 import h5py
+import csv
 
 from LiRA_functions import *
 
@@ -193,6 +194,7 @@ def synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0):
     df_cph6_vh.drop(df_cph6_vh.columns.difference(['Distance','Latitude','Longitude']),axis=1,inplace=True)
     iter = 0
     segments = {}
+    aran_segment_details = {}
     for j in tqdm(range(len(routes))):
         synth = synth_acc[j]
         synth = synth[synth['synth_acc'].notna()]
@@ -234,13 +236,14 @@ def synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0):
             aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns = hdf5file['aran/trip_1/pass_1']['Pothole'].attrs['chNames'])
     
         p79_start = p79_gps[['Latitude','Longitude']].iloc[0].values
-        # _, aran_start_idx, _ = find_min_gps(p79_start[0], p79_start[1], aran_location['LatitudeFrom'].iloc[:100].values, aran_location['LongitudeFrom'].iloc[:100].values)
         aran_start_idx, _ = find_min_gps_vector(p79_start,aran_location[['LatitudeFrom','LongitudeFrom']].iloc[:100].values)
-        aran_location = aran_location.iloc[aran_start_idx:].reset_index(drop=True)
-
-        i = 0
+        p79_end = p79_gps[['Latitude','Longitude']].iloc[-1].values
+        aran_end_idx, _ = find_min_gps_vector(p79_end,aran_location[['LatitudeTo','LongitudeTo']].iloc[-100:].values)
+        aran_end_idx = (len(aran_location)-100)+aran_end_idx
+        
+        i = aran_start_idx
         # Get 50m from ARAN -> Find gps signal from p79 -> Get measurements from synthetic data
-        while (i < (len(aran_location['LatitudeFrom'])-segment_size+1) ):
+        while (i < (aran_end_idx-segment_size) ):
             aran_start = [aran_location['LatitudeFrom'][i],aran_location['LongitudeFrom'][i]]
             aran_end = [aran_location['LatitudeTo'][i+segment_size-1],aran_location['LongitudeTo'][i+segment_size-1]]
             p79_start_idx, start_dist = find_min_gps_vector(aran_start,p79_gps[['Latitude','Longitude']].values)
@@ -263,7 +266,7 @@ def synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0):
                     stat3 = True
                     stat4 = True
                 else:
-                    stat2 = (synth_seg['Distance'][len(synth_seg['Distance'])-1]-synth_seg['Distance'][0]) <= 40
+                    stat2 = not 40 <= (synth_seg['Distance'][len(synth_seg['Distance'])-1]-synth_seg['Distance'][0]) <= 60
                     stat3 = (len(synth_seg['synth_acc'])) > 5000
                     stat4 = False if bool(large) == False else (np.max(large) > 5)
                     
@@ -272,17 +275,18 @@ def synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0):
                 else:
                     i += segment_size
                     segments[iter] = synth_seg['synth_acc']
+                    aran_concat = pd.concat([aran_location[i:i+segment_size],aran_alligator[i:i+segment_size],aran_cracks[i:i+segment_size],aran_potholes[i:i+segment_size]],axis=1)
+                    aran_segment_details[iter] = aran_concat
                     iter += 1
             else:
                 i +=1
 
-
     synth_segments = pd.DataFrame.from_dict(segments,orient='index').transpose()
-    aran_details = {}
-    return synth_segments, aran_details
-
-
-
+    synth_segments.to_csv("synth_data/"+"synthetic_segments"+".csv",index=False)
+    aran_segment_details = pd.concat(aran_segment_details)
+    aran_segment_details.to_csv("synth_data/"+"aran_segments"+".csv",index=False)
+        
+    return synth_segments, aran_segment_details
 
 
 

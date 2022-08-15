@@ -61,7 +61,7 @@ if __name__ == '__main__':
     synth_segments = synthetic_segmentation(synth_acc,routes)
 
 
-    hdf5file = h5py.File('aligned_data/CPH1_HH.hdf5', 'r')
+    hdf5file = h5py.File('aligned_data/CPH6_VH.hdf5', 'r')
     
     aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
     aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns = hdf5file['aran/trip_1/pass_1']['Allig'].attrs['chNames'])
@@ -71,28 +71,47 @@ if __name__ == '__main__':
     DI = pd.DataFrame(calc_DI(aran_alligator,aran_cracks,aran_potholes))
     DI.columns=['DI']
     gt = pd.concat([aran_location,DI],axis=1)
-
-
-    test = synth_acc[0]
-    test = test[test['gm_speed'] >= 20]
-    test = test.reset_index(drop=True)
-
-    Lat_cord = [aran_location['LatitudeFrom'][1000],aran_location['LatitudeTo'][1005]]
-    Lon_cord = [aran_location['LongitudeFrom'][1000],aran_location['LongitudeTo'][1005]]
-
-    
     
     files = glob.glob("p79/*.csv")
-    p79_gps = files[0]
+    df_cph6_hh = pd.read_csv(files[2])
+    df_cph6_hh.drop(df_cph6_hh.columns.difference(['Distance','Latitude','Longitude']),axis=1,inplace=True)
+    df_cph6_vh = pd.read_csv(files[3])
+    df_cph6_vh.drop(df_cph6_vh.columns.difference(['Distance','Latitude','Longitude']),axis=1,inplace=True)
     
-    df_p79_gps = pd.read_csv(p79_gps)
-    df_p79_gps.drop(df_p79_gps.columns.difference(['Distance','Latitude','Longitude']),axis=1,inplace=True)
+    plt.scatter(x=df_cph6_hh['Longitude'], y=df_cph6_hh['Latitude'],s=1,c="blue")
+    plt.scatter(x=df_cph6_vh['Longitude'], y=df_cph6_vh['Latitude'],s=1,c="green")
+    hdf5file = h5py.File('aligned_data/CPH6_VH.hdf5', 'r')
+    aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+    plt.scatter(x=aran_location['LongitudeFrom'], y=aran_location['LatitudeFrom'],s=1,c="red")
+    plt.plot(aran_location['LongitudeFrom'][2291-480+1],aran_location['LatitudeFrom'][2291-480+1],'bo')
 
-    dfdf = df_p79_gps[(((np.min(Lat_cord) <= df_p79_gps['Latitude']) & (df_p79_gps['Latitude'] <= np.max(Lat_cord))) & ((np.min(Lon_cord) <= df_p79_gps['Longitude']) & (df_p79_gps['Longitude'] <= np.max(Lon_cord))))]
-    dfdf = dfdf.reset_index(drop=True)   
+    aran_start_VH = [aran_location['LatitudeFrom'][2291-480+1],aran_location['LongitudeFrom'][2291-480+1]]
 
-    test2 = test[((test['Distance'] >= np.min(dfdf['Distance'])) & (test['Distance'] <= np.max(dfdf['Distance'])))]
-    test2 = test2.reset_index(drop=True)
+    hdf5file = h5py.File('aligned_data/CPH6_HH.hdf5', 'r')
+    aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+    plt.scatter(x=aran_location['LongitudeFrom'], y=aran_location['LatitudeFrom'],s=1,c="black")
+    plt.plot(aran_location['LongitudeFrom'][480],aran_location['LatitudeFrom'][480],'ro')
+    
+    aran_start_HH = [aran_location['LatitudeFrom'][480],aran_location['LongitudeFrom'][480]]
+
+    p79_idx_vh, dist_vh = find_min_gps_vector(aran_start_VH,df_cph6_vh[['Latitude','Longitude']].values)
+    
+    p79_idx_hh, dist_hh = find_min_gps_vector(aran_start_HH,df_cph6_hh[['Latitude','Longitude']].values)
+
+    plt.plot(df_cph6_vh['Longitude'][p79_idx_vh],df_cph6_vh['Latitude'][p79_idx_vh],'bo')
+    plt.plot(df_cph6_hh['Longitude'][p79_idx_hh],df_cph6_hh['Latitude'][p79_idx_hh],'ro')
+
+
+    p79_gps = df_cph6_hh
+    p79_start = p79_gps[['Latitude','Longitude']].iloc[0].values
+    aran_start_idx, dist1 = find_min_gps_vector(p79_start,aran_location[['LatitudeFrom','LongitudeFrom']].values)
+    p79_end = p79_gps[['Latitude','Longitude']].iloc[-1].values
+    aran_end_idx, dist2 = find_min_gps_vector(p79_end,aran_location[['LatitudeTo','LongitudeTo']].values)
+    
+    plt.plot(aran_location['LongitudeFrom'][aran_start_idx],aran_location['LatitudeFrom'][aran_start_idx],'go')
+    plt.plot(aran_location['LongitudeTo'][aran_end_idx],aran_location['LatitudeTo'][aran_end_idx],'go')
+
+    plt.show()
 
 
     synth_acc = synthetic_data()
