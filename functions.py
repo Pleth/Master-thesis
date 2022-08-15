@@ -8,7 +8,6 @@ from tqdm import tqdm
 from haversine import haversine, haversine_vector, Unit
 import glob
 import h5py
-import csv
 
 from LiRA_functions import *
 
