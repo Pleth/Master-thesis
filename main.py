@@ -58,7 +58,7 @@ if __name__ == '__main__':
     for i in range(len(synth_acc)): 
         routes.append(synth_acc[i].axes[0].name)
 
-    synth_segments = synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0)
+    synth_segments, aran_segments = synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0)
 
 
 
