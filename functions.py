@@ -24,7 +24,7 @@ def calc_DI(allig, cracks, potholes):
     potholesum = (5*potholes['PotholeAreaAffectedLow'] + 7*potholes['PotholeAreaAffectedMed'] + 10*potholes['PotholeAreaAffectedHigh'] + \
                   5*potholes['PotholeAreaAffectedDelam'])**0.1
     DI = alligsum + cracksum + potholesum
-    return DI
+    return DI, alligsum, cracksum, potholesum
 
 def synthetic_data():
 
@@ -185,7 +185,9 @@ def synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0):
     if os.path.isfile("synth_data/"+"aran_segments"+".csv"):
         synth_segments = pd.read_csv("synth_data/"+"synthetic_segments"+".csv")
         aran_segment_details = pd.read_csv("synth_data/"+"aran_segments"+".csv")
-        print("Loaded already segmented data")                  
+        route_details = eval(open("synth_data/routes_details.txt", 'r').read())
+        print("Loaded already segmented data")              
+        
     else:    
         files = glob.glob("p79/*.csv")
         df_cph1_hh = pd.read_csv(files[0])
@@ -199,6 +201,7 @@ def synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0):
         iter = 0
         segments = {}
         aran_segment_details = {}
+        route_details = {}
         for j in tqdm(range(len(routes))):
             synth = synth_acc[j]
             synth = synth[synth['synth_acc'].notna()]
@@ -253,7 +256,7 @@ def synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0):
                 p79_start_idx, start_dist = find_min_gps_vector(aran_start,p79_gps[['Latitude','Longitude']].values)
                 p79_end_idx, end_dist = find_min_gps_vector(aran_end,p79_gps[['Latitude','Longitude']].values)
                 if start_dist < 15 and end_dist < 15:
-                    dfdf = p79_gps['Distance'][p79_start_idx:p79_end_idx]
+                    dfdf = p79_gps['Distance'][p79_start_idx:p79_end_idx+1]
                     dfdf = dfdf.reset_index(drop=True)   
 
                     synth_seg = synth[((synth['Distance'] >= np.min(dfdf)) & (synth['Distance'] <= np.max(dfdf)))]
@@ -281,6 +284,7 @@ def synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0):
                         segments[iter] = synth_seg['synth_acc']
                         aran_concat = pd.concat([aran_location[i:i+segment_size],aran_alligator[i:i+segment_size],aran_cracks[i:i+segment_size],aran_potholes[i:i+segment_size]],axis=1)
                         aran_segment_details[iter] = aran_concat
+                        route_details[iter] = routes[j]
                         iter += 1
                 else:
                     i +=1
@@ -289,8 +293,11 @@ def synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0):
         synth_segments.to_csv("synth_data/"+"synthetic_segments"+".csv",index=False)
         aran_segment_details = pd.concat(aran_segment_details)
         aran_segment_details.to_csv("synth_data/"+"aran_segments"+".csv",index=False)
+        myfile = open("synth_data/routes_details.txt","w")
+        myfile.write(str(route_details))
+        myfile.close()
         
-    return synth_segments, aran_segment_details
+    return synth_segments, aran_segment_details, route_details
 
 
 
