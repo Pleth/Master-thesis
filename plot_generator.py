@@ -31,8 +31,8 @@ aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns 
 
 DI, allig, cracks, potholes = calc_DI(aran_alligator,aran_cracks,aran_potholes)
 
-seg_len = 5
-seg_cap = 4
+seg_len = 1 
+seg_cap = 0
 segm_nr = 0
 DI = []
 alligator = []
@@ -50,30 +50,38 @@ for i in tqdm(range(int(np.shape(aran_segments)[0]/seg_len))):
     potholes.append(np.max(temp_potholes))
 
 
-idx_max_DI = np.argmax(DI) # 4.7
+idx_max_DI = np.argmax(DI)
 idx_min_DI = np.argmin(DI)
+# idx_min_DI = 3541
 
 cr = np.array(cracks)
 cr = cr[(np.array(alligator) < 0.1) & (np.array(potholes) < 0.1)]
 idx_max_cracks = cracks.index(np.max(cr))
+idx_max_cracks = 24474-4
 
 all = np.array(alligator)
 all = all[(np.array(cracks) < 0.1) & (np.array(potholes) < 0.1)]
 idx_max_alligator = alligator.index(np.max(all))
+idx_max_alligator = 30774
 
 pot = np.array(potholes)
-pot = pot[(np.array(alligator) < 1.5) & (np.array(cracks) < 1.5)]
+# pot = pot[(np.array(alligator) < 2) & (np.array(cracks) < 1.5)]
 idx_max_potholes = potholes.index(np.max(pot)) # 454
-# idx_max_potholes = 454
+# idx_max_potholes = int(33590/seg_len)
 
-k=0
+pots, crac, alli = 0, 0, 0
 for j in range(len(potholes)):
     if potholes[j] > 0.0:
-        k += 1
+        pots += 1
+    if cracks[j] > 0.0:
+        crac += 1
+    if alligator[j] > 0.0:
+        alli += 1
+
 
 route = route_details[int(idx_max_potholes*(seg_len/5))][:7]
 p79_gps = pd.read_csv("p79/"+route+".csv")
-synth = synth_acc[routes.index(route_details[idx_max_potholes])]
+synth = synth_acc[routes.index(route_details[int(idx_max_potholes*(seg_len/5))])]
 synth = synth[synth['synth_acc'].notna()]
 synth = synth[synth['gm_speed'] >= 20]
 synth = synth.reset_index(drop=True)
@@ -82,29 +90,15 @@ aran_end = [aran_segments['LatitudeTo'][ idx_max_potholes*seg_len+seg_cap],aran_
 p79_start_idx, _ = find_min_gps_vector(aran_start,p79_gps[['Latitude','Longitude']].values)
 p79_end_idx, _ = find_min_gps_vector(aran_end,p79_gps[['Latitude','Longitude']].values)
 p79_details_max_potholes = p79_gps[p79_start_idx:p79_end_idx+1]
-# p79_details_max_potholes = p79_gps[p79_start_idx:]
-# p79_details_max_potholes = p79_details_max_potholes[p79_details_max_potholes['Distance'] < p79_details_max_potholes['Distance'].iloc[0]+20]
 start_dist = p79_details_max_potholes['Distance'].iloc[0]
 end_dist = p79_details_max_potholes['Distance'].iloc[-1]
 acc_synth_max_potholes = synth[ (synth['Distance']<=end_dist) & (synth['Distance']>=start_dist)]
-
-plt.plot(acc_synth_max_potholes['synth_acc'].reset_index(drop=True),"k--",linewidth=4)
-synt_seg = synth_segments[str(idx_max_potholes+1)].dropna()
-plt.plot(synt_seg,linewidth=2)
-plt.show()
-
-plt.plot(acc_synth_max_potholes['synth_acc'].reset_index(drop=True),"k--",linewidth=4)
-synt_seg = synth_segments[str(idx_max_potholes)].dropna()
-plt.plot(synt_seg,linewidth=2)
-plt.show()
-
-
 
 
 
 route = route_details[int(idx_max_cracks*(seg_len/5))][:7]
 p79_gps = pd.read_csv("p79/"+route+".csv")
-synth = synth_acc[routes.index(route_details[idx_max_cracks])]
+synth = synth_acc[routes.index(route_details[int(idx_max_cracks*(seg_len/5))])]
 synth = synth[synth['synth_acc'].notna()]
 synth = synth[synth['gm_speed'] >= 20]
 synth = synth.reset_index(drop=True)
@@ -113,35 +107,15 @@ aran_end = [aran_segments['LatitudeTo'][ idx_max_cracks*seg_len+seg_cap],aran_se
 p79_start_idx, _ = find_min_gps_vector(aran_start,p79_gps[['Latitude','Longitude']].values)
 p79_end_idx, _ = find_min_gps_vector(aran_end,p79_gps[['Latitude','Longitude']].values)
 p79_details_max_cracks = p79_gps[p79_start_idx:p79_end_idx+1]
-# p79_details_max_cracks = p79_gps[p79_start_idx:]
-# p79_details_max_cracks = p79_details_max_cracks[p79_details_max_cracks['Distance'] < p79_details_max_cracks['Distance'].iloc[0]+20]
-
 start_dist = p79_details_max_cracks['Distance'].iloc[0]
 end_dist = p79_details_max_cracks['Distance'].iloc[-1]
 acc_synth_max_cracks = synth[ (synth['Distance']<=end_dist) & (synth['Distance']>=start_dist)]
-
-# plt.plot(acc_synth_max_cracks['synth_acc'].reset_index(drop=True),"k--")
-# for j in range(4000):#np.shape(synth_segments)[1]):
-#     synt_seg = synth_segments[str(j)].dropna()
-#     if len(synt_seg) == len(acc_synth_max_cracks):
-#         plt.plot(synt_seg,label=str(j))
-#         print(j)
-# plt.legend()
-# plt.show()
-
-
-# plt.plot(acc_synth_max_potholes['synth_acc'].reset_index(drop=True),"k--",linewidth=4)
-# synt_seg = synth_segments[str(51)].dropna()
-# plt.plot(synt_seg,linewidth=2)
-# plt.legend()
-# plt.show()
-
 
 
 
 route = route_details[int(idx_max_alligator*(seg_len/5))][:7]
 p79_gps = pd.read_csv("p79/"+route+".csv")
-synth = synth_acc[routes.index(route_details[idx_max_alligator])]
+synth = synth_acc[routes.index(route_details[int(idx_max_alligator*(seg_len/5))])]
 synth = synth[synth['synth_acc'].notna()]
 synth = synth[synth['gm_speed'] >= 20]
 synth = synth.reset_index(drop=True)
@@ -150,16 +124,16 @@ aran_end = [aran_segments['LatitudeTo'][ idx_max_alligator*seg_len+seg_cap],aran
 p79_start_idx, _ = find_min_gps_vector(aran_start,p79_gps[['Latitude','Longitude']].values)
 p79_end_idx, _ = find_min_gps_vector(aran_end,p79_gps[['Latitude','Longitude']].values)
 p79_details_max_alligator = p79_gps[p79_start_idx:p79_end_idx+1]
-# p79_details_max_alligator = p79_gps[p79_start_idx:]
-# p79_details_max_alligator = p79_details_max_alligator[p79_details_max_alligator['Distance'] < p79_details_max_alligator['Distance'].iloc[0]+20]
-
 start_dist = p79_details_max_alligator['Distance'].iloc[0]
 end_dist = p79_details_max_alligator['Distance'].iloc[-1]
 acc_synth_max_alligator = synth[ (synth['Distance']<=end_dist) & (synth['Distance']>=start_dist)]
 
+
+
+
 route = route_details[int(idx_max_DI*(seg_len/5))][:7]
 p79_gps = pd.read_csv("p79/"+route+".csv")
-synth = synth_acc[routes.index(route_details[idx_max_DI])]
+synth = synth_acc[routes.index(route_details[int(idx_max_DI*(seg_len/5))])]
 synth = synth[synth['synth_acc'].notna()]
 synth = synth[synth['gm_speed'] >= 20]
 synth = synth.reset_index(drop=True)
@@ -168,16 +142,14 @@ aran_end = [aran_segments['LatitudeTo'][ idx_max_DI*seg_len+seg_cap],aran_segmen
 p79_start_idx, _ = find_min_gps_vector(aran_start,p79_gps[['Latitude','Longitude']].values)
 p79_end_idx, _ = find_min_gps_vector(aran_end,p79_gps[['Latitude','Longitude']].values)
 p79_details_max_DI = p79_gps[p79_start_idx:p79_end_idx+1]
-# p79_details_max_DI = p79_gps[p79_start_idx:]
-# p79_details_max_DI = p79_details_max_DI[p79_details_max_DI['Distance'] < p79_details_max_DI['Distance'].iloc[0]+20]
-
 start_dist = p79_details_max_DI['Distance'].iloc[0]
 end_dist = p79_details_max_DI['Distance'].iloc[-1]
 acc_synth_max_DI = synth[ (synth['Distance']<=end_dist) & (synth['Distance']>=start_dist)]
 
+
 route = route_details[int(idx_min_DI*(seg_len/5))][:7]
 p79_gps = pd.read_csv("p79/"+route+".csv")
-synth = synth_acc[routes.index(route_details[idx_min_DI])]
+synth = synth_acc[routes.index(route_details[int(idx_min_DI*(seg_len/5))])]
 synth = synth[synth['synth_acc'].notna()]
 synth = synth[synth['gm_speed'] >= 20]
 synth = synth.reset_index(drop=True)
@@ -186,9 +158,6 @@ aran_end = [aran_segments['LatitudeTo'][ idx_min_DI*seg_len+seg_cap],aran_segmen
 p79_start_idx, _ = find_min_gps_vector(aran_start,p79_gps[['Latitude','Longitude']].values)
 p79_end_idx, _ = find_min_gps_vector(aran_end,p79_gps[['Latitude','Longitude']].values)
 p79_details_min_DI = p79_gps[p79_start_idx:p79_end_idx+1]
-# p79_details_min_DI = p79_gps[p79_start_idx:]
-# p79_details_min_DI = p79_details_min_DI[p79_details_min_DI['Distance'] < p79_details_min_DI['Distance'].iloc[0]+20]
-
 start_dist = p79_details_min_DI['Distance'].iloc[0]
 end_dist = p79_details_min_DI['Distance'].iloc[-1]
 acc_synth_min_DI = synth[ (synth['Distance']<=end_dist) & (synth['Distance']>=start_dist)]
@@ -256,9 +225,86 @@ for ax in axs.flat:
 #     ax.label_outer()
 plt.show()
 
+
 ###################################################################################################################################
     
+################################################## HISTOGRAM PLOTS - Aran #####################################################
+synth_acc = synthetic_data()
+routes = []
+for i in range(len(synth_acc)): 
+    routes.append(synth_acc[i].axes[0].name)
+synth_segments, aran_segments, route_details = synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0)
 
+hdf5file = h5py.File('aligned_data/CPH1_VH.hdf5', 'r')
+aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns = hdf5file['aran/trip_1/pass_1']['Allig'].attrs['chNames'])
+aran_cracks = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Cracks'], columns = hdf5file['aran/trip_1/pass_1']['Cracks'].attrs['chNames'])
+aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns = hdf5file['aran/trip_1/pass_1']['Pothole'].attrs['chNames'])
+
+DI, allig, cracks, potholes = calc_DI(aran_alligator,aran_cracks,aran_potholes)
+
+seg_len = 5 
+seg_cap = 4
+segm_nr = 0
+DI = []
+alligator = []
+cracks = []
+potholes = []
+for i in tqdm(range(int(np.shape(aran_segments)[0]/seg_len))):
+    aran_details = aran_segments.iloc[i*seg_len:i*seg_len+seg_cap+1]
+    aran_alligator = aran_details[aran_alligator.columns]
+    aran_cracks = aran_details[aran_cracks.columns]
+    aran_potholes = aran_details[aran_potholes.columns]
+    temp_DI, temp_alligator, temp_cracks, temp_potholes = calc_DI(aran_alligator,aran_cracks,aran_potholes)
+    DI.append(np.max(temp_DI))
+    alligator.append(np.max(temp_alligator))
+    cracks.append(np.max(temp_cracks))
+    potholes.append(np.max(temp_potholes))
+
+
+pots, crac, alli, dam = 0, 0, 0, 0
+for j in range(len(potholes)):
+    if potholes[j] > 0.0:
+        pots += 1
+    if cracks[j] > 0.0:
+        crac += 1
+    if alligator[j] > 0.0:
+        alli += 1
+    if DI[j] > 0.0:
+        dam += 1
+
+DI = np.array(DI)
+alligator = np.array(alligator)
+cracks = np.array(cracks)
+potholes = np.array(potholes)
+
+fig, axs = plt.subplots(2,2)
+axs[0,0].hist(DI[DI > 0.0],bins=50)
+axs[0,0].set_title('DI: '+str(dam))
+axs[0,0].set(ylim=(0,600))
+axs[1,0].hist(alligator[alligator > 0.0],bins=50)
+axs[1,0].set_title('Alligator: '+str(alli))
+axs[1,0].set(ylim=(0,600))
+axs[0,1].hist(cracks[cracks > 0.0],bins=50)
+axs[0,1].set_title('Cracks: '+str(crac))
+axs[0,1].set(ylim=(0,600))
+axs[1,1].hist(potholes[potholes > 0.0],bins=50)
+axs[1,1].set_title('Potholes: '+str(pots))
+axs[1,1].set(ylim=(0,50))
+fig.suptitle('Total nr of segmentations: '+str(len(route_details)))
+plt.show()
+
+fig, axs = plt.subplots(2,2)
+axs[0,0].hist(DI,bins=50)
+axs[0,0].set_title('DI: '+str(dam))
+axs[1,0].hist(alligator,bins=50)
+axs[1,0].set_title('Alligator: '+str(alli))
+axs[0,1].hist(cracks,bins=50)
+axs[0,1].set_title('Cracks: '+str(crac))
+axs[1,1].hist(potholes[potholes > 0.0],bins=50)
+axs[1,1].set_title('Potholes: '+str(pots))
+fig.suptitle('Total nr of segmentations: '+str(len(route_details)))
+plt.show()
 
 
 ################################################## Haversine scaled plot #################################################
@@ -376,7 +422,7 @@ plt.show()
 # plt.scatter(x=p79_gps['Longitude']*lon_len, y=p79_gps['Latitude']*lat_len,s=1,c="blue",label='p79 route')
 
 # plt.scatter(x=aran_location['LongitudeFrom']*lon_len, y=aran_location['LatitudeFrom']*lat_len,s=1,c="red",label='AranFrom')
-# plt.scatter(x=aran_location['LongitudeTo']*lon_len, y=aran_location['LatitudeTo']*lat_len,s=1,c="black",label='AranTo')s
+# plt.scatter(x=aran_location['LongitudeTo']*lon_len, y=aran_location['LatitudeTo']*lat_len,s=1,c="black",label='AranTo')
 
 # custom_lines = [Line2D([0], [0], color='blue', lw=2),
 #         Line2D([0], [0], color='red', lw=2),
@@ -393,3 +439,39 @@ plt.show()
 
 
 ###########################################################################################################################
+
+
+idxs = np.argpartition(cracks,-20)[-20:]
+
+
+for g in range(10):
+    idx_min_DI = idxs[g]
+    route = route_details[int(idx_max_cracks*(seg_len/5))][:7]
+    p79_gps = pd.read_csv("p79/"+route+".csv")
+    synth = synth_acc[routes.index(route_details[int(idx_max_cracks*(seg_len/5))])]
+    synth = synth[synth['synth_acc'].notna()]
+    synth = synth[synth['gm_speed'] >= 20]
+    synth = synth.reset_index(drop=True)
+    aran_start = [aran_segments['LatitudeFrom'][ idx_min_DI*seg_len],aran_segments['LongitudeFrom'][ idx_min_DI*seg_len]]
+    aran_end = [aran_segments['LatitudeTo'][ idx_min_DI*seg_len+seg_cap],aran_segments['LongitudeTo'][ idx_min_DI*seg_len+seg_cap]]
+    p79_start_idx, _ = find_min_gps_vector(aran_start,p79_gps[['Latitude','Longitude']].values)
+    p79_end_idx, _ = find_min_gps_vector(aran_end,p79_gps[['Latitude','Longitude']].values)
+    p79_details_min_DI = p79_gps[p79_start_idx:p79_end_idx+1]
+
+    start_dist = p79_details_min_DI['Distance'].iloc[0]
+    end_dist = p79_details_min_DI['Distance'].iloc[-1]
+    acc_synth_min_DI = synth[ (synth['Distance']<=end_dist) & (synth['Distance']>=start_dist)]
+
+    fig, axs = plt.subplots(2,1)
+    dist = np.concatenate([p79_details_min_DI['Distance'],acc_synth_min_DI['Distance']])
+    axs[0].plot(p79_details_min_DI['Distance'],p79_details_min_DI['Laser5'],label='Laser 5')
+    axs[0].plot(p79_details_min_DI['Distance'],p79_details_min_DI['Laser21'],label='Laser 21')
+    axs[0].set(xlim=(np.min(dist),np.max(dist)),ylim=(laser_min,laser_max))
+    axs[0].legend()
+    axs[0].set_title('Low DI: '+str(idx_min_DI)+" - "+str(cracks[idx_min_DI]))
+    axs[1].plot(acc_synth_min_DI['Distance'],acc_synth_min_DI['synth_acc'])
+    
+    axs[0].set(ylabel='Laser distance [mm]')
+    axs[1].set(ylabel='Synthetic z acceleration')
+
+    plt.show()

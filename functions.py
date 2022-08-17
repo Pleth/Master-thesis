@@ -1,4 +1,5 @@
 from faulthandler import disable
+import sys
 import os
 import pandas as pd
 import numpy as np
@@ -8,6 +9,7 @@ from tqdm import tqdm
 from haversine import haversine, haversine_vector, Unit
 import glob
 import h5py
+import tsfel
 
 from LiRA_functions import *
 
@@ -255,7 +257,8 @@ def synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0):
                 aran_end = [aran_location['LatitudeTo'][i+segment_size-1],aran_location['LongitudeTo'][i+segment_size-1]]
                 p79_start_idx, start_dist = find_min_gps_vector(aran_start,p79_gps[['Latitude','Longitude']].values)
                 p79_end_idx, end_dist = find_min_gps_vector(aran_end,p79_gps[['Latitude','Longitude']].values)
-                if start_dist < 15 and end_dist < 15:
+
+                if start_dist < 5 and end_dist < 5:
                     dfdf = p79_gps['Distance'][p79_start_idx:p79_end_idx+1]
                     dfdf = dfdf.reset_index(drop=True)   
 
@@ -312,80 +315,17 @@ def synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0):
 
 
 
-def feature_extraction(data,ids):
-
-    Time_domain_names = ['Max','Min','Mean','Median','RMS','Peak_to_peak','Ten_point_average']
-    Frequency_domain_names = ['Average_band_power','RMS_band','Max_band']
-    Wavelet_domain_names = ['RMS_Mort4','Ten_point_Mort4','RMS_Mort5','Ten_point_Mort5','RMS_6Daub4','Ten_point_6Daub4',
-                            'RMS_6Daub5','Ten_point_6Daub5','RMS_10Daub4','Ten_point_10Daub4','RMS_10Daub5','Ten_point_10Daub5']
-
-    Features = {}
-
-    series = np.random.randn(10)
-
-    # Time domain features 
-    Features[Time_domain_names[0]] = [np.max(series)]
-    Features[Time_domain_names[1]] = [np.min(series)]
-    Features[Time_domain_names[2]] = [np.mean(series)]
-    Features[Time_domain_names[3]] = [np.median(series)]
-    Features[Time_domain_names[4]] = [np.square(series).mean()]
-    Features[Time_domain_names[5]] = [np.ptp(series)]
-    Features[Time_domain_names[6]] = [np.sum(-series[np.argpartition(series,5)[:5]]+series[np.argpartition(series,-5)[-5:]])/5]
-    
-    extracted_features_2 = pd.DataFrame(Features).T
-    extracted_features_2
-
-
-    
-    # Frequency domain features    
-    from scipy import signal
-    from scipy.integrate import simps
-    freqs, psd = signal.welch(series,250,nperseg=4*250)
-    freq_res = freqs[1]-freqs[0]
-    
-    low, high = 0.5, 4
-
-    # Find intersecting values in frequency vector
-    idx_delta = np.logical_and(freqs >= low, freqs <= high)
-    
-    delta_power = simps(psd[idx_delta],dx=freq_res)
-    
-    
-    
-    
-    
-    # Wavelet domain features
-    
-
-
-
-
-
-
-
-
-
-
-
-
-    #extracted_features = extract_features(out.iloc[:,0:2],column_id="id")
+def feature_extraction(data):
+    cfg_file = tsfel.get_features_by_domain()
     if os.path.isfile("synth_data/extracted_features.csv"):
-        feature_names = extract_features(pd.concat([ids,data.iloc[:,1]],axis=1),column_id="id",disable_progressbar=True)
-        feature_names = np.transpose(feature_names)
+        feature_names = np.transpose(tsfel.time_series_features_extractor(cfg_file,data[str(0)].dropna(),fs=250,verbose=0))
         data = pd.read_csv("synth_data/extracted_features.csv")
     else:
         extracted_features = []
+        feature_names = np.transpose(tsfel.time_series_features_extractor(cfg_file,data[str(0)].dropna(),fs=250,verbose=0))
         for i in tqdm(range(np.shape(data)[1])):
-            #print("current iteration:",i,"out of:",np.shape(data)[1])
-            if(i==0):   
-                feature_names = extract_features(pd.concat([ids,data.iloc[:,i]],axis=1),column_id="id",disable_progressbar=True)
-                extracted_features.append(np.transpose(feature_names))
-                feature_names = np.transpose(feature_names)
-            else:
-                extracted_features.append(np.transpose(extract_features(pd.concat([ids,data.iloc[:,i]],axis=1),column_id="id",disable_progressbar=True)))
+            extracted_features.append(np.transpose(tsfel.time_series_features_extractor(cfg_file,data[str(i)].dropna(),fs=250,verbose=0)))
         data = pd.DataFrame(np.concatenate(extracted_features,axis=1))
-        #data = data.fillna(0)
-        impute(data)
-        data.to_csv("synth_data/extracted_features.csv",index=False)
+        # data.to_csv("synth_data/extracted_features.csv",index=False)
 
     return data,feature_names

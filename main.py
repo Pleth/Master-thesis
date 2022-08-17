@@ -1,17 +1,14 @@
-import sys
+from tkinter.ttk import Progressbar
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import h5py
 from tqdm import tqdm
-import time
-
-from matplotlib.patches import Rectangle
-from matplotlib.lines import Line2D
-from haversine import haversine, inverse_haversine, Direction, Unit
 
 from functions import *
 from LiRA_functions import *
+
+import tsfel
 
 
 if __name__ == '__main__':
@@ -70,22 +67,5 @@ if __name__ == '__main__':
     DI, allig, cracks, potholes = calc_DI(aran_alligator,aran_cracks,aran_potholes)
     
 
-    
-
-    seg_len = 5
-    seg_cap = 4
-    segm_nr = 0
-    DI = []
-    alligator = []
-    cracks = []
-    potholes = []
-    for i in tqdm(range(int(np.shape(aran_segments)[0]/seg_len))):
-        aran_details = aran_segments.iloc[i*seg_len:i*seg_len+seg_cap+1]
-        aran_alligator = aran_details[aran_alligator.columns]
-        aran_cracks = aran_details[aran_cracks.columns]
-        aran_potholes = aran_details[aran_potholes.columns]
-        temp_DI, temp_alligator, temp_cracks, temp_potholes = calc_DI(aran_alligator,aran_cracks,aran_potholes)
-        DI.append(np.max(temp_DI))
-        alligator.append(np.max(temp_alligator))
-        cracks.append(np.max(temp_cracks))
-        potholes.append(np.max(temp_potholes))
+    data = synth_segments#.iloc[:,0:100]
+    features,feature_names = feature_extraction(data)
