@@ -299,21 +299,9 @@ def synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0):
         myfile = open("synth_data/routes_details.txt","w")
         myfile.write(str(route_details))
         myfile.close()
+        aran_segment_details = pd.read_csv("synth_data/"+"aran_segments"+".csv")
         
     return synth_segments, aran_segment_details, route_details
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 def feature_extraction(data):
     cfg_file = tsfel.get_features_by_domain()
@@ -326,6 +314,6 @@ def feature_extraction(data):
         for i in tqdm(range(np.shape(data)[1])):
             extracted_features.append(np.transpose(tsfel.time_series_features_extractor(cfg_file,data[str(i)].dropna(),fs=250,verbose=0)))
         data = pd.DataFrame(np.concatenate(extracted_features,axis=1))
-        # data.to_csv("synth_data/extracted_features.csv",index=False)
+        data.to_csv("synth_data/extracted_features.csv",index=False)
 
     return data,feature_names
