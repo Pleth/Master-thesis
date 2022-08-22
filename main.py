@@ -87,59 +87,45 @@ if __name__ == '__main__':
         cracks.append(np.max(temp_cracks))
         potholes.append(np.max(temp_potholes))
     
-
-    from sklearn.preprocessing import StandardScaler
-    from sklearn.svm import SVR
-    from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
-    from sklearn.model_selection import train_test_split, GridSearchCV
-
-    X = features.T
     y = DI
+
+    gridsearch = 1
+    verbose = 3
+    n_jobs = 4
+    model = False
+
+    print('SVR')
+    print('DI')
+    scores_SVR_DI        = method_SVR(features, DI, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
+    print('Potholes')
+    scores_SVR_potholes  = method_SVR(features, potholes, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
+    print('Cracks')
+    scores_SVR_cracks    = method_SVR(features, cracks, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
+    print('Alligator')
+    scores_SVR_alligator = method_SVR(features, alligator, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
     
-    sc_X = StandardScaler()
-    X = sc_X.fit_transform(X)
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=42)
-
-    regressor = SVR(kernel='rbf',verbose=True)
-    regressor.fit(X_train,y_train)
+    print('KNN')
+    print('DI')
+    scores_KNN_DI        = method_KNN(features, DI, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
+    print('Potholes')
+    scores_KNN_potholes  = method_KNN(features, potholes, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
+    print('Cracks')
+    scores_KNN_cracks    = method_KNN(features, cracks, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
+    print('Alligator')
+    scores_KNN_alligator = method_KNN(features, alligator, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
     
-    y_pred = regressor.predict(X_test)
-
-    r2 = r2_score(y_test,y_pred)
-    MSE = mean_squared_error(y_test,y_pred, squared=True)
-    RMSE = mean_squared_error(y_test,y_pred, squared=False)
-    MAE = mean_absolute_error(y_test,y_pred)
-
-
-    plt.plot(range(len(y_test)),y_test,label='True values')
-    plt.plot(range(len(y_pred)),y_pred,label='Predicted values')
-    plt.legend()
-    plt.show()
-
-
-    parameters = [{'kernel': ['rbf'], 'gamma': [1e-4, 1e-3, 0.01, 0.1, 0.2, 0.5, 0.6, 0.9],'C': [1, 10, 100, 1000, 10000]}]
-
-    parameters = [{'kernel': ['rbf'], 'gamma': [1e-3, 0.01, 0.1],'C': [1, 10, 20]},
-                  #{'kernel': ['sigmoid'], 'gamma': [1e-5, 1e-4, 1e-3],'C': [1, 10, 100]},
-                  #{'kernel': ['poly'], 'gamma': [1e-3, 0.01, 0.1],'C': [1, 10, 20]},
-                  {'kernel': ['linear'], 'gamma': [1e-3, 0.01, 0.1],'C': [1, 10, 20]}]
-
-
-    start_time = time.time()
-    svr_train = GridSearchCV(SVR(epsilon = 0.01), parameters, cv = 5,verbose=3,n_jobs=4)
-    svr_train.fit(X,y)
-    end_time = time.time()
-    run_time = end_time - start_time
-    print('Run time:',round(run_time/60,2),'mins')
+    print('DT')
+    print('DI')
+    scores_DT_DI        = method_DT(features, DI, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
+    print('Potholes')
+    scores_DT_potholes  = method_DT(features, potholes, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
+    print('Cracks')
+    scores_DT_cracks    = method_DT(features, cracks, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
+    print('Alligator')
+    scores_DT_alligator = method_DT(features, alligator, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
     
-
-    regressor = svr_train.best_estimator_
-    regressor.fit(X_train,y_train)
-    
-    y_pred = regressor.predict(X_test)
-
-    r2 = r2_score(y_test,y_pred)
-    MSE = mean_squared_error(y_test,y_pred, squared=True)
-    RMSE = mean_squared_error(y_test,y_pred, squared=False)
-    MAE = mean_absolute_error(y_test,y_pred)
+    from tabulate import tabulate
+    print(tabulate([['SVR', scores_SVR_DI['R2'],scores_SVR_potholes['R2'],scores_SVR_cracks['R2'],scores_SVR_alligator['R2']], 
+              ['KNN', scores_KNN_DI['R2'],scores_KNN_potholes['R2'],scores_KNN_cracks['R2'],scores_KNN_alligator['R2']], 
+              ['DT',  scores_DT_DI['R2'],scores_DT_potholes['R2'],scores_DT_cracks['R2'],scores_DT_alligator['R2']]], 
+              headers=['Method', 'DI','Potholes','Cracks','Alligator']))

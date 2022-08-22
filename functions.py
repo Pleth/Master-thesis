@@ -10,6 +10,17 @@ from haversine import haversine, haversine_vector, Unit
 import glob
 import h5py
 import tsfel
+import time
+import joblib
+from varname import nameof
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVR
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
+from sklearn.model_selection import train_test_split, GridSearchCV
+
+
 
 from LiRA_functions import *
 
@@ -317,3 +328,140 @@ def feature_extraction(data):
         data.to_csv("synth_data/extracted_features.csv",index=False)
 
     return data,feature_names
+
+
+def method_SVR(features, y, model=False, gridsearch=0, verbose=3,n_jobs=None):
+    X = features.T
+    sc_X = StandardScaler()
+    X = sc_X.fit_transform(X)
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=2)
+    X_train, X_test, y_train, y_test = X, X, y, y
+
+    if model != False:
+        loaded_model = joblib.load('SVR_best_model'+nameof(y)+'.sav')
+        y_pred = loaded_model.predict(X_test)
+
+        r2 = r2_score(y_test,y_pred)
+        MSE = mean_squared_error(y_test,y_pred, squared=True)
+        RMSE = mean_squared_error(y_test,y_pred, squared=False)
+        MAE = mean_absolute_error(y_test,y_pred)
+    else:
+        parameters = [{'kernel': ['rbf'], 'gamma': [1e-3, 0.01, 0.1],'C': [1, 10, 20]}]
+                    #{'kernel': ['sigmoid'], 'gamma': [1e-5, 1e-4, 1e-3],'C': [1, 10, 100]},
+                    #{'kernel': ['poly'], 'gamma': [1e-3, 0.01, 0.1],'C': [1, 10, 20]},
+                    #{'kernel': ['linear'], 'gamma': [1e-3, 0.01, 0.1],'C': [1, 10, 20]}]
+
+        start_time = time.time()
+        if gridsearch == 1:
+            svr_train = GridSearchCV(SVR(epsilon = 0.01), parameters, cv = 5,scoring='r2',verbose=verbose,n_jobs=n_jobs)
+            svr_train.fit(X_train,y_train)
+            joblib.dump(svr_train.best_estimator_,'SVR_best_model'+nameof(y)+'.sav')
+        else:
+            svr_train = SVR(kernel='rbf',C=1,gamma=0.1,epsilon=0.01)
+            svr_train.fit(X_train,y_train)
+        end_time = time.time()
+        run_time = end_time - start_time
+        print('Run time:',round(run_time/60,2),'mins')
+        
+        y_pred = svr_train.predict(X_test)
+
+        r2 = r2_score(y_test,y_pred)
+        MSE = mean_squared_error(y_test,y_pred, squared=True)
+        RMSE = mean_squared_error(y_test,y_pred, squared=False)
+        MAE = mean_absolute_error(y_test,y_pred)
+
+    return {"R2":r2, "MSE": MSE, "RMSE": RMSE, "MAE": MAE}
+
+    
+def method_KNN(features, y, model=False, gridsearch=0, verbose=3,n_jobs=None):
+    X = features.T
+    sc_X = StandardScaler()
+    X = sc_X.fit_transform(X)
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=2)
+    X_train, X_test, y_train, y_test = X, X, y, y
+
+    if model != False:
+        loaded_model = joblib.load('KNN_best_model'+nameof(y)+'.sav')
+        y_pred = loaded_model.predict(X_test)
+
+        r2 = r2_score(y_test,y_pred)
+        MSE = mean_squared_error(y_test,y_pred, squared=True)
+        RMSE = mean_squared_error(y_test,y_pred, squared=False)
+        MAE = mean_absolute_error(y_test,y_pred)
+    else:
+        parameters = [{'weights':['uniform','distance'],'algorithm': ['ball_tree','kd_tree','brute'],
+                       'n_neighbors': [1,2,5,10,20,40,50,60,100]}]
+                    
+        start_time = time.time()
+        if gridsearch == 1:
+            knn_train = GridSearchCV(KNeighborsRegressor(), parameters, cv = 5,scoring='r2',verbose=verbose,n_jobs=n_jobs)
+            knn_train.fit(X_train,y_train)
+            joblib.dump(knn_train.best_estimator_,'KNN_best_model'+nameof(y)+'.sav')
+        else:
+            knn_train = KNeighborsRegressor(n_neighbors=5)
+            knn_train.fit(X_train,y_train)
+        end_time = time.time()
+        run_time = end_time - start_time
+        print('Run time:',round(run_time/60,2),'mins')
+        
+        y_pred = knn_train.predict(X_test)
+
+        r2 = r2_score(y_test,y_pred)
+        MSE = mean_squared_error(y_test,y_pred, squared=True)
+        RMSE = mean_squared_error(y_test,y_pred, squared=False)
+        MAE = mean_absolute_error(y_test,y_pred)
+
+    return {"R2":r2, "MSE": MSE, "RMSE": RMSE, "MAE": MAE}
+
+
+def method_DT(features, y, model=False, gridsearch=0, verbose=3,n_jobs=None):
+    X = features.T
+    sc_X = StandardScaler()
+    X = sc_X.fit_transform(X)
+    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=2)
+    X_train, X_test, y_train, y_test = X, X, y, y
+
+    if model != False:
+        loaded_model = joblib.load('DT_best_model'+nameof(y)+'.sav')
+        y_pred = loaded_model.predict(X_test)
+
+        r2 = r2_score(y_test,y_pred)
+        MSE = mean_squared_error(y_test,y_pred, squared=True)
+        RMSE = mean_squared_error(y_test,y_pred, squared=False)
+        MAE = mean_absolute_error(y_test,y_pred)
+    else:
+        parameters={"splitter":["best","random"],
+                    "max_depth" : [1,3,5,7,9,11,12],
+                    "min_samples_leaf":[1,2,3,4,5,6,7,8,9,10],
+                    "min_weight_fraction_leaf":[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9],
+                    "max_features":["log2","sqrt",None],
+                    "max_leaf_nodes":[None,10,20,30,40,50,60,70,80,90] }
+        
+        parameters={"splitter":["best","random"],
+                    "max_depth" : [3,9],
+                    "min_samples_leaf":[2,6],
+                    "min_weight_fraction_leaf":[0.3,0.5],
+                    "max_features":["log2","sqrt"],
+                    "max_leaf_nodes":[10,40] }
+        
+                    
+        start_time = time.time()
+        if gridsearch == 1:
+            dt_train = GridSearchCV(DecisionTreeRegressor(criterion='squared_error'), parameters, cv = 5,scoring='r2',verbose=verbose,n_jobs=n_jobs)
+            dt_train.fit(X_train,y_train)
+            joblib.dump(dt_train.best_estimator_,'DT_best_model'+nameof(y)+'.sav')
+        else:
+            dt_train = DecisionTreeRegressor()
+            dt_train.fit(X_train,y_train)
+        end_time = time.time()
+        run_time = end_time - start_time
+        print('Run time:',round(run_time/60,2),'mins')
+        
+        y_pred = dt_train.predict(X_test)
+
+        r2 = r2_score(y_test,y_pred)
+        MSE = mean_squared_error(y_test,y_pred, squared=True)
+        RMSE = mean_squared_error(y_test,y_pred, squared=False)
+        MAE = mean_absolute_error(y_test,y_pred)
+
+    return {"R2":r2, "MSE": MSE, "RMSE": RMSE, "MAE": MAE}
