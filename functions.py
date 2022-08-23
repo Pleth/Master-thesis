@@ -1,18 +1,14 @@
-from faulthandler import disable
-import sys
 import os
 import pandas as pd
 import numpy as np
-from tsfresh import extract_features
-from tsfresh.utilities.dataframe_functions import impute
 from tqdm import tqdm
-from haversine import haversine, haversine_vector, Unit
+from haversine import haversine, Unit
 import glob
 import h5py
 import tsfel
 import time
 import joblib
-from varname import nameof
+
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
 from sklearn.neighbors import KNeighborsRegressor
@@ -330,7 +326,7 @@ def feature_extraction(data):
     return data,feature_names
 
 
-def method_SVR(features, y, model=False, gridsearch=0, verbose=3,n_jobs=None):
+def method_SVR(features, y, id, model=False, gridsearch=0, verbose=3,n_jobs=None):
     X = features.T
     sc_X = StandardScaler()
     X = sc_X.fit_transform(X)
@@ -338,7 +334,8 @@ def method_SVR(features, y, model=False, gridsearch=0, verbose=3,n_jobs=None):
     X_train, X_test, y_train, y_test = X, X, y, y
 
     if model != False:
-        loaded_model = joblib.load('SVR_best_model'+nameof(y)+'.sav')
+        loaded_model = joblib.load('models/SVR_best_model'+id+'.sav')
+        # loaded_model.fit(X_train,y_train)
         y_pred = loaded_model.predict(X_test)
 
         r2 = r2_score(y_test,y_pred)
@@ -353,9 +350,9 @@ def method_SVR(features, y, model=False, gridsearch=0, verbose=3,n_jobs=None):
 
         start_time = time.time()
         if gridsearch == 1:
-            svr_train = GridSearchCV(SVR(epsilon = 0.01), parameters, cv = 5,scoring='r2',verbose=verbose,n_jobs=n_jobs)
+            svr_train = GridSearchCV(SVR(epsilon = 0.01), parameters, cv = 5,scoring='neg_mean_squared_error',verbose=verbose,n_jobs=n_jobs)
             svr_train.fit(X_train,y_train)
-            joblib.dump(svr_train.best_estimator_,'SVR_best_model'+nameof(y)+'.sav')
+            joblib.dump(svr_train,'models/SVR_best_model'+id+'.sav')
         else:
             svr_train = SVR(kernel='rbf',C=1,gamma=0.1,epsilon=0.01)
             svr_train.fit(X_train,y_train)
@@ -370,10 +367,10 @@ def method_SVR(features, y, model=False, gridsearch=0, verbose=3,n_jobs=None):
         RMSE = mean_squared_error(y_test,y_pred, squared=False)
         MAE = mean_absolute_error(y_test,y_pred)
 
-    return {"R2":r2, "MSE": MSE, "RMSE": RMSE, "MAE": MAE}
+    return {"R2":r2, "MSE": MSE, "RMSE": RMSE, "MAE": MAE,"Gridsearchcv_obj": svr_train}
 
     
-def method_KNN(features, y, model=False, gridsearch=0, verbose=3,n_jobs=None):
+def method_KNN(features, y, id, model=False, gridsearch=0, verbose=3,n_jobs=None):
     X = features.T
     sc_X = StandardScaler()
     X = sc_X.fit_transform(X)
@@ -381,7 +378,8 @@ def method_KNN(features, y, model=False, gridsearch=0, verbose=3,n_jobs=None):
     X_train, X_test, y_train, y_test = X, X, y, y
 
     if model != False:
-        loaded_model = joblib.load('KNN_best_model'+nameof(y)+'.sav')
+        loaded_model = joblib.load('models/KNN_best_model'+id+'.sav')
+        # loaded_model.fit(X_train,y_train)
         y_pred = loaded_model.predict(X_test)
 
         r2 = r2_score(y_test,y_pred)
@@ -391,14 +389,16 @@ def method_KNN(features, y, model=False, gridsearch=0, verbose=3,n_jobs=None):
     else:
         parameters = [{'weights':['uniform','distance'],'algorithm': ['ball_tree','kd_tree','brute'],
                        'n_neighbors': [1,2,5,10,20,40,50,60,100]}]
+        parameters = [{'weights':['uniform','distance'],'algorithm': ['ball_tree'],
+                       'n_neighbors': [10,20,40]}]
                     
         start_time = time.time()
         if gridsearch == 1:
-            knn_train = GridSearchCV(KNeighborsRegressor(), parameters, cv = 5,scoring='r2',verbose=verbose,n_jobs=n_jobs)
+            knn_train = GridSearchCV(KNeighborsRegressor(), parameters, cv = 5,scoring='neg_mean_squared_error',verbose=verbose,n_jobs=n_jobs)
             knn_train.fit(X_train,y_train)
-            joblib.dump(knn_train.best_estimator_,'KNN_best_model'+nameof(y)+'.sav')
+            joblib.dump(knn_train,'models/KNN_best_model'+id+'.sav')
         else:
-            knn_train = KNeighborsRegressor(n_neighbors=5)
+            knn_train = KNeighborsRegressor(algorithm='ball_tree', n_neighbors=20, weights='distance')
             knn_train.fit(X_train,y_train)
         end_time = time.time()
         run_time = end_time - start_time
@@ -411,18 +411,19 @@ def method_KNN(features, y, model=False, gridsearch=0, verbose=3,n_jobs=None):
         RMSE = mean_squared_error(y_test,y_pred, squared=False)
         MAE = mean_absolute_error(y_test,y_pred)
 
-    return {"R2":r2, "MSE": MSE, "RMSE": RMSE, "MAE": MAE}
+    return {"R2":r2, "MSE": MSE, "RMSE": RMSE, "MAE": MAE,"Gridsearchcv_obj": knn_train}
 
 
-def method_DT(features, y, model=False, gridsearch=0, verbose=3,n_jobs=None):
+def method_DT(features, y, id, model=False, gridsearch=0, verbose=3,n_jobs=None):
     X = features.T
     sc_X = StandardScaler()
     X = sc_X.fit_transform(X)
-    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=2)
-    X_train, X_test, y_train, y_test = X, X, y, y
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=2)
+    # X_train, X_test, y_train, y_test = X, X, y, y
 
     if model != False:
-        loaded_model = joblib.load('DT_best_model'+nameof(y)+'.sav')
+        loaded_model = joblib.load('models/DT_best_model'+id+'.sav')
+        # loaded_model.fit(X_train,y_train)
         y_pred = loaded_model.predict(X_test)
 
         r2 = r2_score(y_test,y_pred)
@@ -430,28 +431,29 @@ def method_DT(features, y, model=False, gridsearch=0, verbose=3,n_jobs=None):
         RMSE = mean_squared_error(y_test,y_pred, squared=False)
         MAE = mean_absolute_error(y_test,y_pred)
     else:
-        parameters={"splitter":["best","random"],
-                    "max_depth" : [1,3,5,7,9,11,12],
+        parameters={"criterion": ["squared_error"],
+                    "splitter":["best","random"],
+                    "max_depth" : [1,3,5,7,9,11,12,None],
                     "min_samples_leaf":[1,2,3,4,5,6,7,8,9,10],
-                    "min_weight_fraction_leaf":[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9],
+                    "min_weight_fraction_leaf":[0.0,0.1,0.2,0.3,0.4,0.5],
                     "max_features":["log2","sqrt",None],
                     "max_leaf_nodes":[None,10,20,30,40,50,60,70,80,90] }
+
+        parameters={"criterion": ["friedman_mse","squared_error","absolute_error"],
+                    "splitter":["random","best"],
+                    "max_depth" : [1,3,5,8,12,20,50,100],
+                    "min_samples_leaf":[2,4,6,8,10],
+                    "min_weight_fraction_leaf":[0.0,0.2,0.4],
+                    "max_features":['sqrt','log2'],
+                    "max_leaf_nodes":[10,20,30,40,50,60,70,80,90] }
         
-        parameters={"splitter":["best","random"],
-                    "max_depth" : [3,9],
-                    "min_samples_leaf":[2,6],
-                    "min_weight_fraction_leaf":[0.3,0.5],
-                    "max_features":["log2","sqrt"],
-                    "max_leaf_nodes":[10,40] }
-        
-                    
         start_time = time.time()
         if gridsearch == 1:
-            dt_train = GridSearchCV(DecisionTreeRegressor(criterion='squared_error'), parameters, cv = 5,scoring='r2',verbose=verbose,n_jobs=n_jobs)
+            dt_train = GridSearchCV(DecisionTreeRegressor(), parameters, cv = 5,scoring='neg_mean_squared_error',verbose=verbose,n_jobs=n_jobs)
             dt_train.fit(X_train,y_train)
-            joblib.dump(dt_train.best_estimator_,'DT_best_model'+nameof(y)+'.sav')
+            joblib.dump(dt_train,'models/DT_best_model'+id+'.sav')
         else:
-            dt_train = DecisionTreeRegressor()
+            dt_train = DecisionTreeRegressor(criterion="friedman_mse",max_depth=None,min_weight_fraction_leaf=0.0,max_features=None,splitter='random',min_samples_leaf=5)
             dt_train.fit(X_train,y_train)
         end_time = time.time()
         run_time = end_time - start_time
@@ -464,4 +466,30 @@ def method_DT(features, y, model=False, gridsearch=0, verbose=3,n_jobs=None):
         RMSE = mean_squared_error(y_test,y_pred, squared=False)
         MAE = mean_absolute_error(y_test,y_pred)
 
-    return {"R2":r2, "MSE": MSE, "RMSE": RMSE, "MAE": MAE}
+    return {"R2":r2, "MSE": MSE, "RMSE": RMSE, "MAE": MAE,"Gridsearchcv_obj": dt_train}
+
+
+def plot_grid_search(cv_results, grid_param_1, grid_param_2, name_param_1, name_param_2):
+    # Get Test Scores Mean and std for each grid search
+    scores_mean = cv_results['mean_test_score']
+    scores_mean = np.array(scores_mean).reshape(len(grid_param_2),len(grid_param_1))
+
+    scores_sd = cv_results['std_test_score']
+    scores_sd = np.array(scores_sd).reshape(len(grid_param_2),len(grid_param_1))
+
+    # Plot Grid search scores
+    _, ax = plt.subplots(1,1)
+
+    # Param1 is the X-axis, Param 2 is represented as a different curve (color line)
+    for idx, val in enumerate(grid_param_2):
+        ax.plot(grid_param_1, scores_mean[idx,:], '-o', label= name_param_2 + ': ' + str(val))
+
+    ax.set_title("Grid Search Scores", fontsize=20, fontweight='bold')
+    ax.set_xlabel(name_param_1, fontsize=16)
+    ax.set_ylabel('CV Average Score', fontsize=16)
+    ax.legend(loc="best", fontsize=15)
+    ax.grid('on')
+    plt.show()
+
+# Calling Method 
+# plot_grid_search(knn_train.cv_results_, [10,20,40], ['uniform','distance'], 'n-neighbors', 'weights')

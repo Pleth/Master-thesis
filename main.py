@@ -3,12 +3,12 @@ import numpy as np
 import pandas as pd
 import h5py
 from tqdm import tqdm
-import time
+tqdm.__init__ = partialmethod(tqdm.__init__, disable=True)
 
 from functions import *
 from LiRA_functions import *
 
-import tsfel
+from functools import partialmethod
 
 
 if __name__ == '__main__':
@@ -87,45 +87,82 @@ if __name__ == '__main__':
         cracks.append(np.max(temp_cracks))
         potholes.append(np.max(temp_potholes))
     
-    y = DI
-
+    
     gridsearch = 1
-    verbose = 3
+    verbose = 0
     n_jobs = 4
     model = False
 
     print('SVR')
     print('DI')
-    scores_SVR_DI        = method_SVR(features, DI, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
+    scores_SVR_DI        = method_SVR(features, DI, 'DI', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
     print('Potholes')
-    scores_SVR_potholes  = method_SVR(features, potholes, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
+    scores_SVR_potholes  = method_SVR(features, potholes, 'potholes', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
     print('Cracks')
-    scores_SVR_cracks    = method_SVR(features, cracks, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
+    scores_SVR_cracks    = method_SVR(features, cracks, 'cracks', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
     print('Alligator')
-    scores_SVR_alligator = method_SVR(features, alligator, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
+    scores_SVR_alligator = method_SVR(features, alligator, 'alligator', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
     
     print('KNN')
     print('DI')
-    scores_KNN_DI        = method_KNN(features, DI, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
+    scores_KNN_DI        = method_KNN(features, DI, 'DI', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
     print('Potholes')
-    scores_KNN_potholes  = method_KNN(features, potholes, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
+    scores_KNN_potholes  = method_KNN(features, potholes, 'potholes', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
     print('Cracks')
-    scores_KNN_cracks    = method_KNN(features, cracks, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
+    scores_KNN_cracks    = method_KNN(features, cracks, 'cracks', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
     print('Alligator')
-    scores_KNN_alligator = method_KNN(features, alligator, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
+    scores_KNN_alligator = method_KNN(features, alligator, 'alligator', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
     
     print('DT')
     print('DI')
-    scores_DT_DI        = method_DT(features, DI, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
+    scores_DT_DI        = method_DT(features, DI, 'DI', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
     print('Potholes')
-    scores_DT_potholes  = method_DT(features, potholes, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
+    scores_DT_potholes  = method_DT(features, potholes, 'potholes', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
     print('Cracks')
-    scores_DT_cracks    = method_DT(features, cracks, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
+    scores_DT_cracks    = method_DT(features, cracks, 'cracks', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
     print('Alligator')
-    scores_DT_alligator = method_DT(features, alligator, model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
+    scores_DT_alligator = method_DT(features, alligator, 'alligator', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
+
+
+
+    scores_KNN_alligator = method_KNN(features, alligator, 'alligator', model=False, gridsearch=1, verbose=3,n_jobs=n_jobs)
+
+    scores_DT_cracksv1    = method_DT(features, cracks, 'cracks', model=model, gridsearch=gridsearch, verbose=3,n_jobs=n_jobs)
+    scores_DT_cracksv2    = method_DT(features, cracks, 'cracks', model=model, gridsearch=0, verbose=3,n_jobs=n_jobs)
+
     
+    scores_DT_cracksv3    = method_DT(features, cracks, 'cracks', model=model, gridsearch=gridsearch, verbose=3,n_jobs=n_jobs)
+    
+
+
     from tabulate import tabulate
-    print(tabulate([['SVR', scores_SVR_DI['R2'],scores_SVR_potholes['R2'],scores_SVR_cracks['R2'],scores_SVR_alligator['R2']], 
-              ['KNN', scores_KNN_DI['R2'],scores_KNN_potholes['R2'],scores_KNN_cracks['R2'],scores_KNN_alligator['R2']], 
-              ['DT',  scores_DT_DI['R2'],scores_DT_potholes['R2'],scores_DT_cracks['R2'],scores_DT_alligator['R2']]], 
-              headers=['Method', 'DI','Potholes','Cracks','Alligator']))
+    id = 'R2'
+    r2 = tabulate([['SVR', scores_SVR_DI[id],scores_SVR_potholes[id],scores_SVR_cracks[id],scores_SVR_alligator[id]], 
+              ['KNN', scores_KNN_DI[id],scores_KNN_potholes[id],scores_KNN_cracks[id],scores_KNN_alligator[id]], 
+              ['DT',  scores_DT_DI[id],scores_DT_potholes[id],scores_DT_cracks[id],scores_DT_alligator[id]]], 
+              headers=['Method', 'DI','Potholes','Cracks','Alligator'])
+    id = 'MSE'
+    mse = tabulate([['SVR', scores_SVR_DI[id],scores_SVR_potholes[id],scores_SVR_cracks[id],scores_SVR_alligator[id]], 
+              ['KNN', scores_KNN_DI[id],scores_KNN_potholes[id],scores_KNN_cracks[id],scores_KNN_alligator[id]], 
+              ['DT',  scores_DT_DI[id],scores_DT_potholes[id],scores_DT_cracks[id],scores_DT_alligator[id]]], 
+              headers=['Method', 'DI','Potholes','Cracks','Alligator'])
+    id = 'RMSE'
+    rmse = tabulate([['SVR', scores_SVR_DI[id],scores_SVR_potholes[id],scores_SVR_cracks[id],scores_SVR_alligator[id]], 
+              ['KNN', scores_KNN_DI[id],scores_KNN_potholes[id],scores_KNN_cracks[id],scores_KNN_alligator[id]], 
+              ['DT',  scores_DT_DI[id],scores_DT_potholes[id],scores_DT_cracks[id],scores_DT_alligator[id]]], 
+              headers=['Method', 'DI','Potholes','Cracks','Alligator'])
+    id = 'MAE'
+    mae = tabulate([['SVR', scores_SVR_DI[id],scores_SVR_potholes[id],scores_SVR_cracks[id],scores_SVR_alligator[id]], 
+              ['KNN', scores_KNN_DI[id],scores_KNN_potholes[id],scores_KNN_cracks[id],scores_KNN_alligator[id]], 
+              ['DT',  scores_DT_DI[id],scores_DT_potholes[id],scores_DT_cracks[id],scores_DT_alligator[id]]], 
+              headers=['Method', 'DI','Potholes','Cracks','Alligator'])
+
+    print('==========================R2===========================')
+    print(r2)
+    print('==========================MSE==========================')
+    print(mse)
+    print('==========================RMSE=========================')
+    print(rmse)
+    print('==========================MAE==========================')
+    print(mae)
+
