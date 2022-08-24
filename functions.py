@@ -326,92 +326,92 @@ def feature_extraction(data):
     return data,feature_names
 
 
-def method_SVR(features, y, id, model=False, gridsearch=0, verbose=3,n_jobs=None):
-    X = features.T
-    sc_X = StandardScaler()
-    X = sc_X.fit_transform(X)
-    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=2)
-    X_train, X_test, y_train, y_test = X, X, y, y
+# def method_SVR(features, y, id, model=False, gridsearch=0, verbose=3,n_jobs=None):
+#     X = features.T
+#     sc_X = StandardScaler()
+#     X = sc_X.fit_transform(X)
+#     # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=2)
+#     X_train, X_test, y_train, y_test = X, X, y, y
 
-    if model != False:
-        loaded_model = joblib.load('models/SVR_best_model'+id+'.sav')
-        # loaded_model.fit(X_train,y_train)
-        y_pred = loaded_model.predict(X_test)
+#     if model != False:
+#         loaded_model = joblib.load('models/SVR_best_model'+id+'.sav')
+#         # loaded_model.fit(X_train,y_train)
+#         y_pred = loaded_model.predict(X_test)
 
-        r2 = r2_score(y_test,y_pred)
-        MSE = mean_squared_error(y_test,y_pred, squared=True)
-        RMSE = mean_squared_error(y_test,y_pred, squared=False)
-        MAE = mean_absolute_error(y_test,y_pred)
-    else:
-        parameters = [{'kernel': ['rbf'], 'gamma': [1e-3, 0.01, 0.1],'C': [1, 10, 20]}]
-                    #{'kernel': ['sigmoid'], 'gamma': [1e-5, 1e-4, 1e-3],'C': [1, 10, 100]},
-                    #{'kernel': ['poly'], 'gamma': [1e-3, 0.01, 0.1],'C': [1, 10, 20]},
-                    #{'kernel': ['linear'], 'gamma': [1e-3, 0.01, 0.1],'C': [1, 10, 20]}]
+#         r2 = r2_score(y_test,y_pred)
+#         MSE = mean_squared_error(y_test,y_pred, squared=True)
+#         RMSE = mean_squared_error(y_test,y_pred, squared=False)
+#         MAE = mean_absolute_error(y_test,y_pred)
+#     else:
+#         parameters = [{'kernel': ['rbf'], 'gamma': [1e-3, 0.01, 0.1],'C': [1, 10, 20]}]
+#                     #{'kernel': ['sigmoid'], 'gamma': [1e-5, 1e-4, 1e-3],'C': [1, 10, 100]},
+#                     #{'kernel': ['poly'], 'gamma': [1e-3, 0.01, 0.1],'C': [1, 10, 20]},
+#                     #{'kernel': ['linear'], 'gamma': [1e-3, 0.01, 0.1],'C': [1, 10, 20]}]
 
-        start_time = time.time()
-        if gridsearch == 1:
-            svr_train = GridSearchCV(SVR(epsilon = 0.01), parameters, cv = 5,scoring='neg_mean_squared_error',verbose=verbose,n_jobs=n_jobs)
-            svr_train.fit(X_train,y_train)
-            joblib.dump(svr_train,'models/SVR_best_model'+id+'.sav')
-        else:
-            svr_train = SVR(kernel='rbf',C=1,gamma=0.1,epsilon=0.01)
-            svr_train.fit(X_train,y_train)
-        end_time = time.time()
-        run_time = end_time - start_time
-        print('Run time:',round(run_time/60,2),'mins')
+#         start_time = time.time()
+#         if gridsearch == 1:
+#             svr_train = GridSearchCV(SVR(epsilon = 0.01), parameters, cv = 5,scoring='neg_mean_squared_error',verbose=verbose,n_jobs=n_jobs)
+#             svr_train.fit(X_train,y_train)
+#             joblib.dump(svr_train,'models/SVR_best_model'+id+'.sav')
+#         else:
+#             svr_train = SVR(kernel='rbf',C=1,gamma=0.1,epsilon=0.01)
+#             svr_train.fit(X_train,y_train)
+#         end_time = time.time()
+#         run_time = end_time - start_time
+#         print('Run time:',round(run_time/60,2),'mins')
         
-        y_pred = svr_train.predict(X_test)
+#         y_pred = svr_train.predict(X_test)
 
-        r2 = r2_score(y_test,y_pred)
-        MSE = mean_squared_error(y_test,y_pred, squared=True)
-        RMSE = mean_squared_error(y_test,y_pred, squared=False)
-        MAE = mean_absolute_error(y_test,y_pred)
+#         r2 = r2_score(y_test,y_pred)
+#         MSE = mean_squared_error(y_test,y_pred, squared=True)
+#         RMSE = mean_squared_error(y_test,y_pred, squared=False)
+#         MAE = mean_absolute_error(y_test,y_pred)
 
-    return {"R2":r2, "MSE": MSE, "RMSE": RMSE, "MAE": MAE,"Gridsearchcv_obj": svr_train}
+#     return {"R2":r2, "MSE": MSE, "RMSE": RMSE, "MAE": MAE,"Gridsearchcv_obj": svr_train}
 
     
-def method_KNN(features, y, id, model=False, gridsearch=0, verbose=3,n_jobs=None):
-    X = features.T
-    sc_X = StandardScaler()
-    X = sc_X.fit_transform(X)
-    # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=2)
-    X_train, X_test, y_train, y_test = X, X, y, y
+# def method_KNN(features, y, id, model=False, gridsearch=0, verbose=3,n_jobs=None):
+#     X = features.T
+#     sc_X = StandardScaler()
+#     X = sc_X.fit_transform(X)
+#     # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=2)
+#     X_train, X_test, y_train, y_test = X, X, y, y
 
-    if model != False:
-        loaded_model = joblib.load('models/KNN_best_model'+id+'.sav')
-        # loaded_model.fit(X_train,y_train)
-        y_pred = loaded_model.predict(X_test)
+#     if model != False:
+#         loaded_model = joblib.load('models/KNN_best_model'+id+'.sav')
+#         # loaded_model.fit(X_train,y_train)
+#         y_pred = loaded_model.predict(X_test)
 
-        r2 = r2_score(y_test,y_pred)
-        MSE = mean_squared_error(y_test,y_pred, squared=True)
-        RMSE = mean_squared_error(y_test,y_pred, squared=False)
-        MAE = mean_absolute_error(y_test,y_pred)
-    else:
-        parameters = [{'weights':['uniform','distance'],'algorithm': ['ball_tree','kd_tree','brute'],
-                       'n_neighbors': [1,2,5,10,20,40,50,60,100]}]
-        parameters = [{'weights':['uniform','distance'],'algorithm': ['ball_tree'],
-                       'n_neighbors': [10,20,40]}]
+#         r2 = r2_score(y_test,y_pred)
+#         MSE = mean_squared_error(y_test,y_pred, squared=True)
+#         RMSE = mean_squared_error(y_test,y_pred, squared=False)
+#         MAE = mean_absolute_error(y_test,y_pred)
+#     else:
+#         parameters = [{'weights':['uniform','distance'],'algorithm': ['ball_tree','kd_tree','brute'],
+#                        'n_neighbors': [1,2,5,10,20,40,50,60,100]}]
+#         parameters = [{'weights':['uniform','distance'],'algorithm': ['ball_tree'],
+#                        'n_neighbors': [10,20,40]}]
                     
-        start_time = time.time()
-        if gridsearch == 1:
-            knn_train = GridSearchCV(KNeighborsRegressor(), parameters, cv = 5,scoring='neg_mean_squared_error',verbose=verbose,n_jobs=n_jobs)
-            knn_train.fit(X_train,y_train)
-            joblib.dump(knn_train,'models/KNN_best_model'+id+'.sav')
-        else:
-            knn_train = KNeighborsRegressor(algorithm='ball_tree', n_neighbors=20, weights='distance')
-            knn_train.fit(X_train,y_train)
-        end_time = time.time()
-        run_time = end_time - start_time
-        print('Run time:',round(run_time/60,2),'mins')
+#         start_time = time.time()
+#         if gridsearch == 1:
+#             knn_train = GridSearchCV(KNeighborsRegressor(), parameters, cv = 5,scoring='neg_mean_squared_error',verbose=verbose,n_jobs=n_jobs)
+#             knn_train.fit(X_train,y_train)
+#             joblib.dump(knn_train,'models/KNN_best_model'+id+'.sav')
+#         else:
+#             knn_train = KNeighborsRegressor(algorithm='ball_tree', n_neighbors=20, weights='distance')
+#             knn_train.fit(X_train,y_train)
+#         end_time = time.time()
+#         run_time = end_time - start_time
+#         print('Run time:',round(run_time/60,2),'mins')
         
-        y_pred = knn_train.predict(X_test)
+#         y_pred = knn_train.predict(X_test)
 
-        r2 = r2_score(y_test,y_pred)
-        MSE = mean_squared_error(y_test,y_pred, squared=True)
-        RMSE = mean_squared_error(y_test,y_pred, squared=False)
-        MAE = mean_absolute_error(y_test,y_pred)
+#         r2 = r2_score(y_test,y_pred)
+#         MSE = mean_squared_error(y_test,y_pred, squared=True)
+#         RMSE = mean_squared_error(y_test,y_pred, squared=False)
+#         MAE = mean_absolute_error(y_test,y_pred)
 
-    return {"R2":r2, "MSE": MSE, "RMSE": RMSE, "MAE": MAE,"Gridsearchcv_obj": knn_train}
+#     return {"R2":r2, "MSE": MSE, "RMSE": RMSE, "MAE": MAE,"Gridsearchcv_obj": knn_train}
 
 
 def method_DT(features, y, id, model=False, gridsearch=0, verbose=3,n_jobs=None):
@@ -467,6 +467,165 @@ def method_DT(features, y, id, model=False, gridsearch=0, verbose=3,n_jobs=None)
         MAE = mean_absolute_error(y_test,y_pred)
 
     return {"R2":r2, "MSE": MSE, "RMSE": RMSE, "MAE": MAE,"Gridsearchcv_obj": dt_train}
+
+
+
+
+
+
+
+def custom_splits(aran_segments,route_details):
+    splits = []
+    cph1_hh = []
+    cph1_vh = []
+    cph6_hh = []
+    cph6_vh = []
+    for i in range(len(route_details)):
+        if route_details[i][:7] == 'CPH1_HH':
+            cph1_hh.extend([i*5,i*5+1,i*5+2,i*5+3,i*5+4])
+        if route_details[i][:7] == 'CPH1_VH':
+            cph1_vh.extend([i*5,i*5+1,i*5+2,i*5+3,i*5+4])
+        if route_details[i][:7] == 'CPH6_HH':
+            cph6_hh.extend([i*5,i*5+1,i*5+2,i*5+3,i*5+4])
+        if route_details[i][:7] == 'CPH6_VH':
+            cph6_vh.extend([i*5,i*5+1,i*5+2,i*5+3,i*5+4])
+
+    cph1_len = (len(cph1_hh) + len(cph1_vh))/5
+
+    counter = 0
+    chain_start = 645
+    for i in range(int(cph1_len)):
+        counter1 = np.sum(np.sum(aran_segments['EndChainage'].iloc[cph1_hh] < chain_start))
+        counter2 = np.sum(np.sum(aran_segments['BeginChainage'].iloc[cph1_vh] < chain_start))
+        counter = (counter1 + counter2)/5
+        if (counter >= cph1_len/3):
+            break
+        chain_start += 10
+
+    dd = aran_segments['EndChainage'][cph1_hh] < chain_start
+    temp_cph1_hh = []
+    for i in range(len(cph1_hh)):
+        if dd.iloc[i] == True:
+            temp_cph1_hh.append(cph1_hh[i])
+
+    dd = aran_segments['BeginChainage'][cph1_vh] < chain_start
+    temp_cph1_vh = []
+    for i in range(len(cph1_vh)):
+        if dd.iloc[i] == True:
+            temp_cph1_vh.append(cph1_vh[i])
+
+    split1 = list(set(list((np.array(temp_cph1_hh)/5).astype(int)))) + list(set(list((np.array(temp_cph1_vh)/5).astype(int))))
+
+    counter = 0
+    chain_end = chain_start
+    chain_start = chain_start + 50
+    for i in range(int(cph1_len)):
+        counter1 = np.sum(np.sum((chain_end < aran_segments['BeginChainage'].iloc[cph1_hh]) & (aran_segments['EndChainage'].iloc[cph1_hh] < chain_start)))
+        counter2 = np.sum(np.sum((chain_end < aran_segments['EndChainage'].iloc[cph1_vh]) & (aran_segments['BeginChainage'].iloc[cph1_vh] < chain_start)))
+        counter = (counter1 + counter2)/5
+        if (counter >= cph1_len/3):
+            break
+        chain_start += 10
+
+    dd = (chain_end < aran_segments['BeginChainage'][cph1_hh]) & (aran_segments['EndChainage'][cph1_hh] < chain_start)
+    temp_cph1_hh = []
+    for i in range(len(cph1_hh)):
+        if dd.iloc[i] == True:
+            temp_cph1_hh.append(cph1_hh[i])
+
+    dd = (chain_end < aran_segments['EndChainage'][cph1_vh]) & (aran_segments['BeginChainage'][cph1_vh] < chain_start)
+    temp_cph1_vh = []
+    for i in range(len(cph1_vh)):
+        if dd.iloc[i] == True:
+            temp_cph1_vh.append(cph1_vh[i])
+
+    split2 = list(set(list((np.array(temp_cph1_hh)/5).astype(int)))) + list(set(list((np.array(temp_cph1_vh)/5).astype(int))))
+
+    counter = 0
+    chain_end = chain_start
+    chain_start = chain_start + 50
+    for i in range(int(cph1_len)):
+        counter1 = np.sum(np.sum(chain_end < aran_segments['BeginChainage'].iloc[cph1_hh]))
+        counter2 = np.sum(np.sum(chain_end < aran_segments['EndChainage'].iloc[cph1_vh]))
+        counter = (counter1 + counter2)/5
+        if (counter >= cph1_len/3):
+            break
+        chain_start += 10
+
+    dd = chain_end < aran_segments['BeginChainage'][cph1_hh]
+    temp_cph1_hh = []
+    for i in range(len(cph1_hh)):
+        if dd.iloc[i] == True:
+            temp_cph1_hh.append(cph1_hh[i])
+
+    dd = chain_end < aran_segments['EndChainage'][cph1_vh]
+    temp_cph1_vh = []
+    for i in range(len(cph1_vh)):
+        if dd.iloc[i] == True:
+            temp_cph1_vh.append(cph1_vh[i])
+
+    split3 = list(set(list((np.array(temp_cph1_hh)/5).astype(int)))) + list(set(list((np.array(temp_cph1_vh)/5).astype(int))))
+
+
+    cph6_len = (len(cph6_hh) + len(cph6_vh))/5
+
+    counter = 0
+    chain_start = 0
+    for i in range(int(cph6_len)):
+        counter1 = np.sum(np.sum(aran_segments['EndChainage'].iloc[cph6_hh] < chain_start))
+        counter2 = np.sum(np.sum(aran_segments['BeginChainage'].iloc[cph6_vh] < chain_start))
+        counter = (counter1 + counter2)/5
+        if (counter >= cph6_len/2):
+            break
+        chain_start += 10
+
+    dd = aran_segments['EndChainage'][cph6_hh] < chain_start
+    temp_cph6_hh = []
+    for i in range(len(cph6_hh)):
+        if dd.iloc[i] == True:
+            temp_cph6_hh.append(cph6_hh[i])
+
+    dd = aran_segments['BeginChainage'][cph6_vh] < chain_start
+    temp_cph6_vh = []
+    for i in range(len(cph6_vh)):
+        if dd.iloc[i] == True:
+            temp_cph6_vh.append(cph6_vh[i])
+
+    split4 = list(set(list((np.array(temp_cph6_hh)/5).astype(int)))) + list(set(list((np.array(temp_cph6_vh)/5).astype(int))))
+    
+    counter = 0
+    chain_end = chain_start
+    for i in range(int(cph6_len)):
+        counter1 = np.sum(np.sum(chain_end < aran_segments['BeginChainage'].iloc[cph6_hh]))
+        counter2 = np.sum(np.sum(chain_end < aran_segments['EndChainage'].iloc[cph6_vh]))
+        counter = (counter1 + counter2)/5
+        if (counter >= cph6_len/2):
+            break
+        chain_start += 10
+
+    dd = chain_end < aran_segments['BeginChainage'][cph6_hh]
+    temp_cph6_hh = []
+    for i in range(len(cph6_hh)):
+        if dd.iloc[i] == True:
+            temp_cph6_hh.append(cph6_hh[i])
+
+    dd = chain_end < aran_segments['EndChainage'][cph6_vh]
+    temp_cph6_vh = []
+    for i in range(len(cph6_vh)):
+        if dd.iloc[i] == True:
+            temp_cph6_vh.append(cph6_vh[i])
+
+    split5 = list(set(list((np.array(temp_cph6_hh)/5).astype(int)))) + list(set(list((np.array(temp_cph6_vh)/5).astype(int))))
+    
+    splits = set().union(split1+split2+split3+split4+split5)
+
+    return splits
+
+
+
+
+
+
 
 
 def plot_grid_search(cv_results, grid_param_1, grid_param_2, name_param_1, name_param_2):
