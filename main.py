@@ -3,12 +3,12 @@ import numpy as np
 import pandas as pd
 import h5py
 from tqdm import tqdm
-tqdm.__init__ = partialmethod(tqdm.__init__, disable=True)
+# tqdm.__init__ = partialmethod(tqdm.__init__, disable=True)
 
 from functions import *
 from LiRA_functions import *
 
-from functools import partialmethod
+from tabulate import tabulate
 
 
 if __name__ == '__main__':
@@ -93,49 +93,37 @@ if __name__ == '__main__':
     n_jobs = 4
     model = False
 
-    # print('SVR')
-    # print('DI')
-    # scores_SVR_DI        = method_SVR(features, DI, 'DI', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
-    # print('Potholes')
-    # scores_SVR_potholes  = method_SVR(features, potholes, 'potholes', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
-    # print('Cracks')
-    # scores_SVR_cracks    = method_SVR(features, cracks, 'cracks', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
-    # print('Alligator')
-    # scores_SVR_alligator = method_SVR(features, alligator, 'alligator', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
-    
-    # print('KNN')
-    # print('DI')
-    # scores_KNN_DI        = method_KNN(features, DI, 'DI', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
-    # print('Potholes')
-    # scores_KNN_potholes  = method_KNN(features, potholes, 'potholes', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
-    # print('Cracks')
-    # scores_KNN_cracks    = method_KNN(features, cracks, 'cracks', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
-    # print('Alligator')
-    # scores_KNN_alligator = method_KNN(features, alligator, 'alligator', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
-    
-    print('DT')
-    print('DI')
-    scores_DT_DI        = method_DT(features, DI, 'DI', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
-    print('Potholes')
-    scores_DT_potholes  = method_DT(features, potholes, 'potholes', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
-    print('Cracks')
-    scores_DT_cracks    = method_DT(features, cracks, 'cracks', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
-    print('Alligator')
-    scores_DT_alligator = method_DT(features, alligator, 'alligator', model=model, gridsearch=gridsearch, verbose=verbose,n_jobs=n_jobs)
+    cv = custom_splits(aran_segments,route_details)
 
-
-
-    scores_DT_cracksv1    = method_DT(features, cracks, 'cracks', model=model, gridsearch=gridsearch, verbose=3,n_jobs=n_jobs)
-    scores_DT_cracksv2    = method_DT(features, cracks, 'cracks', model=model, gridsearch=0, verbose=3,n_jobs=n_jobs)
+    scores_RandomForest_DI        = method_RandomForest(features, DI, 'DI', model=model, gridsearch=gridsearch, cv=cv, verbose=verbose,n_jobs=n_jobs)
+    scores_RandomForest_potholes  = method_RandomForest(features, potholes, 'potholes', model=model, gridsearch=gridsearch, cv=cv, verbose=verbose,n_jobs=n_jobs)
+    scores_RandomForest_cracks    = method_RandomForest(features, cracks, 'cracks', model=model, gridsearch=gridsearch, cv=cv, verbose=verbose,n_jobs=n_jobs)
+    scores_RandomForest_alligator = method_RandomForest(features, alligator, 'alligator', model=model, gridsearch=gridsearch, cv=cv, verbose=verbose,n_jobs=n_jobs)
 
     
-    scores_DT_cracksv3    = method_DT(features, cracks, 'cracks', model=model, gridsearch=gridsearch, verbose=3,n_jobs=n_jobs)
+
+    print(tabulate([['R2',scores_RandomForest_DI['R2'],scores_RandomForest_potholes['R2'],scores_RandomForest_cracks['R2'],scores_RandomForest_alligator['R2']],
+                    ['MSE',scores_RandomForest_DI['MSE'],scores_RandomForest_potholes['MSE'],scores_RandomForest_cracks['MSE'],scores_RandomForest_alligator['MSE']],
+                    ['RMSE',scores_RandomForest_DI['RMSE'],scores_RandomForest_potholes['RMSE'],scores_RandomForest_cracks['RMSE'],scores_RandomForest_alligator['RMSE']],
+                    ['MAE',scores_RandomForest_DI['MAE'],scores_RandomForest_potholes['MAE'],scores_RandomForest_cracks['MAE'],scores_RandomForest_alligator['MAE']]], 
+              headers=['RandomForest', 'DI','Potholes','Cracks','Alligator']))
+
     
+    obj = scores_RandomForest_DI['Gridsearchcv_obj']
+    feature_importance = obj.best_estimator_.feature_importances_
+    bis_features = np.argpartition(feature_importance,-10)[-10:]
 
+    top_10 = feature_names.index[bis_features]
 
-    from tabulate import tabulate
-    id = 'R2'
-    print(tabulate([['DT',scores_DT_DI[id],scores_DT_potholes[id],scores_DT_cracks[id],scores_DT_alligator[id]]], 
-              headers=['Method', 'DI','Potholes','Cracks','Alligator']))
-
-
+    plt.plot(feature_importance)
+    plt.annotate(top_10[0][2:], xy =(bis_features[0],feature_importance[bis_features[0]]),xytext =(bis_features[0]+10,feature_importance[bis_features[0]]+0.001),arrowprops = dict(arrowstyle = "->",facecolor ='green'))
+    plt.text(bis_features[1],feature_importance[bis_features[1]],top_10[1][2:])
+    plt.annotate(top_10[2][2:], xy =(bis_features[2],feature_importance[bis_features[2]]),xytext =(bis_features[2]+10,feature_importance[bis_features[2]]+0.002),arrowprops = dict(arrowstyle = "->",facecolor ='green'))
+    plt.annotate(top_10[3][2:], xy =(bis_features[3],feature_importance[bis_features[3]]),xytext =(bis_features[3]-20,feature_importance[bis_features[3]]+0.0001))
+    plt.annotate(top_10[4][2:], xy =(bis_features[4],feature_importance[bis_features[4]]),xytext =(bis_features[4]+10,feature_importance[bis_features[4]]+0.001),arrowprops = dict(arrowstyle = "->",facecolor ='green'))
+    plt.annotate(top_10[5][2:], xy =(bis_features[5],feature_importance[bis_features[5]]),xytext =(bis_features[5]-50,feature_importance[bis_features[5]]+0),arrowprops = dict(arrowstyle = "->",facecolor ='green'))
+    plt.text(bis_features[6],feature_importance[bis_features[6]],top_10[0][2:])
+    plt.annotate(top_10[7][2:], xy =(bis_features[7],feature_importance[bis_features[7]]),xytext =(bis_features[7]-50,feature_importance[bis_features[7]]+0.001),arrowprops = dict(arrowstyle = "->",facecolor ='green'))
+    plt.annotate(top_10[8][2:], xy =(bis_features[8],feature_importance[bis_features[8]]),xytext =(bis_features[8]-0,feature_importance[bis_features[8]]+0.001),arrowprops = dict(arrowstyle = "->",facecolor ='green'))
+    plt.annotate(top_10[9][2:], xy =(bis_features[9],feature_importance[bis_features[9]]),xytext =(bis_features[9]+10,feature_importance[bis_features[9]]+0.001),arrowprops = dict(arrowstyle = "->",facecolor ='green'))
+    plt.show()

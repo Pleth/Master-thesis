@@ -13,6 +13,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 from sklearn.model_selection import train_test_split, GridSearchCV
 
@@ -414,59 +415,57 @@ def feature_extraction(data):
 #     return {"R2":r2, "MSE": MSE, "RMSE": RMSE, "MAE": MAE,"Gridsearchcv_obj": knn_train}
 
 
-def method_DT(features, y, id, model=False, gridsearch=0, verbose=3,n_jobs=None):
+def method_RandomForest(features, y, id, model=False, gridsearch=0, cv=5, verbose=3,n_jobs=None):
     X = features.T
     sc_X = StandardScaler()
     X = sc_X.fit_transform(X)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=2)
-    # X_train, X_test, y_train, y_test = X, X, y, y
+    X_train, X_test, y_train, y_test = X, X, y, y
 
     if model != False:
-        loaded_model = joblib.load('models/DT_best_model'+id+'.sav')
+        rf_train = joblib.load('models/RandomForest_best_model_'+id+'.sav')
         # loaded_model.fit(X_train,y_train)
-        y_pred = loaded_model.predict(X_test)
+        y_pred = rf_train.predict(X_test)
 
         r2 = r2_score(y_test,y_pred)
         MSE = mean_squared_error(y_test,y_pred, squared=True)
         RMSE = mean_squared_error(y_test,y_pred, squared=False)
         MAE = mean_absolute_error(y_test,y_pred)
-    else:
-        parameters={"criterion": ["squared_error"],
-                    "splitter":["best","random"],
-                    "max_depth" : [1,3,5,7,9,11,12,None],
-                    "min_samples_leaf":[1,2,3,4,5,6,7,8,9,10],
-                    "min_weight_fraction_leaf":[0.0,0.1,0.2,0.3,0.4,0.5],
-                    "max_features":["log2","sqrt",None],
-                    "max_leaf_nodes":[None,10,20,30,40,50,60,70,80,90] }
+    else:        
+        parameters={'criterion': ['squared_error','absolute_error','poisson'],
+                    'bootstrap': [True, False],
+                    'max_depth': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, None],
+                    'max_features': ['log2', 'sqrt'],
+                    'min_samples_leaf': [1, 2, 4],
+                    'min_samples_split': [2, 5, 10],
+                    'n_estimators': [200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000]}
+        parameters={'criterion': ['squared_error'],
+                    'bootstrap': [True, False],
+                    'max_depth': [30],
+                    'max_features': ['sqrt'],
+                    'min_samples_leaf': [2],
+                    'min_samples_split': [5],
+                    'n_estimators': [200]}
 
-        parameters={"criterion": ["friedman_mse","squared_error","absolute_error"],
-                    "splitter":["random","best"],
-                    "max_depth" : [1,3,5,8,12,20,50,100],
-                    "min_samples_leaf":[2,4,6,8,10],
-                    "min_weight_fraction_leaf":[0.0,0.2,0.4],
-                    "max_features":['sqrt','log2'],
-                    "max_leaf_nodes":[10,20,30,40,50,60,70,80,90] }
-        
         start_time = time.time()
         if gridsearch == 1:
-            dt_train = GridSearchCV(DecisionTreeRegressor(), parameters, cv = 5,scoring='neg_mean_squared_error',verbose=verbose,n_jobs=n_jobs)
-            dt_train.fit(X_train,y_train)
-            joblib.dump(dt_train,'models/DT_best_model'+id+'.sav')
+            rf_train = GridSearchCV(RandomForestRegressor(), parameters, cv = cv,scoring='neg_mean_squared_error',verbose=verbose,n_jobs=n_jobs)
+            rf_train.fit(X_train,y_train)
+            joblib.dump(rf_train,'models/RandomForest_best_model_'+id+'.sav')
         else:
-            dt_train = DecisionTreeRegressor(criterion="friedman_mse",max_depth=None,min_weight_fraction_leaf=0.0,max_features=None,splitter='random',min_samples_leaf=5)
-            dt_train.fit(X_train,y_train)
+            rf_train = RandomForestRegressor(n_estimators=200)
+            rf_train.fit(X_train,y_train)
         end_time = time.time()
         run_time = end_time - start_time
         print('Run time:',round(run_time/60,2),'mins')
         
-        y_pred = dt_train.predict(X_test)
+        y_pred = rf_train.predict(X_test)
 
         r2 = r2_score(y_test,y_pred)
         MSE = mean_squared_error(y_test,y_pred, squared=True)
         RMSE = mean_squared_error(y_test,y_pred, squared=False)
         MAE = mean_absolute_error(y_test,y_pred)
 
-    return {"R2":r2, "MSE": MSE, "RMSE": RMSE, "MAE": MAE,"Gridsearchcv_obj": dt_train}
+    return {"R2":r2, "MSE": MSE, "RMSE": RMSE, "MAE": MAE,"Gridsearchcv_obj": rf_train}
 
 
 
@@ -475,7 +474,6 @@ def method_DT(features, y, id, model=False, gridsearch=0, verbose=3,n_jobs=None)
 
 
 def custom_splits(aran_segments,route_details):
-    splits = []
     cph1_hh = []
     cph1_vh = []
     cph6_hh = []
@@ -615,13 +613,28 @@ def custom_splits(aran_segments,route_details):
         if dd.iloc[i] == True:
             temp_cph6_vh.append(cph6_vh[i])
 
-    split5 = list(set(list((np.array(temp_cph6_hh)/5).astype(int)))) + list(set(list((np.array(temp_cph6_vh)/5).astype(int))))
-    
-    splits = set().union(split1+split2+split3+split4+split5)
+    split5 = list(set(list((np.array(temp_cph6_hh)/5).astype(int)))) + list(set(list((np.array(temp_cph6_vh)/5).astype(int)))) 
 
-    return splits
+    s1 = set(split1)
+    s2 = set(split2)
+    s3 = set(split3)
+    sp1 = s1.difference(s2)
+    sp1 = sp1.difference(s3)
+    sp2 = s2.difference(sp1)
+    split2 = list(sp2.difference(s3))
+    split1 = list(sp1)
 
+    s4 = set(split4)
+    s5 = set(split5)
+    split4 = list(s4.difference(s5))
+   
+    cv = [(split2+split3+split4+split5,split1),
+          (split1+split3+split4+split5,split2),
+          (split1+split2+split4+split5,split3),
+          (split1+split2+split3+split5,split4),
+          (split1+split2+split3+split4,split5)]
 
+    return cv
 
 
 
