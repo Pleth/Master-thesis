@@ -25,190 +25,22 @@ for i in range(len(synth_acc)):
 
 synth_segments, aran_segments, route_details = synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0)
 
-cph1_hh = []
-cph1_vh = []
-cph6_hh = []
-cph6_vh = []
-for i in range(len(route_details)):
-    if route_details[i][:7] == 'CPH1_HH':
-        cph1_hh.extend([i*5,i*5+1,i*5+2,i*5+3,i*5+4])
-    if route_details[i][:7] == 'CPH1_VH':
-        cph1_vh.extend([i*5,i*5+1,i*5+2,i*5+3,i*5+4])
-    if route_details[i][:7] == 'CPH6_HH':
-        cph6_hh.extend([i*5,i*5+1,i*5+2,i*5+3,i*5+4])
-    if route_details[i][:7] == 'CPH6_VH':
-        cph6_vh.extend([i*5,i*5+1,i*5+2,i*5+3,i*5+4])
+cv, test_split, cv2 = custom_splits(aran_segments,route_details)
 
+k=0
 fig,ax = plt.subplots(1,2)
-ax[0].scatter(x=aran_segments['LongitudeFrom'][cph1_hh],y=aran_segments['LatitudeFrom'][cph1_hh],s=1,c="blue",label='CPH1_HH')
-ax[0].scatter(x=aran_segments['LongitudeFrom'][cph1_vh],y=aran_segments['LatitudeFrom'][cph1_vh],s=1,c="red",label='CPH1_VH')
-ax[1].scatter(x=aran_segments['LongitudeFrom'][cph6_hh],y=aran_segments['LatitudeFrom'][cph6_hh],s=1,c="blue",label='CPH6_HH')
-ax[1].scatter(x=aran_segments['LongitudeFrom'][cph6_vh],y=aran_segments['LatitudeFrom'][cph6_vh],s=1,c="red",label='CPH6_VH')
+k = 0
+for train,test in cv2:
+    print(len(train))
+    print(len(test))
+    if k < 3:
+        ax[0].scatter(x=aran_segments['LongitudeFrom'][np.array(test)*5],y=aran_segments['LatitudeFrom'][np.array(test)*5],s=1,label='CPH1')
+    else:
+        ax[1].scatter(x=aran_segments['LongitudeFrom'][np.array(test)*5],y=aran_segments['LatitudeFrom'][np.array(test)*5],s=1,label='CPH6')
+    k+=1
 ax[0].legend()
 ax[1].legend()
 plt.show()
-
-total = round(np.sum(abs(aran_segments['EndChainage']-aran_segments['BeginChainage'])))
-
-cph1_hh_tot = round(np.sum(abs(aran_segments['EndChainage'][cph1_hh]-aran_segments['BeginChainage'][cph1_hh])))
-cph1_vh_tot = round(np.sum(abs(aran_segments['EndChainage'][cph1_vh]-aran_segments['BeginChainage'][cph1_vh])))
-cph6_hh_tot = round(np.sum(abs(aran_segments['EndChainage'][cph6_hh]-aran_segments['BeginChainage'][cph6_hh])))
-cph6_vh_tot = round(np.sum(abs(aran_segments['EndChainage'][cph6_vh]-aran_segments['BeginChainage'][cph6_vh])))
-
-cph1_tot = cph1_hh_tot + cph1_vh_tot
-cph6_tot = cph6_hh_tot + cph6_vh_tot
-
-total == cph1_hh_tot + cph1_vh_tot + cph6_hh_tot + cph6_vh_tot
-total == cph1_tot + cph6_tot
-
-
-#### CPH1
-
-fig,ax = plt.subplots(1,2)
-
-cph1_len = (len(cph1_hh) + len(cph1_vh))/5
-
-counter = 0
-chain_start = 645
-for i in tqdm(range(int(cph1_len))):
-    counter1 = np.sum(np.sum(aran_segments['EndChainage'].iloc[cph1_hh] < chain_start))
-    counter2 = np.sum(np.sum(aran_segments['BeginChainage'].iloc[cph1_vh] < chain_start))
-    counter = (counter1 + counter2)/5
-    if (counter >= cph1_len/3):
-        break
-    chain_start += 10
-
-dd = aran_segments['EndChainage'][cph1_hh] < chain_start
-temp_cph1_hh = []
-for i in range(len(cph1_hh)):
-    if dd.iloc[i] == True:
-        temp_cph1_hh.append(cph1_hh[i])
-
-dd = aran_segments['BeginChainage'][cph1_vh] < chain_start
-temp_cph1_vh = []
-for i in range(len(cph1_vh)):
-    if dd.iloc[i] == True:
-        temp_cph1_vh.append(cph1_vh[i])
-
-ax[0].scatter(x=aran_segments['LongitudeFrom'][temp_cph1_hh],y=aran_segments['LatitudeFrom'][temp_cph1_hh],s=1,c="blue",label='CPH1_HH')
-ax[0].scatter(x=aran_segments['LongitudeFrom'][temp_cph1_vh],y=aran_segments['LatitudeFrom'][temp_cph1_vh],s=1,c="red",label='CPH1_VH')
-
-
-counter = 0
-chain_end = chain_start
-chain_start = chain_start + 50
-for i in tqdm(range(int(cph1_len))):
-    counter1 = np.sum(np.sum((chain_end < aran_segments['BeginChainage'].iloc[cph1_hh]) & (aran_segments['EndChainage'].iloc[cph1_hh] < chain_start)))
-    counter2 = np.sum(np.sum((chain_end < aran_segments['BeginChainage'].iloc[cph1_vh]) & (aran_segments['EndChainage'].iloc[cph1_vh] < chain_start)))
-    counter = (counter1 + counter2)/5
-    if (counter >= cph1_len/3):
-        break
-    chain_start += 10
-
-dd = (chain_end < aran_segments['BeginChainage'][cph1_hh]) & (aran_segments['EndChainage'][cph1_hh] < chain_start)
-temp_cph1_hh = []
-for i in range(len(cph1_hh)):
-    if dd.iloc[i] == True:
-        temp_cph1_hh.append(cph1_hh[i])
-
-dd = (chain_end < aran_segments['BeginChainage'][cph1_vh]) & (aran_segments['BeginChainage'][cph1_vh] < chain_start)
-temp_cph1_vh = []
-for i in range(len(cph1_vh)):
-    if dd.iloc[i] == True:
-        temp_cph1_vh.append(cph1_vh[i])
-
-ax[0].scatter(x=aran_segments['LongitudeFrom'][temp_cph1_hh],y=aran_segments['LatitudeFrom'][temp_cph1_hh],s=1,c="green",label='CPH1_HH')
-ax[0].scatter(x=aran_segments['LongitudeFrom'][temp_cph1_vh],y=aran_segments['LatitudeFrom'][temp_cph1_vh],s=1,c="black",label='CPH1_VH')
-
-
-counter = 0
-chain_end = chain_start
-chain_start = chain_start + 50
-for i in tqdm(range(int(cph1_len))):
-    counter1 = np.sum(np.sum(chain_end < aran_segments['BeginChainage'].iloc[cph1_hh]))
-    counter2 = np.sum(np.sum(chain_end < aran_segments['EndChainage'].iloc[cph1_vh]))
-    counter = (counter1 + counter2)/5
-    if (counter >= cph1_len/3):
-        break
-    chain_start += 10
-
-dd = chain_end < aran_segments['BeginChainage'][cph1_hh]
-temp_cph1_hh = []
-for i in range(len(cph1_hh)):
-    if dd.iloc[i] == True:
-        temp_cph1_hh.append(cph1_hh[i])
-
-dd = chain_end < aran_segments['EndChainage'][cph1_vh]
-temp_cph1_vh = []
-for i in range(len(cph1_vh)):
-    if dd.iloc[i] == True:
-        temp_cph1_vh.append(cph1_vh[i])
-
-ax[0].scatter(x=aran_segments['LongitudeFrom'][temp_cph1_hh],y=aran_segments['LatitudeFrom'][temp_cph1_hh],s=1,c="yellow",label='CPH1_HH')
-ax[0].scatter(x=aran_segments['LongitudeFrom'][temp_cph1_vh],y=aran_segments['LatitudeFrom'][temp_cph1_vh],s=1,c="magenta",label='CPH1_VH')
-
-
-### CPH6
-
-
-cph6_len = (len(cph6_hh) + len(cph6_vh))/5
-
-counter = 0
-chain_start = 0
-for i in tqdm(range(int(cph6_len))):
-    counter1 = np.sum(np.sum(aran_segments['EndChainage'].iloc[cph6_hh] < chain_start))
-    counter2 = np.sum(np.sum(aran_segments['BeginChainage'].iloc[cph6_vh] < chain_start))
-    counter = (counter1 + counter2)/5
-    if (counter >= cph6_len/2):
-        break
-    chain_start += 10
-
-dd = aran_segments['EndChainage'][cph6_hh] < chain_start
-temp_cph6_hh = []
-for i in range(len(cph6_hh)):
-    if dd.iloc[i] == True:
-        temp_cph6_hh.append(cph6_hh[i])
-
-dd = aran_segments['BeginChainage'][cph6_vh] < chain_start
-temp_cph6_vh = []
-for i in range(len(cph6_vh)):
-    if dd.iloc[i] == True:
-        temp_cph6_vh.append(cph6_vh[i])
-
-ax[1].scatter(x=aran_segments['LongitudeFrom'][temp_cph6_hh],y=aran_segments['LatitudeFrom'][temp_cph6_hh],s=1,c="blue",label='CPH1_HH')
-ax[1].scatter(x=aran_segments['LongitudeFrom'][temp_cph6_vh],y=aran_segments['LatitudeFrom'][temp_cph6_vh],s=1,c="red",label='CPH1_VH')
-
-counter = 0
-chain_end = chain_start
-for i in tqdm(range(int(cph6_len))):
-    counter1 = np.sum(np.sum(chain_end < aran_segments['BeginChainage'].iloc[cph6_hh]))
-    counter2 = np.sum(np.sum(chain_end < aran_segments['EndChainage'].iloc[cph6_vh]))
-    counter = (counter1 + counter2)/5
-    if (counter >= cph6_len/2):
-        break
-    chain_start += 10
-
-dd = chain_end < aran_segments['BeginChainage'][cph6_hh]
-temp_cph6_hh = []
-for i in range(len(cph6_hh)):
-    if dd.iloc[i] == True:
-        temp_cph6_hh.append(cph6_hh[i])
-
-dd = chain_end < aran_segments['EndChainage'][cph6_vh]
-temp_cph6_vh = []
-for i in range(len(cph6_vh)):
-    if dd.iloc[i] == True:
-        temp_cph6_vh.append(cph6_vh[i])
-
-
-ax[1].scatter(x=aran_segments['LongitudeFrom'][temp_cph6_hh],y=aran_segments['LatitudeFrom'][temp_cph6_hh],s=1,c="green",label='CPH1_HH')
-ax[1].scatter(x=aran_segments['LongitudeFrom'][temp_cph6_vh],y=aran_segments['LatitudeFrom'][temp_cph6_vh],s=1,c="black",label='CPH1_VH')
-ax[0].legend()
-ax[1].legend()
-plt.show()
-
-
-
 
 
 ####################################################################################################################################################
@@ -881,7 +713,7 @@ for i in tqdm(range(int(np.shape(aran_segments)[0]/seg_len))):
     potholes.append(np.max(temp_potholes))
 
 
-cv = custom_splits(aran_segments,route_details)
+_, _, cv = custom_splits(aran_segments,route_details)
 
 for train,test in cv:
     pots_train, cracs_train, allis_train, dams_train = 0, 0, 0, 0
@@ -952,3 +784,140 @@ for train,test in cv:
     plt.show()
 
 ##############################################################################################################################
+
+################################################# FEATURE IMPORTANCE #########################################################
+# plt.text(bis_features[0],feature_importance[bis_features[0]],top_10[0][2:])
+# plt.text(bis_features[1],feature_importance[bis_features[1]],top_10[1][2:])
+# plt.text(bis_features[2],feature_importance[bis_features[2]],top_10[2][2:])
+# plt.text(bis_features[3],feature_importance[bis_features[3]],top_10[3][2:])
+# plt.text(bis_features[4],feature_importance[bis_features[4]],top_10[4][2:])
+# plt.text(bis_features[5],feature_importance[bis_features[5]],top_10[5][2:])
+# plt.text(bis_features[6],feature_importance[bis_features[6]],top_10[6][2:])
+# plt.text(bis_features[7],feature_importance[bis_features[7]],top_10[7][2:])
+# plt.text(bis_features[8],feature_importance[bis_features[8]],top_10[8][2:])
+# plt.text(bis_features[9],feature_importance[bis_features[9]],top_10[9][2:])
+synth_acc = synthetic_data()
+routes = []
+for i in range(len(synth_acc)): 
+    routes.append(synth_acc[i].axes[0].name)
+
+synth_segments, aran_segments, route_details = synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0)
+
+
+hdf5file = h5py.File('aligned_data/CPH1_VH.hdf5', 'r')
+aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns = hdf5file['aran/trip_1/pass_1']['Allig'].attrs['chNames'])
+aran_cracks = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Cracks'], columns = hdf5file['aran/trip_1/pass_1']['Cracks'].attrs['chNames'])
+aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns = hdf5file['aran/trip_1/pass_1']['Pothole'].attrs['chNames'])
+
+DI, allig, cracks, potholes = calc_DI(aran_alligator,aran_cracks,aran_potholes)
+
+
+data = synth_segments#.iloc[:,0:100]
+features,feature_names = feature_extraction(data)
+
+seg_len = 5 
+seg_cap = 4
+DI = []
+alligator = []
+cracks = []
+potholes = []
+for i in tqdm(range(int(np.shape(aran_segments)[0]/seg_len))):
+    aran_details = aran_segments.iloc[i*seg_len:i*seg_len+seg_cap+1]
+    aran_alligator = aran_details[aran_alligator.columns]
+    aran_cracks = aran_details[aran_cracks.columns]
+    aran_potholes = aran_details[aran_potholes.columns]
+    temp_DI, temp_alligator, temp_cracks, temp_potholes = calc_DI(aran_alligator,aran_cracks,aran_potholes)
+    DI.append(np.max(temp_DI))
+    alligator.append(np.max(temp_alligator))
+    cracks.append(np.max(temp_cracks))
+    potholes.append(np.max(temp_potholes))
+
+gridsearch = 1
+verbose = 0
+n_jobs = 4
+model = 1
+
+cv, test_split, _ = custom_splits(aran_segments,route_details)
+
+scores_RandomForest_DI        = method_RandomForest(features, DI, 'DI', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
+scores_RandomForest_potholes  = method_RandomForest(features, potholes, 'potholes', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
+scores_RandomForest_cracks    = method_RandomForest(features, cracks, 'cracks', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
+scores_RandomForest_alligator = method_RandomForest(features, alligator, 'alligator', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
+obj = scores_RandomForest_DI['Gridsearchcv_obj']
+feature_importance = obj.best_estimator_.feature_importances_
+bis_features = np.argpartition(feature_importance,-10)[-10:]
+
+top_10 = feature_names.index[bis_features]
+
+plt.plot(feature_importance,label='DI')
+
+obj = scores_RandomForest_potholes['Gridsearchcv_obj']
+feature_importance = obj.best_estimator_.feature_importances_
+bis_features = np.argpartition(feature_importance,-10)[-10:]
+top_10 = feature_names.index[bis_features]
+plt.plot(feature_importance,label='Potholes')
+
+obj = scores_RandomForest_cracks['Gridsearchcv_obj']
+feature_importance = obj.best_estimator_.feature_importances_
+bis_features = np.argpartition(feature_importance,-10)[-10:]
+top_10 = feature_names.index[bis_features]
+plt.plot(feature_importance,label='Cracks')
+
+obj = scores_RandomForest_alligator['Gridsearchcv_obj']
+feature_importance = obj.best_estimator_.feature_importances_
+bis_features = np.argpartition(feature_importance,-10)[-10:]
+top_10 = feature_names.index[bis_features]
+plt.plot(feature_importance,label='Alligator')
+plt.axvspan(0, 336, facecolor='green', alpha=0.3)
+plt.axvspan(336, 336+36, facecolor='yellow', alpha=0.3)
+plt.axvspan(336+36, 336+36+18, facecolor='red', alpha=0.3)
+plt.axis([0,390,0,0.016])
+plt.legend()
+plt.title('Spectral (green) - Statistical (yellow) - Temporal (red)')
+plt.show()
+
+
+
+
+########################################## SPEED HISTOGRAM GREEN MOBILITY GM #################################
+
+# counter = len(glob.glob1("p79/","*.csv"))
+# files = glob.glob("p79/*.csv")
+# k=0
+# spd_list = []
+# for i in range(counter):
+#     #p79
+#     p79_file = files[i]
+
+#     df_p79 = pd.read_csv(p79_file)
+#     df_p79.drop(df_p79.columns.difference(['Distance','Laser5','Laser21','Latitude','Longitude']),axis=1,inplace=True)
+
+#     #Green Mobility
+#     file = files[i][4:11]
+#     gm_path = 'aligned_data/'+file+'.hdf5'
+#     hdf5file = h5py.File(gm_path, 'r')
+#     passage = hdf5file.attrs['GM_full_passes']
+        
+#     new_passage = []
+#     for j in range(len(passage)):
+#         passagefile = hdf5file[passage[j]]
+#         if "obd.spd_veh" in passagefile.keys(): # some passes only contain gps and gps_match
+#             new_passage.append(passage[j])
+        
+#     passage = np.array(new_passage,dtype=object)
+#     for j in range(len(passage)):
+#         passagefile = hdf5file[passage[j]]
+#         gm_speed = pd.DataFrame(passagefile['obd.spd_veh'], columns = passagefile['obd.spd_veh'].attrs['chNames'])
+#         print("Generating Synthetic Profile for trip:",i+1,"/",counter,"- passage:",j+1,"/",len(passage))
+#         print(len(gm_speed['spd_veh']))
+#         spd_list.extend(gm_speed['spd_veh'].tolist())
+
+# spd_list = np.array(spd_list)
+# spd_list = spd_list[spd_list > 20]
+# plt.hist(spd_list,bins=100)
+# plt.show()
+# np.median(spd_list)
+# np.mean(spd_list)
+
+#################################################################################################################

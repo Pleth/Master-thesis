@@ -119,7 +119,7 @@ def create_synthetic_signal(p79_distances:np.array, p79_laser5:np.array, p79_las
     print("Generating Synthetic Profile ...")
     synth_acc, _, _ = Car().drive(gm_times, gm_profile)
 
-    return {"times":gm_times, "synth_acc":synth_acc, "start_time":gm_start_time,"p79_distances": gm_distances+min_p79_distance,"gm_speed": gm_speed}
+    return {"times":gm_times, "synth_acc":synth_acc, "start_time":gm_start_time,"p79_distances": gm_distances+min_p79_distance,"gm_speed": gm_speed, "profile": gm_profile}
 
 
 class Car:

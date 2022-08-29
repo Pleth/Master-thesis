@@ -311,125 +311,50 @@ def synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0):
         
     return synth_segments, aran_segment_details, route_details
 
-def feature_extraction(data):
+def feature_extraction(data,id):
     cfg_file = tsfel.get_features_by_domain()
-    if os.path.isfile("synth_data/extracted_features.csv"):
+    if os.path.isfile('synth_data/'+id+'.csv'):
         feature_names = np.transpose(tsfel.time_series_features_extractor(cfg_file,data[str(0)].dropna(),fs=250,verbose=0))
-        data = pd.read_csv("synth_data/extracted_features.csv")
+        data = pd.read_csv('synth_data/'+id+'.csv')
     else:
         extracted_features = []
         feature_names = np.transpose(tsfel.time_series_features_extractor(cfg_file,data[str(0)].dropna(),fs=250,verbose=0))
         for i in tqdm(range(np.shape(data)[1])):
             extracted_features.append(np.transpose(tsfel.time_series_features_extractor(cfg_file,data[str(i)].dropna(),fs=250,verbose=0)))
         data = pd.DataFrame(np.concatenate(extracted_features,axis=1))
-        data.to_csv("synth_data/extracted_features.csv",index=False)
+        data.to_csv('synth_data/'+id+'.csv',index=False)
 
     return data,feature_names
 
 
-# def method_SVR(features, y, id, model=False, gridsearch=0, verbose=3,n_jobs=None):
-#     X = features.T
-#     sc_X = StandardScaler()
-#     X = sc_X.fit_transform(X)
-#     # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=2)
-#     X_train, X_test, y_train, y_test = X, X, y, y
-
-#     if model != False:
-#         loaded_model = joblib.load('models/SVR_best_model'+id+'.sav')
-#         # loaded_model.fit(X_train,y_train)
-#         y_pred = loaded_model.predict(X_test)
-
-#         r2 = r2_score(y_test,y_pred)
-#         MSE = mean_squared_error(y_test,y_pred, squared=True)
-#         RMSE = mean_squared_error(y_test,y_pred, squared=False)
-#         MAE = mean_absolute_error(y_test,y_pred)
-#     else:
-#         parameters = [{'kernel': ['rbf'], 'gamma': [1e-3, 0.01, 0.1],'C': [1, 10, 20]}]
-#                     #{'kernel': ['sigmoid'], 'gamma': [1e-5, 1e-4, 1e-3],'C': [1, 10, 100]},
-#                     #{'kernel': ['poly'], 'gamma': [1e-3, 0.01, 0.1],'C': [1, 10, 20]},
-#                     #{'kernel': ['linear'], 'gamma': [1e-3, 0.01, 0.1],'C': [1, 10, 20]}]
-
-#         start_time = time.time()
-#         if gridsearch == 1:
-#             svr_train = GridSearchCV(SVR(epsilon = 0.01), parameters, cv = 5,scoring='neg_mean_squared_error',verbose=verbose,n_jobs=n_jobs)
-#             svr_train.fit(X_train,y_train)
-#             joblib.dump(svr_train,'models/SVR_best_model'+id+'.sav')
-#         else:
-#             svr_train = SVR(kernel='rbf',C=1,gamma=0.1,epsilon=0.01)
-#             svr_train.fit(X_train,y_train)
-#         end_time = time.time()
-#         run_time = end_time - start_time
-#         print('Run time:',round(run_time/60,2),'mins')
-        
-#         y_pred = svr_train.predict(X_test)
-
-#         r2 = r2_score(y_test,y_pred)
-#         MSE = mean_squared_error(y_test,y_pred, squared=True)
-#         RMSE = mean_squared_error(y_test,y_pred, squared=False)
-#         MAE = mean_absolute_error(y_test,y_pred)
-
-#     return {"R2":r2, "MSE": MSE, "RMSE": RMSE, "MAE": MAE,"Gridsearchcv_obj": svr_train}
-
-    
-# def method_KNN(features, y, id, model=False, gridsearch=0, verbose=3,n_jobs=None):
-#     X = features.T
-#     sc_X = StandardScaler()
-#     X = sc_X.fit_transform(X)
-#     # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=2)
-#     X_train, X_test, y_train, y_test = X, X, y, y
-
-#     if model != False:
-#         loaded_model = joblib.load('models/KNN_best_model'+id+'.sav')
-#         # loaded_model.fit(X_train,y_train)
-#         y_pred = loaded_model.predict(X_test)
-
-#         r2 = r2_score(y_test,y_pred)
-#         MSE = mean_squared_error(y_test,y_pred, squared=True)
-#         RMSE = mean_squared_error(y_test,y_pred, squared=False)
-#         MAE = mean_absolute_error(y_test,y_pred)
-#     else:
-#         parameters = [{'weights':['uniform','distance'],'algorithm': ['ball_tree','kd_tree','brute'],
-#                        'n_neighbors': [1,2,5,10,20,40,50,60,100]}]
-#         parameters = [{'weights':['uniform','distance'],'algorithm': ['ball_tree'],
-#                        'n_neighbors': [10,20,40]}]
-                    
-#         start_time = time.time()
-#         if gridsearch == 1:
-#             knn_train = GridSearchCV(KNeighborsRegressor(), parameters, cv = 5,scoring='neg_mean_squared_error',verbose=verbose,n_jobs=n_jobs)
-#             knn_train.fit(X_train,y_train)
-#             joblib.dump(knn_train,'models/KNN_best_model'+id+'.sav')
-#         else:
-#             knn_train = KNeighborsRegressor(algorithm='ball_tree', n_neighbors=20, weights='distance')
-#             knn_train.fit(X_train,y_train)
-#         end_time = time.time()
-#         run_time = end_time - start_time
-#         print('Run time:',round(run_time/60,2),'mins')
-        
-#         y_pred = knn_train.predict(X_test)
-
-#         r2 = r2_score(y_test,y_pred)
-#         MSE = mean_squared_error(y_test,y_pred, squared=True)
-#         RMSE = mean_squared_error(y_test,y_pred, squared=False)
-#         MAE = mean_absolute_error(y_test,y_pred)
-
-#     return {"R2":r2, "MSE": MSE, "RMSE": RMSE, "MAE": MAE,"Gridsearchcv_obj": knn_train}
-
-
-def method_RandomForest(features, y, id, model=False, gridsearch=0, cv=5, verbose=3,n_jobs=None):
+def method_RandomForest(features, y, id, model=False, gridsearch=0, cv_in=5, verbose=3,n_jobs=None):
     X = features.T
-    sc_X = StandardScaler()
-    X = sc_X.fit_transform(X)
-    X_train, X_test, y_train, y_test = X, X, y, y
+    y = pd.DataFrame(y)
+    # sc_X = StandardScaler()
+    # X = sc_X.fit_transform(X)
+    cv = cv_in[0]
+    test = cv_in[1]
+    train = [i for i in range(len(X)) if i not in test]
+
+    X_train, X_test = X, X.iloc[test]
+    y_train, y_test = y.values.reshape(-1,), y.iloc[test].values.reshape(-1,)
 
     if model != False:
         rf_train = joblib.load('models/RandomForest_best_model_'+id+'.sav')
         # loaded_model.fit(X_train,y_train)
         y_pred = rf_train.predict(X_test)
-
+        
         r2 = r2_score(y_test,y_pred)
         MSE = mean_squared_error(y_test,y_pred, squared=True)
         RMSE = mean_squared_error(y_test,y_pred, squared=False)
         MAE = mean_absolute_error(y_test,y_pred)
+
+        train_pred = rf_train.predict(X.iloc[train])
+        train_y = y.iloc[train].values.reshape(-1,)
+        r2_train = r2_score(train_y,train_pred)
+        MSE_train = mean_squared_error(train_y,train_pred, squared=True)
+        RMSE_train = mean_squared_error(train_y,train_pred, squared=False)
+        MAE_train = mean_absolute_error(train_y,train_pred)
     else:        
         parameters={'criterion': ['squared_error','absolute_error','poisson'],
                     'bootstrap': [True, False],
@@ -448,7 +373,7 @@ def method_RandomForest(features, y, id, model=False, gridsearch=0, cv=5, verbos
 
         start_time = time.time()
         if gridsearch == 1:
-            rf_train = GridSearchCV(RandomForestRegressor(), parameters, cv = cv,scoring='neg_mean_squared_error',verbose=verbose,n_jobs=n_jobs)
+            rf_train = GridSearchCV(RandomForestRegressor(), parameters, cv = cv,scoring='r2',verbose=verbose,n_jobs=n_jobs) # scoring='neg_mean_squared_error'
             rf_train.fit(X_train,y_train)
             joblib.dump(rf_train,'models/RandomForest_best_model_'+id+'.sav')
         else:
@@ -465,7 +390,13 @@ def method_RandomForest(features, y, id, model=False, gridsearch=0, cv=5, verbos
         RMSE = mean_squared_error(y_test,y_pred, squared=False)
         MAE = mean_absolute_error(y_test,y_pred)
 
-    return {"R2":r2, "MSE": MSE, "RMSE": RMSE, "MAE": MAE,"Gridsearchcv_obj": rf_train}
+        train_pred = rf_train.predict(X.iloc[train])
+        train_y = y.iloc[train].values.reshape(-1,)
+        r2_train = r2_score(train_y,train_pred)
+        MSE_train = mean_squared_error(train_y,train_pred, squared=True)
+        RMSE_train = mean_squared_error(train_y,train_pred, squared=False)
+        MAE_train = mean_absolute_error(train_y,train_pred)
+    return {"R2":[r2 ,r2_train], "MSE": [MSE, MSE_train], "RMSE": [RMSE, RMSE_train], "MAE": [MAE, MAE_train],"Gridsearchcv_obj": rf_train}
 
 
 
@@ -488,7 +419,7 @@ def custom_splits(aran_segments,route_details):
         if route_details[i][:7] == 'CPH6_VH':
             cph6_vh.extend([i*5,i*5+1,i*5+2,i*5+3,i*5+4])
 
-    cph1_len = (len(cph1_hh) + len(cph1_vh))/5
+    cph1_len = (len(cph1_hh) + len(cph1_vh))
 
     counter = 0
     chain_start = 645
@@ -496,7 +427,7 @@ def custom_splits(aran_segments,route_details):
         counter1 = np.sum(np.sum(aran_segments['EndChainage'].iloc[cph1_hh] < chain_start))
         counter2 = np.sum(np.sum(aran_segments['BeginChainage'].iloc[cph1_vh] < chain_start))
         counter = (counter1 + counter2)/5
-        if (counter >= cph1_len/3):
+        if (counter >= (cph1_len/5)/3):
             break
         chain_start += 10
 
@@ -521,7 +452,7 @@ def custom_splits(aran_segments,route_details):
         counter1 = np.sum(np.sum((chain_end < aran_segments['BeginChainage'].iloc[cph1_hh]) & (aran_segments['EndChainage'].iloc[cph1_hh] < chain_start)))
         counter2 = np.sum(np.sum((chain_end < aran_segments['EndChainage'].iloc[cph1_vh]) & (aran_segments['BeginChainage'].iloc[cph1_vh] < chain_start)))
         counter = (counter1 + counter2)/5
-        if (counter >= cph1_len/3):
+        if (counter >= (cph1_len/5)/3):
             break
         chain_start += 10
 
@@ -546,7 +477,7 @@ def custom_splits(aran_segments,route_details):
         counter1 = np.sum(np.sum(chain_end < aran_segments['BeginChainage'].iloc[cph1_hh]))
         counter2 = np.sum(np.sum(chain_end < aran_segments['EndChainage'].iloc[cph1_vh]))
         counter = (counter1 + counter2)/5
-        if (counter >= cph1_len/3):
+        if (counter >= (cph1_len/5)/3):
             break
         chain_start += 10
 
@@ -565,7 +496,7 @@ def custom_splits(aran_segments,route_details):
     split3 = list(set(list((np.array(temp_cph1_hh)/5).astype(int)))) + list(set(list((np.array(temp_cph1_vh)/5).astype(int))))
 
 
-    cph6_len = (len(cph6_hh) + len(cph6_vh))/5
+    cph6_len = (len(cph6_hh) + len(cph6_vh))
 
     counter = 0
     chain_start = 0
@@ -573,7 +504,7 @@ def custom_splits(aran_segments,route_details):
         counter1 = np.sum(np.sum(aran_segments['EndChainage'].iloc[cph6_hh] < chain_start))
         counter2 = np.sum(np.sum(aran_segments['BeginChainage'].iloc[cph6_vh] < chain_start))
         counter = (counter1 + counter2)/5
-        if (counter >= cph6_len/2):
+        if (counter >= (cph6_len/5)/2):
             break
         chain_start += 10
 
@@ -597,7 +528,7 @@ def custom_splits(aran_segments,route_details):
         counter1 = np.sum(np.sum(chain_end < aran_segments['BeginChainage'].iloc[cph6_hh]))
         counter2 = np.sum(np.sum(chain_end < aran_segments['EndChainage'].iloc[cph6_vh]))
         counter = (counter1 + counter2)/5
-        if (counter >= cph6_len/2):
+        if (counter >= (cph6_len/5)/2):
             break
         chain_start += 10
 
@@ -627,15 +558,196 @@ def custom_splits(aran_segments,route_details):
     s4 = set(split4)
     s5 = set(split5)
     split4 = list(s4.difference(s5))
-   
-    cv = [(split2+split3+split4+split5,split1),
-          (split1+split3+split4+split5,split2),
-          (split1+split2+split4+split5,split3),
-          (split1+split2+split3+split5,split4),
-          (split1+split2+split3+split4,split5)]
+    
+    cv = [(split2+split3+split4,split1),
+          (split1+split3+split4,split2),
+          (split1+split2+split4,split3),
+          (split1+split2+split3,split4)]
 
-    return cv
+    cv2 = [(split2+split3+split4+split5,split1),
+           (split1+split3+split4+split5,split2),
+           (split1+split2+split4+split5,split3),
+           (split1+split2+split3+split5,split4),
+           (split1+split2+split3+split4,split5)]
 
+    return cv, split5, cv2
+
+
+def test_synthetic_data():
+
+    df_dict = {}
+
+    counter = len(glob.glob1("p79/","*.csv"))
+    files = glob.glob("p79/*.csv")
+    k=0
+    for i in range(counter):
+        #p79
+        p79_file = files[i]
+
+        df_p79 = pd.read_csv(p79_file)
+        df_p79.drop(df_p79.columns.difference(['Distance','Laser5','Laser21','Latitude','Longitude']),axis=1,inplace=True)
+
+        #Green Mobility
+        file = files[i][4:11]
+        gm_path = 'aligned_data/'+file+'.hdf5'
+        hdf5file = h5py.File(gm_path, 'r')
+        passage = hdf5file.attrs['GM_full_passes']
+            
+        new_passage = []
+        for j in range(len(passage)):
+            passagefile = hdf5file[passage[j]]
+            if "obd.spd_veh" in passagefile.keys(): # some passes only contain gps and gps_match
+                new_passage.append(passage[j])
+            
+        passage = np.array(new_passage,dtype=object)
+        j = 0
+        name = (file).replace('/','_')
+        if os.path.isfile("synth_data/tests/"+name+".csv"): # Load synthetic profile if already calculated
+            df_dict[k] = pd.read_csv("synth_data/tests/"+name+".csv")
+            df_dict[k].rename_axis(name,inplace=True)
+            print("Loaded Synthetic Profile for trip:",i+1,"/",counter)                  
+            k += 1
+        else:
+            passagefile = hdf5file[passage[j]]
+            gm_speed = pd.DataFrame(passagefile['obd.spd_veh'], columns = passagefile['obd.spd_veh'].attrs['chNames'])
+            gm_speed['spd_veh'] = 45 # choose constant speed
+            
+            print("Generating Synthetic Profile for trip:",i+1,"/",counter)
+            synth_data = create_synthetic_signal(
+                                    p79_distances=np.array(df_p79["Distance"]),
+                                    p79_laser5=np.array(df_p79["Laser5"]),
+                                    p79_laser21=np.array(df_p79["Laser21"]),
+                                    gm_times=np.array(gm_speed["TS_or_Distance"]),
+                                    gm_speed=np.array(gm_speed["spd_veh"]))
+            
+            df_dict[k] = pd.DataFrame({'time':synth_data["times"].reshape(np.shape(synth_data["times"])[0]),'synth_acc':synth_data["synth_acc"],'Distance':synth_data["p79_distances"].reshape(np.shape(synth_data["p79_distances"])[0]),'gm_speed':synth_data["gm_speed"].reshape(np.shape(synth_data["gm_speed"])[0]),'laser':synth_data["profile"].reshape(np.shape(synth_data["profile"])[0])})
+            df_dict[k].rename_axis(name,inplace=True)
+            df_dict[k].to_csv("synth_data/tests/"+name+".csv",index=False)
+            k += 1
+
+    return df_dict
+
+def test_segmentation(synth_acc,routes,segment_size=5,overlap=0):
+    if os.path.isfile("synth_data/tests/"+"aran_segments"+".csv"):
+        synth_segments = pd.read_csv("synth_data/tests/"+"synthetic_segments"+".csv")
+        aran_segment_details = pd.read_csv("synth_data/tests/"+"aran_segments"+".csv")
+        route_details = eval(open("synth_data/tests/routes_details.txt", 'r').read())
+        laser_segments = pd.read_csv("synth_data/tests/"+"laser_segments"+".csv")
+        print("Loaded already segmented data")              
+        
+    else:    
+        files = glob.glob("p79/*.csv")
+        df_cph1_hh = pd.read_csv(files[0])
+        df_cph1_vh = pd.read_csv(files[1])
+        df_cph6_hh = pd.read_csv(files[2])
+        df_cph6_vh = pd.read_csv(files[3])
+        iter = 0
+        segments = {}
+        lasers = {}
+        aran_segment_details = {}
+        route_details = {}
+        for j in tqdm(range(len(routes))):
+            synth = synth_acc[j]
+            synth = synth[synth['synth_acc'].notna()]
+            synth = synth[synth['gm_speed'] >= 20]
+            synth = synth.reset_index(drop=True)
+            route = routes[j][:7]
+
+            if route == 'CPH1_HH':
+                p79_gps = df_cph1_hh
+                hdf5_route = ('aligned_data/'+route+'.hdf5')
+                hdf5file = h5py.File(hdf5_route, 'r')
+                aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+                aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns = hdf5file['aran/trip_1/pass_1']['Allig'].attrs['chNames'])
+                aran_cracks = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Cracks'], columns = hdf5file['aran/trip_1/pass_1']['Cracks'].attrs['chNames'])
+                aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns = hdf5file['aran/trip_1/pass_1']['Pothole'].attrs['chNames'])
+            elif route == 'CPH1_VH':
+                p79_gps = df_cph1_vh
+                hdf5_route = ('aligned_data/'+route+'.hdf5')
+                hdf5file = h5py.File(hdf5_route, 'r')
+                aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+                aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns = hdf5file['aran/trip_1/pass_1']['Allig'].attrs['chNames'])
+                aran_cracks = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Cracks'], columns = hdf5file['aran/trip_1/pass_1']['Cracks'].attrs['chNames'])
+                aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns = hdf5file['aran/trip_1/pass_1']['Pothole'].attrs['chNames'])
+            elif route == 'CPH6_HH':
+                p79_gps = df_cph6_hh
+                hdf5_route = ('aligned_data/'+route+'.hdf5')
+                hdf5file = h5py.File(hdf5_route, 'r')
+                aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+                aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns = hdf5file['aran/trip_1/pass_1']['Allig'].attrs['chNames'])
+                aran_cracks = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Cracks'], columns = hdf5file['aran/trip_1/pass_1']['Cracks'].attrs['chNames'])
+                aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns = hdf5file['aran/trip_1/pass_1']['Pothole'].attrs['chNames'])
+            elif route == 'CPH6_VH':
+                p79_gps = df_cph6_vh
+                hdf5_route = ('aligned_data/'+route+'.hdf5')
+                hdf5file = h5py.File(hdf5_route, 'r')
+                aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+                aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns = hdf5file['aran/trip_1/pass_1']['Allig'].attrs['chNames'])
+                aran_cracks = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Cracks'], columns = hdf5file['aran/trip_1/pass_1']['Cracks'].attrs['chNames'])
+                aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns = hdf5file['aran/trip_1/pass_1']['Pothole'].attrs['chNames'])
+        
+            p79_start = p79_gps[['Latitude','Longitude']].iloc[0].values
+            aran_start_idx, _ = find_min_gps_vector(p79_start,aran_location[['LatitudeFrom','LongitudeFrom']].iloc[:100].values)
+            p79_end = p79_gps[['Latitude','Longitude']].iloc[-1].values
+            aran_end_idx, _ = find_min_gps_vector(p79_end,aran_location[['LatitudeTo','LongitudeTo']].iloc[-100:].values)
+            aran_end_idx = (len(aran_location)-100)+aran_end_idx
+            
+            i = aran_start_idx
+            # Get 50m from ARAN -> Find gps signal from p79 -> Get measurements from synthetic data
+            while (i < (aran_end_idx-segment_size) ):
+                aran_start = [aran_location['LatitudeFrom'][i],aran_location['LongitudeFrom'][i]]
+                aran_end = [aran_location['LatitudeTo'][i+segment_size-1],aran_location['LongitudeTo'][i+segment_size-1]]
+                p79_start_idx, start_dist = find_min_gps_vector(aran_start,p79_gps[['Latitude','Longitude']].values)
+                p79_end_idx, end_dist = find_min_gps_vector(aran_end,p79_gps[['Latitude','Longitude']].values)
+
+                if start_dist < 5 and end_dist < 5:
+                    dfdf = p79_gps['Distance'][p79_start_idx:p79_end_idx+1]
+                    dfdf = dfdf.reset_index(drop=True)   
+
+                    synth_seg = synth[((synth['Distance'] >= np.min(dfdf)) & (synth['Distance'] <= np.max(dfdf)))]
+                    synth_seg = synth_seg.reset_index(drop=True)
+
+                    stat1 = synth_seg['Distance'].empty
+                    lag = []
+                    for h in range(len(synth_seg)-1):
+                        lag.append(synth_seg['Distance'][h+1]-synth_seg['Distance'][h])        
+                    large = [y for y in lag if y > 5]
+                    
+                    if stat1:
+                        stat2 = True
+                        stat3 = True
+                        stat4 = True
+                    else:
+                        stat2 = not 40 <= (synth_seg['Distance'][len(synth_seg['Distance'])-1]-synth_seg['Distance'][0]) <= 60
+                        stat3 = (len(synth_seg['synth_acc'])) > 5000
+                        stat4 = False if bool(large) == False else (np.max(large) > 5)
+                        
+                    if stat1 | stat2 | stat3 | stat4:
+                        i += 1
+                    else:
+                        i += segment_size
+                        segments[iter] = synth_seg['synth_acc']
+                        lasers[iter] = synth_seg['laser']
+                        aran_concat = pd.concat([aran_location[i:i+segment_size],aran_alligator[i:i+segment_size],aran_cracks[i:i+segment_size],aran_potholes[i:i+segment_size]],axis=1)
+                        aran_segment_details[iter] = aran_concat
+                        route_details[iter] = routes[j]
+                        iter += 1
+                else:
+                    i +=1
+
+        synth_segments = pd.DataFrame.from_dict(segments,orient='index').transpose()
+        synth_segments.to_csv("synth_data/tests/"+"synthetic_segments"+".csv",index=False)
+        aran_segment_details = pd.concat(aran_segment_details)
+        aran_segment_details.to_csv("synth_data/tests/"+"aran_segments"+".csv",index=False)
+        laser_segments = pd.DataFrame.from_dict(lasers,orient='index').transpose()
+        laser_segments.to_csv("synth_data/tests/"+"laser_segments"+".csv",index=False)
+        
+        myfile = open("synth_data/tests/routes_details.txt","w")
+        myfile.write(str(route_details))
+        myfile.close()
+        aran_segment_details = pd.read_csv("synth_data/tests/"+"aran_segments"+".csv")
+        
+    return synth_segments, aran_segment_details, route_details, laser_segments
 
 
 
@@ -665,3 +777,5 @@ def plot_grid_search(cv_results, grid_param_1, grid_param_2, name_param_1, name_
 
 # Calling Method 
 # plot_grid_search(knn_train.cv_results_, [10,20,40], ['uniform','distance'], 'n-neighbors', 'weights')
+
+
