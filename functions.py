@@ -8,6 +8,7 @@ import h5py
 import tsfel
 import time
 import joblib
+import pickle
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
@@ -16,8 +17,6 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 from sklearn.model_selection import train_test_split, GridSearchCV
-
-
 
 from LiRA_functions import *
 
@@ -311,18 +310,20 @@ def synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0):
         
     return synth_segments, aran_segment_details, route_details
 
-def feature_extraction(data,id):
+def feature_extraction(data,id,fs=250,min_idx=0):
     cfg_file = tsfel.get_features_by_domain()
-    if os.path.isfile('synth_data/'+id+'.csv'):
-        feature_names = np.transpose(tsfel.time_series_features_extractor(cfg_file,data[str(0)].dropna(),fs=250,verbose=0))
-        data = pd.read_csv('synth_data/'+id+'.csv')
+    if os.path.isfile(id+'.csv'):
+        feature_names = np.transpose(tsfel.time_series_features_extractor(cfg_file,data[str(min_idx)].dropna(),fs=fs,verbose=0))
+        data = pd.read_csv(id+'.csv')
     else:
         extracted_features = []
-        feature_names = np.transpose(tsfel.time_series_features_extractor(cfg_file,data[str(0)].dropna(),fs=250,verbose=0))
+        feature_names = np.transpose(tsfel.time_series_features_extractor(cfg_file,data[str(min_idx)].dropna(),fs=fs,verbose=0))
         for i in tqdm(range(np.shape(data)[1])):
-            extracted_features.append(np.transpose(tsfel.time_series_features_extractor(cfg_file,data[str(i)].dropna(),fs=250,verbose=0)))
+            temp = np.transpose(tsfel.time_series_features_extractor(cfg_file,data[str(i)].dropna(),fs=fs,verbose=0))
+            diff = list(set(temp.index) - set(feature_names.index))
+            extracted_features.append(temp.drop(diff))
         data = pd.DataFrame(np.concatenate(extracted_features,axis=1))
-        data.to_csv('synth_data/'+id+'.csv',index=False)
+        data.to_csv(id+'.csv',index=False)
 
     return data,feature_names
 
@@ -370,6 +371,7 @@ def method_RandomForest(features, y, id, model=False, gridsearch=0, cv_in=5, ver
                     'min_samples_leaf': [2],
                     'min_samples_split': [5],
                     'n_estimators': [200]}
+                
 
         start_time = time.time()
         if gridsearch == 1:
@@ -399,170 +401,189 @@ def method_RandomForest(features, y, id, model=False, gridsearch=0, cv_in=5, ver
     return {"R2":[r2 ,r2_train], "MSE": [MSE, MSE_train], "RMSE": [RMSE, RMSE_train], "MAE": [MAE, MAE_train],"Gridsearchcv_obj": rf_train}
 
 
+def custom_splits(aran_segments,route_details,save=False):
+    if save & os.path.isfile("synth_data/split1"):
+        with open("synth_data/split1",'rb') as fp:
+            split1 = pickle.load(fp)
+        with open("synth_data/split2",'rb') as fp:
+            split2 = pickle.load(fp)
+        with open("synth_data/split3",'rb') as fp:
+            split3 = pickle.load(fp)
+        with open("synth_data/split4",'rb') as fp:
+            split4 = pickle.load(fp)
+        with open("synth_data/split5",'rb') as fp:
+            split5 = pickle.load(fp)
+        print("Loaded cross validation splits")
+    else:
+        cph1_hh = []
+        cph1_vh = []
+        cph6_hh = []
+        cph6_vh = []
+        for i in range(len(route_details)):
+            if route_details[i][:7] == 'CPH1_HH':
+                cph1_hh.extend([i*5,i*5+1,i*5+2,i*5+3,i*5+4])
+            if route_details[i][:7] == 'CPH1_VH':
+                cph1_vh.extend([i*5,i*5+1,i*5+2,i*5+3,i*5+4])
+            if route_details[i][:7] == 'CPH6_HH':
+                cph6_hh.extend([i*5,i*5+1,i*5+2,i*5+3,i*5+4])
+            if route_details[i][:7] == 'CPH6_VH':
+                cph6_vh.extend([i*5,i*5+1,i*5+2,i*5+3,i*5+4])
+
+        cph1_len = (len(cph1_hh) + len(cph1_vh))
+
+        counter = 0
+        chain_start = 645
+        for i in range(int(cph1_len)):
+            counter1 = np.sum(np.sum(aran_segments['EndChainage'].iloc[cph1_hh] < chain_start))
+            counter2 = np.sum(np.sum(aran_segments['BeginChainage'].iloc[cph1_vh] < chain_start))
+            counter = (counter1 + counter2)/5
+            if (counter >= (cph1_len/5)/3):
+                break
+            chain_start += 10
+
+        dd = aran_segments['EndChainage'][cph1_hh] < chain_start
+        temp_cph1_hh = []
+        for i in range(len(cph1_hh)):
+            if dd.iloc[i] == True:
+                temp_cph1_hh.append(cph1_hh[i])
+
+        dd = aran_segments['BeginChainage'][cph1_vh] < chain_start
+        temp_cph1_vh = []
+        for i in range(len(cph1_vh)):
+            if dd.iloc[i] == True:
+                temp_cph1_vh.append(cph1_vh[i])
+
+        split1 = list(set(list((np.array(temp_cph1_hh)/5).astype(int)))) + list(set(list((np.array(temp_cph1_vh)/5).astype(int))))
+
+        counter = 0
+        chain_end = chain_start
+        chain_start = chain_start + 50
+        for i in range(int(cph1_len)):
+            counter1 = np.sum(np.sum((chain_end < aran_segments['BeginChainage'].iloc[cph1_hh]) & (aran_segments['EndChainage'].iloc[cph1_hh] < chain_start)))
+            counter2 = np.sum(np.sum((chain_end < aran_segments['EndChainage'].iloc[cph1_vh]) & (aran_segments['BeginChainage'].iloc[cph1_vh] < chain_start)))
+            counter = (counter1 + counter2)/5
+            if (counter >= (cph1_len/5)/3):
+                break
+            chain_start += 10
+
+        dd = (chain_end < aran_segments['BeginChainage'][cph1_hh]) & (aran_segments['EndChainage'][cph1_hh] < chain_start)
+        temp_cph1_hh = []
+        for i in range(len(cph1_hh)):
+            if dd.iloc[i] == True:
+                temp_cph1_hh.append(cph1_hh[i])
+
+        dd = (chain_end < aran_segments['EndChainage'][cph1_vh]) & (aran_segments['BeginChainage'][cph1_vh] < chain_start)
+        temp_cph1_vh = []
+        for i in range(len(cph1_vh)):
+            if dd.iloc[i] == True:
+                temp_cph1_vh.append(cph1_vh[i])
+
+        split2 = list(set(list((np.array(temp_cph1_hh)/5).astype(int)))) + list(set(list((np.array(temp_cph1_vh)/5).astype(int))))
+
+        counter = 0
+        chain_end = chain_start
+        chain_start = chain_start + 50
+        for i in range(int(cph1_len)):
+            counter1 = np.sum(np.sum(chain_end < aran_segments['BeginChainage'].iloc[cph1_hh]))
+            counter2 = np.sum(np.sum(chain_end < aran_segments['EndChainage'].iloc[cph1_vh]))
+            counter = (counter1 + counter2)/5
+            if (counter >= (cph1_len/5)/3):
+                break
+            chain_start += 10
+
+        dd = chain_end < aran_segments['BeginChainage'][cph1_hh]
+        temp_cph1_hh = []
+        for i in range(len(cph1_hh)):
+            if dd.iloc[i] == True:
+                temp_cph1_hh.append(cph1_hh[i])
+
+        dd = chain_end < aran_segments['EndChainage'][cph1_vh]
+        temp_cph1_vh = []
+        for i in range(len(cph1_vh)):
+            if dd.iloc[i] == True:
+                temp_cph1_vh.append(cph1_vh[i])
+
+        split3 = list(set(list((np.array(temp_cph1_hh)/5).astype(int)))) + list(set(list((np.array(temp_cph1_vh)/5).astype(int))))
 
 
+        cph6_len = (len(cph6_hh) + len(cph6_vh))
 
+        counter = 0
+        chain_start = 0
+        for i in range(int(cph6_len)):
+            counter1 = np.sum(np.sum(aran_segments['EndChainage'].iloc[cph6_hh] < chain_start))
+            counter2 = np.sum(np.sum(aran_segments['BeginChainage'].iloc[cph6_vh] < chain_start))
+            counter = (counter1 + counter2)/5
+            if (counter >= (cph6_len/5)/2):
+                break
+            chain_start += 10
 
+        dd = aran_segments['EndChainage'][cph6_hh] < chain_start
+        temp_cph6_hh = []
+        for i in range(len(cph6_hh)):
+            if dd.iloc[i] == True:
+                temp_cph6_hh.append(cph6_hh[i])
 
-def custom_splits(aran_segments,route_details):
-    cph1_hh = []
-    cph1_vh = []
-    cph6_hh = []
-    cph6_vh = []
-    for i in range(len(route_details)):
-        if route_details[i][:7] == 'CPH1_HH':
-            cph1_hh.extend([i*5,i*5+1,i*5+2,i*5+3,i*5+4])
-        if route_details[i][:7] == 'CPH1_VH':
-            cph1_vh.extend([i*5,i*5+1,i*5+2,i*5+3,i*5+4])
-        if route_details[i][:7] == 'CPH6_HH':
-            cph6_hh.extend([i*5,i*5+1,i*5+2,i*5+3,i*5+4])
-        if route_details[i][:7] == 'CPH6_VH':
-            cph6_vh.extend([i*5,i*5+1,i*5+2,i*5+3,i*5+4])
+        dd = aran_segments['BeginChainage'][cph6_vh] < chain_start
+        temp_cph6_vh = []
+        for i in range(len(cph6_vh)):
+            if dd.iloc[i] == True:
+                temp_cph6_vh.append(cph6_vh[i])
 
-    cph1_len = (len(cph1_hh) + len(cph1_vh))
+        split4 = list(set(list((np.array(temp_cph6_hh)/5).astype(int)))) + list(set(list((np.array(temp_cph6_vh)/5).astype(int))))
+        
+        counter = 0
+        chain_end = chain_start
+        for i in range(int(cph6_len)):
+            counter1 = np.sum(np.sum(chain_end < aran_segments['BeginChainage'].iloc[cph6_hh]))
+            counter2 = np.sum(np.sum(chain_end < aran_segments['EndChainage'].iloc[cph6_vh]))
+            counter = (counter1 + counter2)/5
+            if (counter >= (cph6_len/5)/2):
+                break
+            chain_start += 10
 
-    counter = 0
-    chain_start = 645
-    for i in range(int(cph1_len)):
-        counter1 = np.sum(np.sum(aran_segments['EndChainage'].iloc[cph1_hh] < chain_start))
-        counter2 = np.sum(np.sum(aran_segments['BeginChainage'].iloc[cph1_vh] < chain_start))
-        counter = (counter1 + counter2)/5
-        if (counter >= (cph1_len/5)/3):
-            break
-        chain_start += 10
+        dd = chain_end < aran_segments['BeginChainage'][cph6_hh]
+        temp_cph6_hh = []
+        for i in range(len(cph6_hh)):
+            if dd.iloc[i] == True:
+                temp_cph6_hh.append(cph6_hh[i])
 
-    dd = aran_segments['EndChainage'][cph1_hh] < chain_start
-    temp_cph1_hh = []
-    for i in range(len(cph1_hh)):
-        if dd.iloc[i] == True:
-            temp_cph1_hh.append(cph1_hh[i])
+        dd = chain_end < aran_segments['EndChainage'][cph6_vh]
+        temp_cph6_vh = []
+        for i in range(len(cph6_vh)):
+            if dd.iloc[i] == True:
+                temp_cph6_vh.append(cph6_vh[i])
 
-    dd = aran_segments['BeginChainage'][cph1_vh] < chain_start
-    temp_cph1_vh = []
-    for i in range(len(cph1_vh)):
-        if dd.iloc[i] == True:
-            temp_cph1_vh.append(cph1_vh[i])
+        split5 = list(set(list((np.array(temp_cph6_hh)/5).astype(int)))) + list(set(list((np.array(temp_cph6_vh)/5).astype(int)))) 
 
-    split1 = list(set(list((np.array(temp_cph1_hh)/5).astype(int)))) + list(set(list((np.array(temp_cph1_vh)/5).astype(int))))
+        s1 = set(split1)
+        s2 = set(split2)
+        s3 = set(split3)
+        sp1 = s1.difference(s2)
+        sp1 = sp1.difference(s3)
+        sp2 = s2.difference(sp1)
+        split2 = list(sp2.difference(s3))
+        split1 = list(sp1)
 
-    counter = 0
-    chain_end = chain_start
-    chain_start = chain_start + 50
-    for i in range(int(cph1_len)):
-        counter1 = np.sum(np.sum((chain_end < aran_segments['BeginChainage'].iloc[cph1_hh]) & (aran_segments['EndChainage'].iloc[cph1_hh] < chain_start)))
-        counter2 = np.sum(np.sum((chain_end < aran_segments['EndChainage'].iloc[cph1_vh]) & (aran_segments['BeginChainage'].iloc[cph1_vh] < chain_start)))
-        counter = (counter1 + counter2)/5
-        if (counter >= (cph1_len/5)/3):
-            break
-        chain_start += 10
+        s4 = set(split4)
+        s5 = set(split5)
+        split4 = list(s4.difference(s5))
+        if save:
+            with open("synth_data/split1","wb") as fp:
+                pickle.dump(split1,fp)
+            with open("synth_data/split2","wb") as fp:
+                pickle.dump(split2,fp)
+            with open("synth_data/split3","wb") as fp:
+                pickle.dump(split3,fp)
+            with open("synth_data/split4","wb") as fp:
+                pickle.dump(split4,fp)
+            with open("synth_data/split5","wb") as fp:
+                pickle.dump(split5,fp)
 
-    dd = (chain_end < aran_segments['BeginChainage'][cph1_hh]) & (aran_segments['EndChainage'][cph1_hh] < chain_start)
-    temp_cph1_hh = []
-    for i in range(len(cph1_hh)):
-        if dd.iloc[i] == True:
-            temp_cph1_hh.append(cph1_hh[i])
-
-    dd = (chain_end < aran_segments['EndChainage'][cph1_vh]) & (aran_segments['BeginChainage'][cph1_vh] < chain_start)
-    temp_cph1_vh = []
-    for i in range(len(cph1_vh)):
-        if dd.iloc[i] == True:
-            temp_cph1_vh.append(cph1_vh[i])
-
-    split2 = list(set(list((np.array(temp_cph1_hh)/5).astype(int)))) + list(set(list((np.array(temp_cph1_vh)/5).astype(int))))
-
-    counter = 0
-    chain_end = chain_start
-    chain_start = chain_start + 50
-    for i in range(int(cph1_len)):
-        counter1 = np.sum(np.sum(chain_end < aran_segments['BeginChainage'].iloc[cph1_hh]))
-        counter2 = np.sum(np.sum(chain_end < aran_segments['EndChainage'].iloc[cph1_vh]))
-        counter = (counter1 + counter2)/5
-        if (counter >= (cph1_len/5)/3):
-            break
-        chain_start += 10
-
-    dd = chain_end < aran_segments['BeginChainage'][cph1_hh]
-    temp_cph1_hh = []
-    for i in range(len(cph1_hh)):
-        if dd.iloc[i] == True:
-            temp_cph1_hh.append(cph1_hh[i])
-
-    dd = chain_end < aran_segments['EndChainage'][cph1_vh]
-    temp_cph1_vh = []
-    for i in range(len(cph1_vh)):
-        if dd.iloc[i] == True:
-            temp_cph1_vh.append(cph1_vh[i])
-
-    split3 = list(set(list((np.array(temp_cph1_hh)/5).astype(int)))) + list(set(list((np.array(temp_cph1_vh)/5).astype(int))))
-
-
-    cph6_len = (len(cph6_hh) + len(cph6_vh))
-
-    counter = 0
-    chain_start = 0
-    for i in range(int(cph6_len)):
-        counter1 = np.sum(np.sum(aran_segments['EndChainage'].iloc[cph6_hh] < chain_start))
-        counter2 = np.sum(np.sum(aran_segments['BeginChainage'].iloc[cph6_vh] < chain_start))
-        counter = (counter1 + counter2)/5
-        if (counter >= (cph6_len/5)/2):
-            break
-        chain_start += 10
-
-    dd = aran_segments['EndChainage'][cph6_hh] < chain_start
-    temp_cph6_hh = []
-    for i in range(len(cph6_hh)):
-        if dd.iloc[i] == True:
-            temp_cph6_hh.append(cph6_hh[i])
-
-    dd = aran_segments['BeginChainage'][cph6_vh] < chain_start
-    temp_cph6_vh = []
-    for i in range(len(cph6_vh)):
-        if dd.iloc[i] == True:
-            temp_cph6_vh.append(cph6_vh[i])
-
-    split4 = list(set(list((np.array(temp_cph6_hh)/5).astype(int)))) + list(set(list((np.array(temp_cph6_vh)/5).astype(int))))
-    
-    counter = 0
-    chain_end = chain_start
-    for i in range(int(cph6_len)):
-        counter1 = np.sum(np.sum(chain_end < aran_segments['BeginChainage'].iloc[cph6_hh]))
-        counter2 = np.sum(np.sum(chain_end < aran_segments['EndChainage'].iloc[cph6_vh]))
-        counter = (counter1 + counter2)/5
-        if (counter >= (cph6_len/5)/2):
-            break
-        chain_start += 10
-
-    dd = chain_end < aran_segments['BeginChainage'][cph6_hh]
-    temp_cph6_hh = []
-    for i in range(len(cph6_hh)):
-        if dd.iloc[i] == True:
-            temp_cph6_hh.append(cph6_hh[i])
-
-    dd = chain_end < aran_segments['EndChainage'][cph6_vh]
-    temp_cph6_vh = []
-    for i in range(len(cph6_vh)):
-        if dd.iloc[i] == True:
-            temp_cph6_vh.append(cph6_vh[i])
-
-    split5 = list(set(list((np.array(temp_cph6_hh)/5).astype(int)))) + list(set(list((np.array(temp_cph6_vh)/5).astype(int)))) 
-
-    s1 = set(split1)
-    s2 = set(split2)
-    s3 = set(split3)
-    sp1 = s1.difference(s2)
-    sp1 = sp1.difference(s3)
-    sp2 = s2.difference(sp1)
-    split2 = list(sp2.difference(s3))
-    split1 = list(sp1)
-
-    s4 = set(split4)
-    s5 = set(split5)
-    split4 = list(s4.difference(s5))
-    
-    cv = [(split2+split3+split4,split1),
-          (split1+split3+split4,split2),
-          (split1+split2+split4,split3),
-          (split1+split2+split3,split4)]
+    cv = [(split2+split3+split4,split5),
+          (split5+split3+split4,split2),
+          (split5+split2+split4,split3),
+          (split5+split2+split3,split4)]
 
     cv2 = [(split2+split3+split4+split5,split1),
            (split1+split3+split4+split5,split2),
@@ -570,7 +591,7 @@ def custom_splits(aran_segments,route_details):
            (split1+split2+split3+split5,split4),
            (split1+split2+split3+split4,split5)]
 
-    return cv, split5, cv2
+    return cv, split1, cv2
 
 
 def test_synthetic_data():
@@ -750,6 +771,101 @@ def test_segmentation(synth_acc,routes,segment_size=5,overlap=0):
     return synth_segments, aran_segment_details, route_details, laser_segments
 
 
+
+def GM_segmentation(segment_size=5,overlap=0):
+    if os.path.isfile("aligned_data/"+"aran_segments"+".csv"):
+        synth_segments = pd.read_csv("aligned_data/"+"synthetic_segments"+".csv")
+        aran_segment_details = pd.read_csv("aligned_data/"+"aran_segments"+".csv")
+        route_details = eval(open("aligned_data/routes_details.txt", 'r').read())
+        print("Loaded already segmented data")              
+        
+    else:
+        files = glob.glob("aligned_data/*.hdf5")
+        iter = 0
+        segments = {}
+        aran_segment_details = {}
+        route_details = {}
+        for j in tqdm(range(len(files))):
+            route = files[j][13:]
+            hdf5_route = ('aligned_data/'+route)
+            hdf5file = h5py.File(hdf5_route, 'r')
+            aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+            aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns = hdf5file['aran/trip_1/pass_1']['Allig'].attrs['chNames'])
+            aran_cracks = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Cracks'], columns = hdf5file['aran/trip_1/pass_1']['Cracks'].attrs['chNames'])
+            aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns = hdf5file['aran/trip_1/pass_1']['Pothole'].attrs['chNames'])
+
+            aligned_passes = hdf5file.attrs['aligned_passes']
+            for k in range(len(aligned_passes)):
+                passagefile = hdf5file[aligned_passes[k]]
+                aligned_gps = pd.DataFrame(passagefile['aligned_gps'], columns = passagefile['aligned_gps'].attrs['chNames'])
+                acc_fs_50 = pd.DataFrame(passagefile['acc_fs_50'], columns = passagefile['acc_fs_50'].attrs['chNames'])
+                f_dist = pd.DataFrame(passagefile['f_dist'], columns = passagefile['f_dist'].attrs['chNames'])
+
+                # plt.scatter(x=aran_location['LongitudeFrom'], y=aran_location['LatitudeFrom'],s=1,c="red")
+                # plt.scatter(x=aligned_gps[aligned_gps['lon'] > 12.45]['lon'], y=aligned_gps[aligned_gps['lat'] > 55.40]['lat'],s=1,c="blue")
+                # plt.show()
+        
+                GM_start = aligned_gps[['lat','lon']].iloc[0].values
+                aran_start_idx, _ = find_min_gps_vector(GM_start,aran_location[['LatitudeFrom','LongitudeFrom']].iloc[:200].values)
+                GM_end = aligned_gps[['lat','lon']].iloc[-1].values
+                aran_end_idx, _ = find_min_gps_vector(GM_end,aran_location[['LatitudeTo','LongitudeTo']].iloc[-200:].values)
+                aran_end_idx = (len(aran_location)-200)+aran_end_idx
+                
+                i = aran_start_idx
+                # Get 50m from ARAN -> Find gps signal from p79 -> Get measurements from synthetic data
+                while (i < (aran_end_idx-segment_size) ):
+                    aran_start = [aran_location['LatitudeFrom'][i],aran_location['LongitudeFrom'][i]]
+                    aran_end = [aran_location['LatitudeTo'][i+segment_size-1],aran_location['LongitudeTo'][i+segment_size-1]]
+                    GM_start_idx, start_dist = find_min_gps_vector(aran_start,aligned_gps[['lat','lon']].values)
+                    GM_end_idx, end_dist = find_min_gps_vector(aran_end,aligned_gps[['lat','lon']].values)
+
+                    if start_dist < 5 and end_dist < 5:
+                        dfdf = aligned_gps['TS_or_Distance'][GM_start_idx:GM_end_idx+1]
+                        dfdf = dfdf.reset_index(drop=True)   
+
+                        dist_seg = aligned_gps['p79_dist'][GM_start_idx:GM_end_idx+1]
+                        dist_seg = dist_seg.reset_index(drop=True)
+
+                        acc_seg = acc_fs_50[((acc_fs_50['TS_or_Distance'] >= np.min(dfdf)) & (acc_fs_50['TS_or_Distance'] <= np.max(dfdf)))]
+                        acc_seg = acc_seg.reset_index(drop=True)
+
+                        stat1 = acc_seg['TS_or_Distance'].empty
+                        lag = []
+                        for h in range(len(dist_seg)-1):
+                            lag.append(dist_seg[h+1]-dist_seg[h])        
+                        large = [y for y in lag if y > 5]
+                        
+                        if stat1:
+                            stat2 = True
+                            stat3 = True
+                            stat4 = True
+                        else:
+                            stat2 = not 40 <= (dist_seg[len(dist_seg)-1]-dist_seg[0]) <= 60
+                            stat3 = (len(acc_seg['acc_z'])) > 5000
+                            stat4 = False if bool(large) == False else (np.max(large) > 5)
+                            
+                        if stat1 | stat2 | stat3 | stat4:
+                            i += 1
+                        else:
+                            i += segment_size
+                            segments[iter] = acc_seg['acc_z']
+                            aran_concat = pd.concat([aran_location[i:i+segment_size],aran_alligator[i:i+segment_size],aran_cracks[i:i+segment_size],aran_potholes[i:i+segment_size]],axis=1)
+                            aran_segment_details[iter] = aran_concat
+                            route_details[iter] = route[:7]+aligned_passes[k]
+                            iter += 1
+                    else:
+                        i +=1
+
+        synth_segments = pd.DataFrame.from_dict(segments,orient='index').transpose()
+        synth_segments.to_csv("aligned_data/"+"synthetic_segments"+".csv",index=False)
+        aran_segment_details = pd.concat(aran_segment_details)
+        aran_segment_details.to_csv("aligned_data/"+"aran_segments"+".csv",index=False)
+        myfile = open("aligned_data/routes_details.txt","w")
+        myfile.write(str(route_details))
+        myfile.close()
+        aran_segment_details = pd.read_csv("aligned_data/"+"aran_segments"+".csv")
+        
+    return synth_segments, aran_segment_details, route_details
 
 
 

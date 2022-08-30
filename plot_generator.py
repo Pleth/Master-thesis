@@ -27,16 +27,17 @@ synth_segments, aran_segments, route_details = synthetic_segmentation(synth_acc,
 
 cv, test_split, cv2 = custom_splits(aran_segments,route_details)
 
-k=0
+# GM_segments, aran_segments, route_details = GM_segmentation(segment_size=5,overlap=0)
+# cv, test_split, cv2 = custom_splits(aran_segments,route_details)
+
+
 fig,ax = plt.subplots(1,2)
 k = 0
 for train,test in cv2:
-    print(len(train))
-    print(len(test))
     if k < 3:
-        ax[0].scatter(x=aran_segments['LongitudeFrom'][np.array(test)*5],y=aran_segments['LatitudeFrom'][np.array(test)*5],s=1,label='CPH1')
+        ax[0].scatter(x=aran_segments['LongitudeFrom'][np.array(test)*5],y=aran_segments['LatitudeFrom'][np.array(test)*5],s=1,label=len(test))
     else:
-        ax[1].scatter(x=aran_segments['LongitudeFrom'][np.array(test)*5],y=aran_segments['LatitudeFrom'][np.array(test)*5],s=1,label='CPH6')
+        ax[1].scatter(x=aran_segments['LongitudeFrom'][np.array(test)*5],y=aran_segments['LatitudeFrom'][np.array(test)*5],s=1,label=len(test))
     k+=1
 ax[0].legend()
 ax[1].legend()
