@@ -25,7 +25,7 @@ for i in range(len(synth_acc)):
 
 synth_segments, aran_segments, route_details = synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0)
 
-cv, test_split, cv2 = custom_splits(aran_segments,route_details)
+cv, test_split, cv2 = custom_splits(aran_segments,route_details,save=True)
 
 # GM_segments, aran_segments, route_details = GM_segmentation(segment_size=5,overlap=0)
 # cv, test_split, cv2 = custom_splits(aran_segments,route_details)
@@ -696,6 +696,12 @@ for i in range(len(synth_acc)):
 
 synth_segments, aran_segments, route_details = synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0)
 
+hdf5file = h5py.File('aligned_data/CPH1_VH.hdf5', 'r')
+aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns = hdf5file['aran/trip_1/pass_1']['Allig'].attrs['chNames'])
+aran_cracks = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Cracks'], columns = hdf5file['aran/trip_1/pass_1']['Cracks'].attrs['chNames'])
+aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns = hdf5file['aran/trip_1/pass_1']['Pothole'].attrs['chNames'])
+
 seg_len = 5 
 seg_cap = 4
 DI = []
@@ -714,7 +720,7 @@ for i in tqdm(range(int(np.shape(aran_segments)[0]/seg_len))):
     potholes.append(np.max(temp_potholes))
 
 
-_, _, cv = custom_splits(aran_segments,route_details)
+_, _, cv = custom_splits(aran_segments,route_details,save=True)
 
 for train,test in cv:
     pots_train, cracs_train, allis_train, dams_train = 0, 0, 0, 0
@@ -920,5 +926,36 @@ plt.show()
 # plt.show()
 # np.median(spd_list)
 # np.mean(spd_list)
+
+#################################################################################################################
+
+##################################################### GM ALIGNED ################################################
+
+lat_len = 1# 111332.67
+lon_len = 1#63195.85
+
+synth_acc = synthetic_data()
+routes = []
+for i in range(len(synth_acc)): 
+    routes.append(synth_acc[i].axes[0].name)
+
+GM_segments, aran_segments, route_details = GM_segmentation(segment_size=5,overlap=0)
+cv, test_split, cv2 = custom_splits(aran_segments,route_details)
+
+# GM_segments, aran_segments, route_details = GM_segmentation(segment_size=5,overlap=0)
+# cv, test_split, cv2 = custom_splits(aran_segments,route_details)
+
+
+fig,ax = plt.subplots(1,2)
+k = 0
+for train,test in cv2:
+    if k < 3:
+        ax[0].scatter(x=aran_segments['LongitudeFrom'][np.array(test)*5],y=aran_segments['LatitudeFrom'][np.array(test)*5],s=1,label=len(test))
+    else:
+        ax[1].scatter(x=aran_segments['LongitudeFrom'][np.array(test)*5],y=aran_segments['LatitudeFrom'][np.array(test)*5],s=1,label=len(test))
+    k+=1
+ax[0].legend()
+ax[1].legend()
+plt.show()
 
 #################################################################################################################

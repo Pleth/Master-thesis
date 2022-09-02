@@ -56,10 +56,13 @@ if __name__ == '__main__':
         gridsearch = 1
         verbose = 0
         n_jobs = -1 # 4
-        model = False
+        if sys.argv[2] == 'train':
+            model = False
+        elif sys.argv[2] == 'test':
+            model = 1
 
         cv, test_split, cv2 = custom_splits(aran_segments,route_details,save=True)
-
+        
         scores_RandomForest_DI        = method_RandomForest(features, DI, 'DI', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
         scores_RandomForest_potholes  = method_RandomForest(features, potholes, 'potholes', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
         scores_RandomForest_cracks    = method_RandomForest(features, cracks, 'cracks', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
@@ -85,12 +88,6 @@ if __name__ == '__main__':
                         ['RMSE',scores_RandomForest_DI['RMSE'][0],scores_RandomForest_potholes['RMSE'][0],scores_RandomForest_cracks['RMSE'][0],scores_RandomForest_alligator['RMSE'][0]],
                         ['MAE',scores_RandomForest_DI['MAE'][0],scores_RandomForest_potholes['MAE'][0],scores_RandomForest_cracks['MAE'][0],scores_RandomForest_alligator['MAE'][0]]], 
                 headers=['RandomForest', 'DI','Potholes','Cracks','Alligator']))
-
-
-
-
-
-
 
 
 
@@ -136,10 +133,13 @@ if __name__ == '__main__':
         gridsearch = 1
         verbose = 0
         n_jobs = -1 # 4
-        model = False
+        if sys.argv[2] == 'train':
+            model = False
+        elif sys.argv[2] == 'test':
+            model = 1
 
         cv, test_split, cv2 = custom_splits(aran_segments,route_details)
-
+        
         scores_RandomForest_DI        = method_RandomForest(features, DI, 'DI_45km', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
         scores_RandomForest_potholes  = method_RandomForest(features, potholes, 'potholes_45km', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
         scores_RandomForest_cracks    = method_RandomForest(features, cracks, 'cracks_45km', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
@@ -209,10 +209,12 @@ if __name__ == '__main__':
         gridsearch = 1
         verbose = 0
         n_jobs = -1 # 4
-        model = False
+        if sys.argv[2] == 'train':
+            model = False
+        elif sys.argv[2] == 'test':
+            model = 1
 
         cv, test_split, cv2 = custom_splits(aran_segments,route_details)
-
         scores_RandomForest_DI        = method_RandomForest(features, DI, 'DI_laser', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
         scores_RandomForest_potholes  = method_RandomForest(features, potholes, 'potholes_laser', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
         scores_RandomForest_cracks    = method_RandomForest(features, cracks, 'cracks_laser', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
@@ -240,7 +242,8 @@ if __name__ == '__main__':
                         ['MAE',scores_RandomForest_DI['MAE'][0],scores_RandomForest_potholes['MAE'][0],scores_RandomForest_cracks['MAE'][0],scores_RandomForest_alligator['MAE'][0]]], 
                 headers=['RandomForest', 'DI','Potholes','Cracks','Alligator']))
 
-        
+    
+
     ########################################################### GREEN MOBILITY TEST ##############################################################
     if sys.argv[1] == 'GM_test':
         GM_segments, aran_segments, route_details = GM_segmentation(segment_size=5,overlap=0)
@@ -287,35 +290,38 @@ if __name__ == '__main__':
         gridsearch = 1
         verbose = 0
         n_jobs = -1 # 4
-        model = False
+        if sys.argv[2] == 'train':
+            model = False
+        elif sys.argv[2] == 'test':
+            model = 1
 
         cv, test_split, cv2 = custom_splits(aran_segments,route_details)
-
+    
         scores_RandomForest_DI        = method_RandomForest(features, DI, 'DI_GM', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
-        scores_RandomForest_potholes  = method_RandomForest(features, potholes, 'potholes_GM', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
-        scores_RandomForest_cracks    = method_RandomForest(features, cracks, 'cracks_GM', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
-        scores_RandomForest_alligator = method_RandomForest(features, alligator, 'alligator_GM', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
+        # scores_RandomForest_potholes  = method_RandomForest(features, potholes, 'potholes_GM', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
+        # scores_RandomForest_cracks    = method_RandomForest(features, cracks, 'cracks_GM', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
+        # scores_RandomForest_alligator = method_RandomForest(features, alligator, 'alligator_GM', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
 
-        print("Splits - total segments: ",len(cv[0][1])+len(cv[1][1])+len(cv[2][1])+len(cv[3][1])+len(test_split))
-        print("Split1: ",len(cv[0][0]),len(cv[0][1]))
-        print("Split2: ",len(cv[1][0]),len(cv[1][1]))
-        print("Split3: ",len(cv[2][0]),len(cv[2][1]))
-        print("Split4: ",len(cv[3][0]),len(cv[3][1]))
-        print("Test split (split5): ",len(test_split))
+        # print("Splits - total segments: ",len(cv[0][1])+len(cv[1][1])+len(cv[2][1])+len(cv[3][1])+len(test_split))
+        # print("Split1: ",len(cv[0][0]),len(cv[0][1]))
+        # print("Split2: ",len(cv[1][0]),len(cv[1][1]))
+        # print("Split3: ",len(cv[2][0]),len(cv[2][1]))
+        # print("Split4: ",len(cv[3][0]),len(cv[3][1]))
+        # print("Test split (split5): ",len(test_split))
 
-        print('Training metrics')
-        print(tabulate([['R2',scores_RandomForest_DI['R2'][1],scores_RandomForest_potholes['R2'][1],scores_RandomForest_cracks['R2'][1],scores_RandomForest_alligator['R2'][1]],
-                        ['MSE',scores_RandomForest_DI['MSE'][1],scores_RandomForest_potholes['MSE'][1],scores_RandomForest_cracks['MSE'][1],scores_RandomForest_alligator['MSE'][1]],
-                        ['RMSE',scores_RandomForest_DI['RMSE'][1],scores_RandomForest_potholes['RMSE'][1],scores_RandomForest_cracks['RMSE'][1],scores_RandomForest_alligator['RMSE'][1]],
-                        ['MAE',scores_RandomForest_DI['MAE'][1],scores_RandomForest_potholes['MAE'][1],scores_RandomForest_cracks['MAE'][1],scores_RandomForest_alligator['MAE'][1]]], 
-                headers=['RandomForest', 'DI','Potholes','Cracks','Alligator']))
+        # print('Training metrics')
+        # print(tabulate([['R2',scores_RandomForest_DI['R2'][1],scores_RandomForest_potholes['R2'][1],scores_RandomForest_cracks['R2'][1],scores_RandomForest_alligator['R2'][1]],
+        #                 ['MSE',scores_RandomForest_DI['MSE'][1],scores_RandomForest_potholes['MSE'][1],scores_RandomForest_cracks['MSE'][1],scores_RandomForest_alligator['MSE'][1]],
+        #                 ['RMSE',scores_RandomForest_DI['RMSE'][1],scores_RandomForest_potholes['RMSE'][1],scores_RandomForest_cracks['RMSE'][1],scores_RandomForest_alligator['RMSE'][1]],
+        #                 ['MAE',scores_RandomForest_DI['MAE'][1],scores_RandomForest_potholes['MAE'][1],scores_RandomForest_cracks['MAE'][1],scores_RandomForest_alligator['MAE'][1]]], 
+        #         headers=['RandomForest', 'DI','Potholes','Cracks','Alligator']))
         
-        print('Test metrics')
-        print(tabulate([['R2',scores_RandomForest_DI['R2'][0],scores_RandomForest_potholes['R2'][0],scores_RandomForest_cracks['R2'][0],scores_RandomForest_alligator['R2'][0]],
-                        ['MSE',scores_RandomForest_DI['MSE'][0],scores_RandomForest_potholes['MSE'][0],scores_RandomForest_cracks['MSE'][0],scores_RandomForest_alligator['MSE'][0]],
-                        ['RMSE',scores_RandomForest_DI['RMSE'][0],scores_RandomForest_potholes['RMSE'][0],scores_RandomForest_cracks['RMSE'][0],scores_RandomForest_alligator['RMSE'][0]],
-                        ['MAE',scores_RandomForest_DI['MAE'][0],scores_RandomForest_potholes['MAE'][0],scores_RandomForest_cracks['MAE'][0],scores_RandomForest_alligator['MAE'][0]]], 
-                headers=['RandomForest', 'DI','Potholes','Cracks','Alligator']))
+        # print('Test metrics')
+        # print(tabulate([['R2',scores_RandomForest_DI['R2'][0],scores_RandomForest_potholes['R2'][0],scores_RandomForest_cracks['R2'][0],scores_RandomForest_alligator['R2'][0]],
+        #                 ['MSE',scores_RandomForest_DI['MSE'][0],scores_RandomForest_potholes['MSE'][0],scores_RandomForest_cracks['MSE'][0],scores_RandomForest_alligator['MSE'][0]],
+        #                 ['RMSE',scores_RandomForest_DI['RMSE'][0],scores_RandomForest_potholes['RMSE'][0],scores_RandomForest_cracks['RMSE'][0],scores_RandomForest_alligator['RMSE'][0]],
+        #                 ['MAE',scores_RandomForest_DI['MAE'][0],scores_RandomForest_potholes['MAE'][0],scores_RandomForest_cracks['MAE'][0],scores_RandomForest_alligator['MAE'][0]]], 
+        #         headers=['RandomForest', 'DI','Potholes','Cracks','Alligator']))
         obj = scores_RandomForest_DI['Gridsearchcv_obj']
         k = 0
         temp = 0
@@ -328,3 +334,11 @@ if __name__ == '__main__':
             test == obj.cv[k][1]
             k+=1
         temp
+        print(scores_RandomForest_DI['R2'][1])
+        print(scores_RandomForest_DI['R2'][0])
+
+        rf_train = joblib.load('models/RandomForest_best_model_DI_GM.sav')
+        print(rf_train.best_estimator_)
+        max_dep = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+        max_feat = ['log2', 'sqrt', None]
+        plot_grid_search(rf_train.cv_results_, max_dep, max_feat, 'Max_depth', 'Max_features')

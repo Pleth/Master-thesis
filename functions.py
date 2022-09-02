@@ -9,6 +9,7 @@ import tsfel
 import time
 import joblib
 import pickle
+import matplotlib.pyplot as plt
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
@@ -17,6 +18,7 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.dummy import DummyRegressor
 
 from LiRA_functions import *
 
@@ -344,6 +346,12 @@ def method_RandomForest(features, y, id, model=False, gridsearch=0, cv_in=5, ver
         rf_train = joblib.load('models/RandomForest_best_model_'+id+'.sav')
         # loaded_model.fit(X_train,y_train)
         y_pred = rf_train.predict(X_test)
+
+        dummy_regr = DummyRegressor(strategy="mean")
+        dummy_regr.fit(X_train.drop(X_train.index[test]),y_train[train])
+        dummy_pred = dummy_regr.predict(X_test)
+        r2_dummy = r2_score(y_test,dummy_pred)
+        print('Dummy R2 value '+id+':', r2_dummy)
         
         r2 = r2_score(y_test,y_pred)
         MSE = mean_squared_error(y_test,y_pred, squared=True)
@@ -359,28 +367,28 @@ def method_RandomForest(features, y, id, model=False, gridsearch=0, cv_in=5, ver
     else:        
         parameters={'criterion': ['squared_error','absolute_error','poisson'],
                     'bootstrap': [True, False],
-                    'max_depth': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, None],
-                    'max_features': ['log2', 'sqrt'],
-                    'min_samples_leaf': [1, 2, 4],
-                    'min_samples_split': [2, 5, 10],
-                    'n_estimators': [200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000]}
+                    'max_depth': [1, 2, 4, 6, 8, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, None],
+                    'max_features': ['log2', 'sqrt',None],
+                    'min_samples_leaf': [1, 2, 4, 6, 8, 10],
+                    'min_samples_split': [2, 5, 10, 15],
+                    'n_estimators': [500]}
         parameters={'criterion': ['squared_error'],
-                    'bootstrap': [True, False],
-                    'max_depth': [30],
-                    'max_features': ['sqrt'],
+                    'bootstrap': [False],
+                    'max_depth': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+                    'max_features': ['log2', 'sqrt',None],
                     'min_samples_leaf': [2],
                     'min_samples_split': [5],
                     'n_estimators': [200]}
-                
-
+        
         start_time = time.time()
         if gridsearch == 1:
-            rf_train = GridSearchCV(RandomForestRegressor(), parameters, cv = cv,scoring='r2',verbose=verbose,n_jobs=n_jobs) # scoring='neg_mean_squared_error'
-            rf_train.fit(X_train,y_train)
+            rf_train = GridSearchCV(RandomForestRegressor(), parameters, cv = 4,scoring='r2',verbose=verbose,n_jobs=n_jobs) # scoring='neg_mean_squared_error'
+            rf_train.fit(X_train.drop(X_train.index[test]).reset_index(),y_train[train])
             joblib.dump(rf_train,'models/RandomForest_best_model_'+id+'.sav')
         else:
-            rf_train = RandomForestRegressor(n_estimators=200)
-            rf_train.fit(X_train,y_train)
+            rf_train = RandomForestRegressor(n_estimators=1,max_depth=None,max_features=None,bootstrap=False)
+            #rf_train.fit(X_train,y_train)
+            rf_train.fit(X_train.drop(X_train.index[test]),y_train[train])
         end_time = time.time()
         run_time = end_time - start_time
         print('Run time:',round(run_time/60,2),'mins')
