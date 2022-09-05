@@ -288,16 +288,21 @@ if __name__ == '__main__':
         
         
         gridsearch = 1
-        verbose = 0
+        verbose = 3
         n_jobs = -1 # 4
         if sys.argv[2] == 'train':
             model = False
         elif sys.argv[2] == 'test':
             model = 1
 
-        cv, test_split, cv2 = custom_splits(aran_segments,route_details)
-    
-        scores_RandomForest_DI        = method_RandomForest(features, DI, 'DI_GM', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
+        cv, test_split, cv2, splits = custom_splits(aran_segments,route_details)
+        cv_train, split_test, X_train, X_test = rearange_splits(splits,features)
+
+        DI = pd.DataFrame(DI)
+        DI_test = DI.iloc[splits['1']].reset_index(drop=True)
+        DI_train = DI.iloc[splits['2']+splits['3']+splits['4']+splits['5']].reset_index(drop=True)
+
+        scores_RandomForest_DI        = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_GM', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
         # scores_RandomForest_potholes  = method_RandomForest(features, potholes, 'potholes_GM', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
         # scores_RandomForest_cracks    = method_RandomForest(features, cracks, 'cracks_GM', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
         # scores_RandomForest_alligator = method_RandomForest(features, alligator, 'alligator_GM', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
@@ -325,11 +330,11 @@ if __name__ == '__main__':
         obj = scores_RandomForest_DI['Gridsearchcv_obj']
         k = 0
         temp = 0
-        for train, test in cv:
+        for train, test in cv_train:
             for i in range(len(train)):
-                temp += np.sum(train[i] == test_split)
+                temp += np.sum(train[i] == split_test)
             for j in range(len(test)):
-                temp += np.sum(test[j] == test_split)   
+                temp += np.sum(test[j] == split_test)   
             train == obj.cv[k][0]
             test == obj.cv[k][1]
             k+=1

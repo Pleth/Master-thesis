@@ -330,17 +330,11 @@ def feature_extraction(data,id,fs=250,min_idx=0):
     return data,feature_names
 
 
-def method_RandomForest(features, y, id, model=False, gridsearch=0, cv_in=5, verbose=3,n_jobs=None):
-    X = features.T
-    y = pd.DataFrame(y)
-    # sc_X = StandardScaler()
-    # X = sc_X.fit_transform(X)
+def method_RandomForest(features_train, features_test, y_train, y_test, id, model=False, gridsearch=0, cv_in=5, verbose=3,n_jobs=None):
     cv = cv_in[0]
-    test = cv_in[1]
-    train = [i for i in range(len(X)) if i not in test]
 
-    X_train, X_test = X, X.iloc[test]
-    y_train, y_test = y.values.reshape(-1,), y.iloc[test].values.reshape(-1,)
+    X_train, X_test = features_train.T, features_test.T
+    y_train, y_test = y_train.values.reshape(-1,), y_test.values.reshape(-1,)
 
     if model != False:
         rf_train = joblib.load('models/RandomForest_best_model_'+id+'.sav')
@@ -348,7 +342,7 @@ def method_RandomForest(features, y, id, model=False, gridsearch=0, cv_in=5, ver
         y_pred = rf_train.predict(X_test)
 
         dummy_regr = DummyRegressor(strategy="mean")
-        dummy_regr.fit(X_train.drop(X_train.index[test]),y_train[train])
+        dummy_regr.fit(X_train,y_train)
         dummy_pred = dummy_regr.predict(X_test)
         r2_dummy = r2_score(y_test,dummy_pred)
         print('Dummy R2 value '+id+':', r2_dummy)
@@ -358,8 +352,8 @@ def method_RandomForest(features, y, id, model=False, gridsearch=0, cv_in=5, ver
         RMSE = mean_squared_error(y_test,y_pred, squared=False)
         MAE = mean_absolute_error(y_test,y_pred)
 
-        train_pred = rf_train.predict(X.iloc[train])
-        train_y = y.iloc[train].values.reshape(-1,)
+        train_pred = rf_train.predict(X_train)
+        train_y = y_train
         r2_train = r2_score(train_y,train_pred)
         MSE_train = mean_squared_error(train_y,train_pred, squared=True)
         RMSE_train = mean_squared_error(train_y,train_pred, squared=False)
@@ -383,12 +377,12 @@ def method_RandomForest(features, y, id, model=False, gridsearch=0, cv_in=5, ver
         start_time = time.time()
         if gridsearch == 1:
             rf_train = GridSearchCV(RandomForestRegressor(), parameters, cv = 4,scoring='r2',verbose=verbose,n_jobs=n_jobs) # scoring='neg_mean_squared_error'
-            rf_train.fit(X_train.drop(X_train.index[test]).reset_index(),y_train[train])
+            rf_train.fit(X_train,y_train)
             joblib.dump(rf_train,'models/RandomForest_best_model_'+id+'.sav')
         else:
             rf_train = RandomForestRegressor(n_estimators=1,max_depth=None,max_features=None,bootstrap=False)
             #rf_train.fit(X_train,y_train)
-            rf_train.fit(X_train.drop(X_train.index[test]),y_train[train])
+            rf_train.fit(X_train,y_train)
         end_time = time.time()
         run_time = end_time - start_time
         print('Run time:',round(run_time/60,2),'mins')
@@ -400,8 +394,8 @@ def method_RandomForest(features, y, id, model=False, gridsearch=0, cv_in=5, ver
         RMSE = mean_squared_error(y_test,y_pred, squared=False)
         MAE = mean_absolute_error(y_test,y_pred)
 
-        train_pred = rf_train.predict(X.iloc[train])
-        train_y = y.iloc[train].values.reshape(-1,)
+        train_pred = rf_train.predict(X_train)
+        train_y = y_train
         r2_train = r2_score(train_y,train_pred)
         MSE_train = mean_squared_error(train_y,train_pred, squared=True)
         RMSE_train = mean_squared_error(train_y,train_pred, squared=False)
@@ -599,7 +593,33 @@ def custom_splits(aran_segments,route_details,save=False):
            (split1+split2+split3+split5,split4),
            (split1+split2+split3+split4,split5)]
 
-    return cv, split1, cv2
+    splits = {'1': split1, '2': split2, '3': split3, '4': split4, '5': split5}
+
+    return cv, split1, cv2, splits
+
+def rearange_splits(splits,features):
+    cv_train = []
+    split_test = splits['1']
+    features=features.T
+    train = []
+    train = features.iloc[splits['2']].reset_index(drop=True)
+    train = pd.concat([train,features.iloc[splits['3']].reset_index(drop=True)],ignore_index=True)
+    train = pd.concat([train,features.iloc[splits['4']].reset_index(drop=True)],ignore_index=True)
+    train = pd.concat([train,features.iloc[splits['5']].reset_index(drop=True)],ignore_index=True)
+    train = train.T
+    test = features.iloc[splits['1']].reset_index(drop=True).T
+
+    split2 = list(range(0,len(splits['2'])))
+    split3 = list(range(len(split2),len(split2)+len(splits['3'])))
+    split4 = list(range(len(split2+split3),len(split2+split3)+len(splits['4'])))
+    split5 = list(range(len(split2+split3+split4),len(split2+split3+split4)+len(splits['5'])))
+
+    cv_train = [(split2+split3+split4,split5),
+                (split5+split3+split4,split2),
+                (split5+split2+split4,split3),
+                (split5+split2+split3,split4)]
+
+    return cv_train, split_test, train, test
 
 
 def test_synthetic_data():
