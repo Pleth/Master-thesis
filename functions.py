@@ -359,24 +359,24 @@ def method_RandomForest(features_train, features_test, y_train, y_test, id, mode
         RMSE_train = mean_squared_error(train_y,train_pred, squared=False)
         MAE_train = mean_absolute_error(train_y,train_pred)
     else:        
-        parameters={'criterion': ['squared_error','absolute_error','poisson'],
-                    'bootstrap': [True, False],
-                    'max_depth': [1, 2, 4, 6, 8, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, None],
-                    'max_features': ['log2', 'sqrt',None],
-                    'min_samples_leaf': [1, 2, 4, 6, 8, 10],
-                    'min_samples_split': [2, 5, 10, 15],
-                    'n_estimators': [500]}
         parameters={'criterion': ['squared_error'],
-                    'bootstrap': [False],
-                    'max_depth': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
-                    'max_features': ['log2', 'sqrt',None],
-                    'min_samples_leaf': [2],
-                    'min_samples_split': [5],
-                    'n_estimators': [200]}
+                    'bootstrap': [True],
+                    'max_depth': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                    'max_features': [2, 4, 6, 8, 10, 12, 14, 18, 20,'log2', 'sqrt'],
+                    'min_samples_leaf': [1, 2, 4, 6, 8, 10],
+                    'min_samples_split': [2, 5, 10, 15, 20, 25, 30],
+                    'n_estimators': [250]}
+        # parameters={'criterion': ['squared_error','absolute_error'],
+        #             'bootstrap': [True],
+        #             'max_depth': [1,2,4,6,8,10],
+        #             'max_features': [2,5,10,15,20,25,'log2', 'sqrt'],
+        #             'min_samples_leaf': [1, 2, 4, 6, 8, 10],
+        #             'min_samples_split': [2, 5, 10, 15],
+        #             'n_estimators': [250]}
         
         start_time = time.time()
         if gridsearch == 1:
-            rf_train = GridSearchCV(RandomForestRegressor(), parameters, cv = 4,scoring='r2',verbose=verbose,n_jobs=n_jobs) # scoring='neg_mean_squared_error'
+            rf_train = GridSearchCV(RandomForestRegressor(), parameters, cv = cv, scoring='r2',verbose=verbose,n_jobs=n_jobs) # scoring='neg_mean_squared_error'
             rf_train.fit(X_train,y_train)
             joblib.dump(rf_train,'models/RandomForest_best_model_'+id+'.sav')
         else:
