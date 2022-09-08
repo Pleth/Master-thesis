@@ -23,7 +23,6 @@ from sklearn.dummy import DummyRegressor
 from LiRA_functions import *
 
 def calc_DI(allig, cracks, potholes):
-
     allig = allig.fillna(0)
     cracks = cracks.fillna(0)
     potholes = potholes.fillna(0)
@@ -36,6 +35,19 @@ def calc_DI(allig, cracks, potholes):
                   5*potholes['PotholeAreaAffectedDelam'])**0.1
     DI = alligsum + cracksum + potholesum
     return DI, alligsum, cracksum, potholesum
+
+def calc_DI_v2(aran):
+    aran = aran.fillna(0)
+    
+    alligsum = (3*aran['AlligCracksSmall'] + 4*aran['AlligCracksMed'] + 5*aran['AlligCracksLarge'])**0.3
+    cracksum = (aran['CracksLongitudinalSmall']**2 + aran['CracksLongitudinalMed']**3 + aran['CracksLongitudinalLarge']**4 + \
+                aran['CracksLongitudinalSealed']**2 + 3*aran['CracksTransverseSmall'] + 4*aran['CracksTransverseMed'] + \
+                5*aran['CracksTransverseLarge'] + 2*aran['CracksTransverseSealed'])**0.1
+    potholesum = (5*aran['PotholeAreaAffectedLow'] + 7*aran['PotholeAreaAffectedMed'] + 10*aran['PotholeAreaAffectedHigh'] + \
+                  5*aran['PotholeAreaAffectedDelam'])**0.1
+    DI = alligsum + cracksum + potholesum
+    return DI, alligsum, cracksum, potholesum
+
 
 def synthetic_data():
 
