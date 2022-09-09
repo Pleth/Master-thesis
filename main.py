@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import h5py
 from tqdm import tqdm
-from functools import partialmethod
-tqdm.__init__ = partialmethod(tqdm.__init__, disable=True)  
+# from functools import partialmethod
+# tqdm.__init__ = partialmethod(tqdm.__init__, disable=True)  
 
 from functions import *
 from LiRA_functions import *
@@ -70,8 +70,8 @@ if __name__ == '__main__':
         DI_train = DI.iloc[splits['2']+splits['3']+splits['4']+splits['5']].reset_index(drop=True)
 
         scores_RandomForest_DI        = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
-        # scores_RandomForest_potholes  = method_RandomForest(features, potholes, 'potholes', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
         # scores_RandomForest_cracks    = method_RandomForest(features, cracks, 'cracks', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
+        # scores_RandomForest_potholes  = method_RandomForest(features, potholes, 'potholes', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
         # scores_RandomForest_alligator = method_RandomForest(features, alligator, 'alligator', model=model, gridsearch=gridsearch, cv_in=[cv,test_split], verbose=verbose,n_jobs=n_jobs)
 
         # print("Splits - total segments: ",len(cv[0][1])+len(cv[1][1])+len(cv[2][1])+len(cv[3][1])+len(test_split))
@@ -278,6 +278,7 @@ if __name__ == '__main__':
     if sys.argv[1] == 'GM_test':
         GM_segments, aran_segments, route_details = GM_segmentation(segment_size=5,overlap=0)
 
+        
         hdf5file = h5py.File('aligned_data/CPH1_VH.hdf5', 'r')
         aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
         aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns = hdf5file['aran/trip_1/pass_1']['Allig'].attrs['chNames'])
@@ -366,3 +367,116 @@ if __name__ == '__main__':
         # max_dep = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
         # max_feat = ['log2', 'sqrt', None]
         # plot_grid_search(rf_train.cv_results_, max_dep, max_feat, 'Max_depth', 'Max_features')
+
+
+
+    if sys.argv[1] == 'copeium':
+        GM_segments, aran_segments, route_details = GM_segmentation(segment_size=5,overlap=0)
+
+
+        # idxs = np.array(aran_segments[7000:][aran_segments[7000:]['BeginChainage'] < 9200].index/5).astype(int)
+        
+        # aran_segments.drop(aran_segments[7000:][aran_segments[7000:]['BeginChainage'] < 9200].index, inplace=True)
+        # aran_segments = aran_segments.reset_index(drop=True)
+        
+        # GM_segments.drop(GM_segments.columns[idxs],axis=1,inplace=True)
+        # GM_segments = GM_segments.reset_index(drop=True)
+
+        hdf5file = h5py.File('aligned_data/CPH1_VH.hdf5', 'r')
+        aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+        aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns = hdf5file['aran/trip_1/pass_1']['Allig'].attrs['chNames'])
+        aran_cracks = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Cracks'], columns = hdf5file['aran/trip_1/pass_1']['Cracks'].attrs['chNames'])
+        aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns = hdf5file['aran/trip_1/pass_1']['Pothole'].attrs['chNames'])
+
+        DI, allig, cracks, potholes = calc_DI(aran_alligator,aran_cracks,aran_potholes)
+        
+        data = GM_segments#.iloc[:,0:100]
+        temp = 1000
+        maxi = 0
+        for i in range(np.shape(data)[1]):
+            min = len(data[str(i)].dropna())
+            if min < temp:
+                temp = min
+                min_idx = i
+            if min > maxi:
+                maxi = min
+                max_idx = i
+
+        
+        features,feature_names = feature_extraction(data,'aligned_data/extracted_features',fs=50,min_idx=min_idx)
+
+        seg_len = 5 
+        seg_cap = 4
+        DI = []
+        alligator = []
+        cracks = []
+        potholes = []
+        for i in tqdm(range(int(np.shape(aran_segments)[0]/seg_len))):
+            aran_details = aran_segments.iloc[i*seg_len:i*seg_len+seg_cap+1]
+            aran_alligator = aran_details[aran_alligator.columns]
+            aran_cracks = aran_details[aran_cracks.columns]
+            aran_potholes = aran_details[aran_potholes.columns]
+            temp_DI, temp_alligator, temp_cracks, temp_potholes = calc_DI(aran_alligator,aran_cracks,aran_potholes)
+            DI.append(np.max(temp_DI))
+            alligator.append(np.max(temp_alligator))
+            cracks.append(np.max(temp_cracks))
+            potholes.append(np.max(temp_potholes))
+        
+        
+        gridsearch = 1
+        verbose = 0
+        n_jobs = -1 # 4
+        if sys.argv[2] == 'train':
+            model = False
+        elif sys.argv[2] == 'test':
+            model = 1
+
+        # cv, test_split, cv2, splits = custom_splits(aran_segments,route_details)
+        # cv_train, split_test, X_train, X_test = rearange_splits(splits,features)
+
+        # DI = pd.DataFrame(DI)
+        # DI_test = DI.iloc[splits['1']].reset_index(drop=True)
+        # DI_train = DI.iloc[splits['2']+splits['3']+splits['4']+splits['5']].reset_index(drop=True)
+
+        X_train = features.iloc[:,540:].reset_index(drop=True)
+        DI_train = pd.DataFrame(DI[540:])
+        X_test = features.iloc[:,:540]
+        DI_test = pd.DataFrame(DI[:540])
+
+        scores_RandomForest_DI        = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_GM', model=model, gridsearch=gridsearch, cv_in=[4,10], verbose=verbose,n_jobs=n_jobs)
+        
+        print(scores_RandomForest_DI['R2'][1])
+        print(scores_RandomForest_DI['R2'][0])
+
+        rf_train = joblib.load('models/RandomForest_best_model_DI_GM.sav')
+        print(rf_train.best_estimator_)
+        # max_dep = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+        # max_feat = ['log2', 'sqrt', None]
+        # plot_grid_search(rf_train.cv_results_, max_dep, max_feat, 'Max_depth', 'Max_features')
+
+
+        synth_acc = test_synthetic_data()
+        routes = []
+        for i in range(len(synth_acc)): 
+            routes.append(synth_acc[i].axes[0].name)
+
+        synth_segments, aran_segments, route_details, laser_segments = test_segmentation(synth_acc,routes,segment_size=5,overlap=0)
+
+        seg_len = 5 
+        seg_cap = 4
+        chain_max = []
+        chain_min = []
+        for i in tqdm(range(int(np.shape(aran_segments)[0]/seg_len))):
+            aran_details = aran_segments.iloc[i*seg_len:i*seg_len+seg_cap+1]
+            chain_max.append(np.max([np.max(aran_details['BeginChainage']),np.max(aran_details['EndChainage'])]))
+            chain_min.append(np.min([np.min(aran_details['BeginChainage']),np.min(aran_details['EndChainage'])]))
+
+        maxer = []
+        miner = []
+        for i in range(len(route_details)):
+            if route_details[i][:7] == 'CPH6_VH':
+                maxer.append(chain_max[i])
+            if route_details[i][:7] == 'CPH6_HH':
+                miner.append(chain_min[i])
+
+        # heading min = 9200

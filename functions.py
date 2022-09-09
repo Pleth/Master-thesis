@@ -373,10 +373,10 @@ def method_RandomForest(features_train, features_test, y_train, y_test, id, mode
     else:        
         parameters={'criterion': ['squared_error'],
                     'bootstrap': [True],
-                    'max_depth': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-                    'max_features': [2, 4, 6, 8, 10, 12, 14, 18, 20,'log2', 'sqrt'],
-                    'min_samples_leaf': [1, 2, 4, 6, 8, 10],
-                    'min_samples_split': [2, 5, 10, 15, 20, 25, 30],
+                    'max_depth': [2, 3, 4, 5, 6, 7],
+                    'max_features': [2, 6, 10, 14, 18, 'log2', 'sqrt'],
+                    'min_samples_leaf': [2, 4, 6, 8, 10],
+                    'min_samples_split': [2, 4, 6, 8, 10, 12, 15, 20, 25],
                     'n_estimators': [250]}
         # parameters={'criterion': ['squared_error','absolute_error'],
         #             'bootstrap': [True],
@@ -388,7 +388,7 @@ def method_RandomForest(features_train, features_test, y_train, y_test, id, mode
         
         start_time = time.time()
         if gridsearch == 1:
-            rf_train = GridSearchCV(RandomForestRegressor(), parameters, cv = cv, scoring='r2',verbose=verbose,n_jobs=n_jobs) # scoring='neg_mean_squared_error'
+            rf_train = GridSearchCV(RandomForestRegressor(), parameters, cv = cv, scoring='r2',verbose=verbose,n_jobs=n_jobs,return_train_score=True) # scoring='neg_mean_squared_error'
             rf_train.fit(X_train,y_train)
             joblib.dump(rf_train,'models/RandomForest_best_model_'+id+'.sav')
         else:
@@ -834,12 +834,32 @@ def GM_segmentation(segment_size=5,overlap=0):
             aran_cracks = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Cracks'], columns = hdf5file['aran/trip_1/pass_1']['Cracks'].attrs['chNames'])
             aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns = hdf5file['aran/trip_1/pass_1']['Pothole'].attrs['chNames'])
 
+            # if (route[:7] == 'CPH6_VH') | (route[:7] == 'CPH6_HH'):
+            #     idx = aran_location[aran_location['BeginChainage'] < 9200].index
+            #     aran_location.drop(idx, inplace=True)
+            #     aran_location = aran_location.reset_index(drop=True)
+            #     aran_alligator.drop(idx, inplace=True)
+            #     aran_alligator = aran_alligator.reset_index(drop=True)
+            #     aran_cracks.drop(idx, inplace=True)
+            #     aran_cracks = aran_cracks.reset_index(drop=True)
+            #     aran_potholes.drop(idx, inplace=True)
+            #     aran_potholes = aran_potholes.reset_index(drop=True)
+                
+
             aligned_passes = hdf5file.attrs['aligned_passes']
             for k in range(len(aligned_passes)):
                 passagefile = hdf5file[aligned_passes[k]]
                 aligned_gps = pd.DataFrame(passagefile['aligned_gps'], columns = passagefile['aligned_gps'].attrs['chNames'])
                 acc_fs_50 = pd.DataFrame(passagefile['acc_fs_50'], columns = passagefile['acc_fs_50'].attrs['chNames'])
                 f_dist = pd.DataFrame(passagefile['f_dist'], columns = passagefile['f_dist'].attrs['chNames'])
+
+                # if (route[:7] == 'CPH6_VH') | (route[:7] == 'CPH6_HH'):
+                #     aligned_gps.drop(idx, inplace=True)
+                #     aligned_gps = aligned_gps.reset_index(drop=True)
+                #     acc_fs_50.drop(idx, inplace=True)
+                #     acc_fs_50 = acc_fs_50.reset_index(drop=True)
+                #     f_dist.drop(idx, inplace=True)
+                #     f_dist = f_dist.reset_index(drop=True)
 
                 # plt.scatter(x=aran_location['LongitudeFrom'], y=aran_location['LatitudeFrom'],s=1,c="red")
                 # plt.scatter(x=aligned_gps[aligned_gps['lon'] > 12.45]['lon'], y=aligned_gps[aligned_gps['lat'] > 55.40]['lat'],s=1,c="blue")
