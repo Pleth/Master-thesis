@@ -1,4 +1,4 @@
-#!c:\master thesis\venv_1\scripts\python.exe
+#!C:\Master Thesis\venv_1\Scripts\python.exe
 
 # Author:
 # Contact: grubert@users.sf.net

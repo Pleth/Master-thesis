@@ -1,4 +1,4 @@
-#!c:\master thesis\venv_1\scripts\python.exe
+#!C:\Master Thesis\venv_1\Scripts\python.exe
 # :Copyright: © 2015 Günter Milde.
 # :License: Released under the terms of the `2-Clause BSD license`_, in short:
 #

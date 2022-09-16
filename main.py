@@ -635,25 +635,26 @@ if sys.argv[1] == 'GM_split_test':
             model = False
         elif sys.argv[2] == 'test':
             model = 1
+        
+        cut = [10000,19000,15000]
+
         #### split 1
-        # print('---------SPLIT 1--------')
-        # cut = [10000,19000,9000]
-        # cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split1')
+        print('---------SPLIT 1--------')
+        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split1')
         
-        # DI = pd.DataFrame(DI)
-        # DI_test = DI.iloc[splits['1']].reset_index(drop=True)
-        # DI_train = DI.iloc[splits['2']+splits['3']+splits['4']+splits['5']].reset_index(drop=True)
+        DI = pd.DataFrame(DI)
+        DI_test = DI.iloc[splits['1']].reset_index(drop=True)
+        DI_train = DI.iloc[splits['2']+splits['3']+splits['4']+splits['5']].reset_index(drop=True)
 
-        # scores_RandomForest_DI = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_GM_split1', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
+        scores_RandomForest_DI = method_RandomForest(X_train, X_test, DI_train, DI_test, 'DI_GM_split1', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
         
-        # print(scores_RandomForest_DI['R2'][1])
-        # print(scores_RandomForest_DI['R2'][0])
+        print(scores_RandomForest_DI['R2'][1])
+        print(scores_RandomForest_DI['R2'][0])
 
-        # rf_train = joblib.load('models/RandomForest_best_model_DI_GM_split1.sav')
-        # print(rf_train.best_estimator_)
+        rf_train = joblib.load('models/RandomForest_best_model_DI_GM_split1.sav')
+        print(rf_train.best_estimator_)
 
         print('---------SPLIT 2--------')
-        cut = [10000,19000,9000]
         cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split2')
         
         DI = pd.DataFrame(DI)
@@ -669,7 +670,6 @@ if sys.argv[1] == 'GM_split_test':
         print(rf_train.best_estimator_)
 
         print('---------SPLIT 3--------')
-        cut = [10000,19000,9000]
         cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split3')
         
         DI = pd.DataFrame(DI)
@@ -685,7 +685,6 @@ if sys.argv[1] == 'GM_split_test':
         print(rf_train.best_estimator_)
 
         print('---------SPLIT 4--------')
-        cut = [10000,19000,9000]
         cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split4')
         
         DI = pd.DataFrame(DI)
@@ -701,7 +700,6 @@ if sys.argv[1] == 'GM_split_test':
         print(rf_train.best_estimator_)
 
         print('---------SPLIT 5--------')
-        cut = [10000,19000,9000]
         cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split5')
         
         DI = pd.DataFrame(DI)
@@ -715,3 +713,10 @@ if sys.argv[1] == 'GM_split_test':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_GM_split5.sav')
         print(rf_train.best_estimator_)
+
+
+
+
+        plt.plot(rf_train.cv_results_['split0_test_score'])
+        plt.plot(rf_train.cv_results_['mean_test_score'])
+        plt.show()

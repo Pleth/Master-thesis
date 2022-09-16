@@ -1,4 +1,4 @@
-#!c:\master thesis\venv_1\scripts\python.exe
+#!C:\Master Thesis\venv_1\Scripts\python.exe
 
 # $Id: rst2odt_prepstyles.py 8932 2022-01-05 14:59:31Z milde $
 # Author: Dave Kuhlman <dkuhlman@rexx.com>

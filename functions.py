@@ -395,13 +395,13 @@ def method_RandomForest(features_train, features_test, y_train, y_test, id, mode
                     'min_samples_leaf': [2, 4, 6, 8, 10],
                     'min_samples_split': [2, 4, 6, 8, 10, 12, 15, 20, 25],
                     'n_estimators': [250]}
-        # parameters={'criterion': ['squared_error','absolute_error'],
-        #             'bootstrap': [True],
-        #             'max_depth': [1,2,4,6,8,10],
-        #             'max_features': [2,5,10,15,20,25,'log2', 'sqrt'],
-        #             'min_samples_leaf': [1, 2, 4, 6, 8, 10],
-        #             'min_samples_split': [2, 5, 10, 15],
-        #             'n_estimators': [250]}
+        parameters={'criterion': ['squared_error'],
+                    'bootstrap': [True],
+                    'max_depth': [5],
+                    'max_features': [18],
+                    'min_samples_leaf': [2],
+                    'min_samples_split': [4],
+                    'n_estimators': [250]}
         
         start_time = time.time()
         if gridsearch == 1:
@@ -409,7 +409,7 @@ def method_RandomForest(features_train, features_test, y_train, y_test, id, mode
             rf_train.fit(X_train,y_train)
             joblib.dump(rf_train,'models/RandomForest_best_model_'+id+'.sav')
         else:
-            rf_train = RandomForestRegressor(n_estimators=250,max_depth=5,max_features=14,bootstrap=True,criterion='squared_error',min_samples_leaf=8,min_samples_split=25)
+            rf_train = RandomForestRegressor(n_estimators=250,max_depth=7,max_features=18,bootstrap=True,criterion='squared_error',min_samples_leaf=2,min_samples_split=4)
             #rf_train.fit(X_train,y_train)
             rf_train.fit(X_train,y_train)
         end_time = time.time()
@@ -688,11 +688,11 @@ def real_splits(features,aran_segments,route_details,cut,split_nr):
           split3.append(i)
     
     split4 = []
-    for i in list(cph1_aran[cph1_aran['BeginChainage'] < cut[0]].index):
+    for i in list(cph6_aran[cph6_aran['BeginChainage'] < cut[2]].index):
        if i not in split4:
           split4.append(i)
     split5 = []
-    for i in list(cph1_aran[cph1_aran['BeginChainage'] > cut[1]].index):
+    for i in list(cph6_aran[cph6_aran['BeginChainage'] >= cut[2]].index):
        if i not in split5:
           split5.append(i)
     

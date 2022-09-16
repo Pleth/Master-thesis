@@ -1,4 +1,4 @@
-#!c:\master thesis\venv_1\scripts\python.exe
+#!C:\Master Thesis\venv_1\Scripts\python.exe
 
 # $Id: rst2latex.py 8956 2022-01-20 10:11:44Z milde $
 # Author: David Goodger <goodger@python.org>
