@@ -940,22 +940,44 @@ for i in range(len(synth_acc)):
     routes.append(synth_acc[i].axes[0].name)
 
 GM_segments, aran_segments, route_details = GM_segmentation(segment_size=5,overlap=0)
-cv, test_split, cv2 = custom_splits(aran_segments,route_details)
 
-# GM_segments, aran_segments, route_details = GM_segmentation(segment_size=5,overlap=0)
-# cv, test_split, cv2 = custom_splits(aran_segments,route_details)
+cut = [10000,19000,14000]
+cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split1')
 
+fig,ax = plt.subplots(1,2)
+ax[0].scatter(x=aran_segments.loc[splits['1']]['LongitudeFrom'],y=aran_segments.loc[splits['1']]['LatitudeFrom'],s=1,label=len(splits['1']))
+ax[0].scatter(x=aran_segments.loc[splits['2']]['LongitudeFrom'],y=aran_segments.loc[splits['2']]['LatitudeFrom'],s=1,label=len(splits['2']))
+ax[0].scatter(x=aran_segments.loc[splits['3']]['LongitudeFrom'],y=aran_segments.loc[splits['3']]['LatitudeFrom'],s=1,label=len(splits['3']))
+ax[1].scatter(x=aran_segments.loc[splits['4']]['LongitudeFrom'],y=aran_segments.loc[splits['4']]['LatitudeFrom'],s=1,label=len(splits['4']))
+ax[1].scatter(x=aran_segments.loc[splits['5']]['LongitudeFrom'],y=aran_segments.loc[splits['5']]['LatitudeFrom'],s=1,label=len(splits['5']))
+ax[0].legend()
+ax[1].legend()
+plt.show()
+
+
+aran_test = aran_segments
 
 fig,ax = plt.subplots(1,2)
 k = 0
-for train,test in cv2:
+for train,test in cv_train:
     if k < 3:
-        ax[0].scatter(x=aran_segments['LongitudeFrom'][np.array(test)*5],y=aran_segments['LatitudeFrom'][np.array(test)*5],s=1,label=len(test))
+        ax[0].scatter(x=aran_test.loc[test]['LongitudeFrom'],y=aran_test.loc[test]['LatitudeFrom'],s=1,label=len(test))
     else:
-        ax[1].scatter(x=aran_segments['LongitudeFrom'][np.array(test)*5],y=aran_segments['LatitudeFrom'][np.array(test)*5],s=1,label=len(test))
+        ax[1].scatter(x=aran_test.loc[test]['LongitudeFrom'],y=aran_test.loc[test]['LatitudeFrom'],s=1,label=len(test))
     k+=1
 ax[0].legend()
 ax[1].legend()
 plt.show()
 
 #################################################################################################################
+
+cv_train, split_test, X_train, X_test, splits = route_splits(features,route_details,'cph1_vh')
+
+fig,ax = plt.subplots(1,2)
+ax[0].scatter(x=aran_segments.loc[splits['cph1_vh']]['LongitudeFrom'],y=aran_segments.loc[splits['cph1_vh']]['LatitudeFrom'],s=1,label=len(splits['cph1_vh']))
+ax[0].scatter(x=aran_segments.loc[splits['cph1_hh']]['LongitudeFrom'],y=aran_segments.loc[splits['cph1_hh']]['LatitudeFrom'],s=1,label=len(splits['cph1_hh']))
+ax[1].scatter(x=aran_segments.loc[splits['cph6_vh']]['LongitudeFrom'],y=aran_segments.loc[splits['cph6_vh']]['LatitudeFrom'],s=1,label=len(splits['cph6_vh']))
+ax[1].scatter(x=aran_segments.loc[splits['cph6_hh']]['LongitudeFrom'],y=aran_segments.loc[splits['cph6_hh']]['LatitudeFrom'],s=1,label=len(splits['cph6_hh']))
+ax[0].legend()
+ax[1].legend()
+plt.show()

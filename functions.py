@@ -207,7 +207,7 @@ def latlon_cart(p1):
 def synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0):
     if os.path.isfile("synth_data/"+"aran_segments"+".csv"):
         synth_segments = pd.read_csv("synth_data/"+"synthetic_segments"+".csv")
-        aran_segment_details = pd.read_csv("synth_data/"+"aran_segments"+".csv")
+        aran_segment_details = pd.read_csv("synth_data/"+"aran_segments"+".csv",index_col=[0,1])
         route_details = eval(open("synth_data/routes_details.txt", 'r').read())
         print("Loaded already segmented data")              
         
@@ -316,11 +316,10 @@ def synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0):
         synth_segments = pd.DataFrame.from_dict(segments,orient='index').transpose()
         synth_segments.to_csv("synth_data/"+"synthetic_segments"+".csv",index=False)
         aran_segment_details = pd.concat(aran_segment_details)
-        aran_segment_details.to_csv("synth_data/"+"aran_segments"+".csv",index=False)
+        aran_segment_details.to_csv("synth_data/"+"aran_segments"+".csv",index=True)
         myfile = open("synth_data/routes_details.txt","w")
         myfile.write(str(route_details))
         myfile.close()
-        aran_segment_details = pd.read_csv("synth_data/"+"aran_segments"+".csv")
         
     return synth_segments, aran_segment_details, route_details
 
@@ -390,18 +389,20 @@ def method_RandomForest(features_train, features_test, y_train, y_test, id, mode
     else:        
         parameters={'criterion': ['squared_error'],
                     'bootstrap': [True],
-                    'max_depth': [2, 3, 4, 5, 6, 7],
-                    'max_features': [2, 6, 10, 14, 18, 'log2', 'sqrt'],
-                    'min_samples_leaf': [2, 4, 6, 8, 10],
-                    'min_samples_split': [2, 4, 6, 8, 10, 12, 15, 20, 25],
+                    'max_depth': [4, 5, 6],
+                    'max_features': [10, 15, 20, 25, 'log2', 'sqrt'],
+                    'min_samples_leaf': [1, 2, 3, 4, 5],
+                    'min_samples_split': [2, 3, 4, 5],
+                    'min_weight_fraction_leaf': [0.0],
                     'n_estimators': [250]}
         parameters={'criterion': ['squared_error'],
                     'bootstrap': [True],
-                    'max_depth': [5],
-                    'max_features': [18],
+                    'max_depth': [None],
+                    'max_features': [0.33, 0.5, 0.66, 1.0, 'log2', 'sqrt'],
                     'min_samples_leaf': [2],
-                    'min_samples_split': [4],
-                    'n_estimators': [250]}
+                    'min_samples_split': [2],
+                    'oob_score': [True],
+                    'n_estimators': [500]}
         
         start_time = time.time()
         if gridsearch == 1:
@@ -409,7 +410,7 @@ def method_RandomForest(features_train, features_test, y_train, y_test, id, mode
             rf_train.fit(X_train,y_train)
             joblib.dump(rf_train,'models/RandomForest_best_model_'+id+'.sav')
         else:
-            rf_train = RandomForestRegressor(n_estimators=250,max_depth=7,max_features=18,bootstrap=True,criterion='squared_error',min_samples_leaf=2,min_samples_split=4)
+            rf_train = RandomForestRegressor(n_estimators=250,max_depth=5,max_features=18,bootstrap=True,criterion='squared_error',min_samples_leaf=2,min_samples_split=2)
             #rf_train.fit(X_train,y_train)
             rf_train.fit(X_train,y_train)
         end_time = time.time()
@@ -662,15 +663,15 @@ def real_splits(features,aran_segments,route_details,cut,split_nr):
             cph6.append(i)
 
     cph1_aran = {}
-    for i in range(len(cph1)):
+    for i in cph1:
         cph1_aran[i] = aran_segments.loc[i]
     cph1_aran = pd.concat(cph1_aran)
 
     cph6_aran = {}
-    for i in range(len(cph6)):
+    for i in cph6:
         cph6_aran[i] = aran_segments.loc[i]
     cph6_aran = pd.concat(cph6_aran)
-    
+
     cph1_aran.index = cph1_aran.index.get_level_values(0)
     cph6_aran.index = cph6_aran.index.get_level_values(0)
 
@@ -679,7 +680,7 @@ def real_splits(features,aran_segments,route_details,cut,split_nr):
        if i not in split1:
           split1.append(i)
     split2 = []
-    for i in list(cph1_aran[ (cph1_aran['BeginChainage'] >= cut[0]) & (cph1_aran['BeginChainage'] <= cut[1]) ].index):
+    for i in list(cph1_aran[(cph1_aran['BeginChainage'] >= cut[0]) & (cph1_aran['BeginChainage'] <= cut[1]) ].index):
        if i not in split2:
           split2.append(i)
     split3 = []
@@ -688,11 +689,11 @@ def real_splits(features,aran_segments,route_details,cut,split_nr):
           split3.append(i)
     
     split4 = []
-    for i in list(cph6_aran[cph6_aran['BeginChainage'] < cut[2]].index):
+    for i in list(cph6_aran[(cph6_aran['BeginChainage'] < cut[2]) & (cph6_aran['BeginChainage'] > 7500) ].index):
        if i not in split4:
           split4.append(i)
     split5 = []
-    for i in list(cph6_aran[cph6_aran['BeginChainage'] >= cut[2]].index):
+    for i in list(cph6_aran[(cph6_aran['BeginChainage'] >= cut[2]) & (cph6_aran['BeginChainage'] > 7500)].index):
        if i not in split5:
           split5.append(i)
     
@@ -714,10 +715,10 @@ def real_splits(features,aran_segments,route_details,cut,split_nr):
         split5 = list(range(len(split2+split3+split4),len(split2+split3+split4)+len(splits['5'])))
 
         split_test = list(range(0,len(splits['1'])))
-        cv_train = [(split2+split3+split4,split5),
-                    (split5+split3+split4,split2),
-                    (split5+split2+split4,split3),
-                    (split5+split2+split3,split4)]
+        cv_train = [(split3+split4+split5,split2),
+                    (split2+split4+split5,split3),
+                    (split2+split3+split5,split4),
+                    (split2+split3+split4,split5)]
 
     if split_nr == 'split2':
         train = []
@@ -734,12 +735,11 @@ def real_splits(features,aran_segments,route_details,cut,split_nr):
         split5 = list(range(len(split1+split3+split4),len(split1+split3+split4)+len(splits['5'])))
 
         split_test = list(range(0,len(splits['2'])))
-        cv_train = [(split1+split3+split4,split5),
-                    (split5+split3+split4,split1),
-                    (split5+split1+split4,split3),
-                    (split5+split1+split3,split4)]
+        cv_train = [(split3+split4+split5,split1),
+                    (split1+split4+split5,split3),
+                    (split1+split3+split5,split4),
+                    (split1+split3+split4,split5)]
         
-
     if split_nr == 'split3':
         train = []
         train = features.iloc[split1].reset_index(drop=True)
@@ -755,10 +755,10 @@ def real_splits(features,aran_segments,route_details,cut,split_nr):
         split5 = list(range(len(split1+split2+split4),len(split1+split2+split4)+len(splits['5'])))
 
         split_test = list(range(0,len(splits['3'])))
-        cv_train = [(split2+split1+split4,split5),
-                    (split5+split1+split4,split2),
-                    (split5+split2+split4,split1),
-                    (split5+split2+split1,split4)]
+        cv_train = [(split2+split4+split5,split1),
+                    (split1+split4+split5,split2),
+                    (split1+split2+split5,split4),
+                    (split1+split2+split4,split5)]
     if split_nr == 'split4':
         train = []
         train = features.iloc[split1].reset_index(drop=True)
@@ -774,10 +774,10 @@ def real_splits(features,aran_segments,route_details,cut,split_nr):
         split5 = list(range(len(split1+split2+split3),len(split1+split2+split3)+len(splits['5'])))
 
         split_test = list(range(0,len(splits['4'])))
-        cv_train = [(split2+split3+split1,split5),
-                    (split5+split3+split1,split2),
-                    (split5+split2+split1,split3),
-                    (split5+split2+split3,split1)]
+        cv_train = [(split2+split3+split5,split1),
+                    (split1+split3+split5,split2),
+                    (split1+split2+split5,split3),
+                    (split1+split2+split3,split5)]
 
     if split_nr == 'split5':
         train = []
@@ -798,6 +798,95 @@ def real_splits(features,aran_segments,route_details,cut,split_nr):
                     (split1+split3+split4,split2),
                     (split1+split2+split4,split3),
                     (split1+split2+split3,split4)]
+
+    return cv_train, split_test, train, test, splits
+
+    
+def route_splits(features,route_details,split_nr):
+
+    cph1_vh = []
+    cph1_hh = []
+    cph6_vh = []
+    cph6_hh = []
+    for i in range(len(route_details)):
+        if (route_details[i][:7] == 'CPH1_VH'):
+            cph1_vh.append(i)
+        elif (route_details[i][:7] == 'CPH1_HH'):
+            cph1_hh.append(i)
+        elif (route_details[i][:7] == 'CPH6_VH'):
+            cph6_vh.append(i)
+        elif (route_details[i][:7] == 'CPH6_HH'):
+            cph6_hh.append(i)
+    
+    splits = {'cph1_vh': cph1_vh, 'cph1_hh': cph1_hh, 'cph6_vh': cph6_vh, 'cph6_hh': cph6_hh}
+
+    features=features.T
+    if split_nr == 'cph1_vh':
+        train = []
+        train = features.iloc[cph1_hh].reset_index(drop=True)
+        train = pd.concat([train,features.iloc[cph6_vh].reset_index(drop=True)],ignore_index=True)
+        train = pd.concat([train,features.iloc[cph6_hh].reset_index(drop=True)],ignore_index=True)
+        train = train.T
+        test = features.iloc[cph1_vh].reset_index(drop=True).T
+
+        split2 = list(range(0,len(splits['cph1_hh'])))
+        split3 = list(range(len(split2),len(split2)+len(splits['cph6_vh'])))
+        split4 = list(range(len(split2+split3),len(split2+split3)+len(splits['cph6_hh'])))
+
+        split_test = list(range(0,len(splits['cph1_vh'])))
+        cv_train = [(split3+split4,split2),
+                    (split2+split4,split3),
+                    (split2+split3,split4)]
+    
+    if split_nr == 'cph1_hh':
+        train = []
+        train = features.iloc[cph1_vh].reset_index(drop=True)
+        train = pd.concat([train,features.iloc[cph6_vh].reset_index(drop=True)],ignore_index=True)
+        train = pd.concat([train,features.iloc[cph6_hh].reset_index(drop=True)],ignore_index=True)
+        train = train.T
+        test = features.iloc[cph1_hh].reset_index(drop=True).T
+
+        split2 = list(range(0,len(splits['cph1_vh'])))
+        split3 = list(range(len(split2),len(split2)+len(splits['cph6_vh'])))
+        split4 = list(range(len(split2+split3),len(split2+split3)+len(splits['cph6_hh'])))
+
+        split_test = list(range(0,len(splits['cph1_hh'])))
+        cv_train = [(split3+split4,split2),
+                    (split2+split4,split3),
+                    (split2+split3,split4)]
+    if split_nr == 'cph6_vh':
+        train = []
+        train = features.iloc[cph1_vh].reset_index(drop=True)
+        train = pd.concat([train,features.iloc[cph1_hh].reset_index(drop=True)],ignore_index=True)
+        train = pd.concat([train,features.iloc[cph6_hh].reset_index(drop=True)],ignore_index=True)
+        train = train.T
+        test = features.iloc[cph6_vh].reset_index(drop=True).T
+
+        split2 = list(range(0,len(splits['cph1_vh'])))
+        split3 = list(range(len(split2),len(split2)+len(splits['cph1_hh'])))
+        split4 = list(range(len(split2+split3),len(split2+split3)+len(splits['cph6_hh'])))
+
+        split_test = list(range(0,len(splits['cph6_vh'])))
+        cv_train = [(split3+split4,split2),
+                    (split2+split4,split3),
+                    (split2+split3,split4)]
+
+    if split_nr == 'cph6_hh':
+        train = []
+        train = features.iloc[cph1_vh].reset_index(drop=True)
+        train = pd.concat([train,features.iloc[cph1_hh].reset_index(drop=True)],ignore_index=True)
+        train = pd.concat([train,features.iloc[cph6_vh].reset_index(drop=True)],ignore_index=True)
+        train = train.T
+        test = features.iloc[cph6_hh].reset_index(drop=True).T
+
+        split2 = list(range(0,len(splits['cph1_vh'])))
+        split3 = list(range(len(split2),len(split2)+len(splits['cph1_hh'])))
+        split4 = list(range(len(split2+split3),len(split2+split3)+len(splits['cph6_vh'])))
+
+        split_test = list(range(0,len(splits['cph6_hh'])))
+        cv_train = [(split3+split4,split2),
+                    (split2+split4,split3),
+                    (split2+split3,split4)]
 
     return cv_train, split_test, train, test, splits
 
@@ -858,7 +947,7 @@ def test_synthetic_data():
 def test_segmentation(synth_acc,routes,segment_size=5,overlap=0):
     if os.path.isfile("synth_data/tests/"+"aran_segments"+".csv"):
         synth_segments = pd.read_csv("synth_data/tests/"+"synthetic_segments"+".csv")
-        aran_segment_details = pd.read_csv("synth_data/tests/"+"aran_segments"+".csv")
+        aran_segment_details = pd.read_csv("synth_data/tests/"+"aran_segments"+".csv",index_col=[0,1])
         route_details = eval(open("synth_data/tests/routes_details.txt", 'r').read())
         laser_segments = pd.read_csv("synth_data/tests/"+"laser_segments"+".csv")
         print("Loaded already segmented data")              
@@ -966,14 +1055,13 @@ def test_segmentation(synth_acc,routes,segment_size=5,overlap=0):
         synth_segments = pd.DataFrame.from_dict(segments,orient='index').transpose()
         synth_segments.to_csv("synth_data/tests/"+"synthetic_segments"+".csv",index=False)
         aran_segment_details = pd.concat(aran_segment_details)
-        aran_segment_details.to_csv("synth_data/tests/"+"aran_segments"+".csv",index=False)
+        aran_segment_details.to_csv("synth_data/tests/"+"aran_segments"+".csv",index=True)
         laser_segments = pd.DataFrame.from_dict(lasers,orient='index').transpose()
         laser_segments.to_csv("synth_data/tests/"+"laser_segments"+".csv",index=False)
         
         myfile = open("synth_data/tests/routes_details.txt","w")
         myfile.write(str(route_details))
         myfile.close()
-        aran_segment_details = pd.read_csv("synth_data/tests/"+"aran_segments"+".csv")
         
     return synth_segments, aran_segment_details, route_details, laser_segments
 
@@ -982,7 +1070,7 @@ def test_segmentation(synth_acc,routes,segment_size=5,overlap=0):
 def GM_segmentation(segment_size=5,overlap=0):
     if os.path.isfile("aligned_data/"+"aran_segments"+".csv"):
         synth_segments = pd.read_csv("aligned_data/"+"synthetic_segments"+".csv")
-        aran_segment_details = pd.read_csv("aligned_data/"+"aran_segments"+".csv")
+        aran_segment_details = pd.read_csv("aligned_data/"+"aran_segments"+".csv",index_col=[0,1])
         route_details = eval(open("aligned_data/routes_details.txt", 'r').read())
         print("Loaded already segmented data")              
         
@@ -1001,18 +1089,6 @@ def GM_segmentation(segment_size=5,overlap=0):
             aran_cracks = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Cracks'], columns = hdf5file['aran/trip_1/pass_1']['Cracks'].attrs['chNames'])
             aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns = hdf5file['aran/trip_1/pass_1']['Pothole'].attrs['chNames'])
 
-            # if (route[:7] == 'CPH6_VH') | (route[:7] == 'CPH6_HH'):
-            #     idx = aran_location[aran_location['BeginChainage'] < 9200].index
-            #     aran_location.drop(idx, inplace=True)
-            #     aran_location = aran_location.reset_index(drop=True)
-            #     aran_alligator.drop(idx, inplace=True)
-            #     aran_alligator = aran_alligator.reset_index(drop=True)
-            #     aran_cracks.drop(idx, inplace=True)
-            #     aran_cracks = aran_cracks.reset_index(drop=True)
-            #     aran_potholes.drop(idx, inplace=True)
-            #     aran_potholes = aran_potholes.reset_index(drop=True)
-                
-
             aligned_passes = hdf5file.attrs['aligned_passes']
             for k in range(len(aligned_passes)):
                 passagefile = hdf5file[aligned_passes[k]]
@@ -1021,18 +1097,6 @@ def GM_segmentation(segment_size=5,overlap=0):
                 f_dist = pd.DataFrame(passagefile['f_dist'], columns = passagefile['f_dist'].attrs['chNames'])
                 spd_veh = pd.DataFrame(passagefile['obd.spd_veh'], columns = passagefile['obd.spd_veh'].attrs['chNames'])
 
-                # if (route[:7] == 'CPH6_VH') | (route[:7] == 'CPH6_HH'):
-                #     aligned_gps.drop(idx, inplace=True)
-                #     aligned_gps = aligned_gps.reset_index(drop=True)
-                #     acc_fs_50.drop(idx, inplace=True)
-                #     acc_fs_50 = acc_fs_50.reset_index(drop=True)
-                #     f_dist.drop(idx, inplace=True)
-                #     f_dist = f_dist.reset_index(drop=True)
-
-                # plt.scatter(x=aran_location['LongitudeFrom'], y=aran_location['LatitudeFrom'],s=1,c="red")
-                # plt.scatter(x=aligned_gps[aligned_gps['lon'] > 12.45]['lon'], y=aligned_gps[aligned_gps['lat'] > 55.40]['lat'],s=1,c="blue")
-                # plt.show()
-        
                 GM_start = aligned_gps[['lat','lon']].iloc[0].values
                 aran_start_idx, _ = find_min_gps_vector(GM_start,aran_location[['LatitudeFrom','LongitudeFrom']].iloc[:200].values)
                 GM_end = aligned_gps[['lat','lon']].iloc[-1].values
@@ -1091,11 +1155,10 @@ def GM_segmentation(segment_size=5,overlap=0):
         synth_segments = pd.DataFrame.from_dict(segments,orient='index').transpose()
         synth_segments.to_csv("aligned_data/"+"synthetic_segments"+".csv",index=False)
         aran_segment_details = pd.concat(aran_segment_details)
-        aran_segment_details.to_csv("aligned_data/"+"aran_segments"+".csv",index=False)
+        aran_segment_details.to_csv("aligned_data/"+"aran_segments"+".csv",index=True)
         myfile = open("aligned_data/routes_details.txt","w")
         myfile.write(str(route_details))
         myfile.close()
-        # aran_segment_details = pd.read_csv("aligned_data/"+"aran_segments"+".csv")
         
     return synth_segments, aran_segment_details, route_details
 
@@ -1196,7 +1259,7 @@ def GM_sample_segmentation(segment_size=150, overlap=0):
 
         synth_segments = pd.DataFrame.from_dict(segments,orient='index').transpose()
         # synth_segments.to_csv("aligned_data/"+"synthetic_segments"+".csv",index=False)
-        # aran_segment_details = pd.concat(aran_segment_details)
+        aran_segment_details = pd.concat(aran_segment_details)
         # aran_segment_details.to_csv("aligned_data/"+"aran_segments"+".csv",index=False)
         # myfile = open("aligned_data/routes_details.txt","w")
         # myfile.write(str(route_details))
