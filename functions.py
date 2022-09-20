@@ -397,9 +397,9 @@ def method_RandomForest(features_train, features_test, y_train, y_test, id, mode
                     'n_estimators': [250]}
         parameters={'criterion': ['squared_error'],
                     'bootstrap': [True],
-                    'max_depth': [None],
+                    'max_depth': [2, 3, 4, 5, 6, 7, 8, 10, 12, 15, None],
                     'max_features': [0.33, 0.5, 0.66, 1.0, 'log2', 'sqrt'],
-                    'min_samples_leaf': [2],
+                    'min_samples_leaf': [2, 5, 10, 20, 30, 40, 50],
                     'min_samples_split': [2],
                     'oob_score': [True],
                     'n_estimators': [500]}

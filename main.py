@@ -4,8 +4,6 @@ import numpy as np
 import pandas as pd
 import h5py
 from tqdm import tqdm
-# from functools import partialmethod
-# tqdm.__init__ = partialmethod(tqdm.__init__, disable=True)  
 
 from functions import *
 from LiRA_functions import *
@@ -15,7 +13,12 @@ from scipy import signal
 
 
 if __name__ == '__main__':
-    
+
+    if sys.argv[3] == False:
+        from functools import partialmethod
+        tqdm.__init__ = partialmethod(tqdm.__init__, disable=True)  
+
+
     if sys.argv[1] == 'rm_aligned':
         os.remove('aligned_data/aran_segments.csv')
         os.remove('aligned_data/routes_details.txt')
