@@ -11,6 +11,7 @@ import joblib
 import pickle
 import matplotlib.pyplot as plt
 
+from scipy import signal
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
 from sklearn.neighbors import KNeighborsRegressor
@@ -36,18 +37,29 @@ def calc_DI(allig, cracks, potholes):
     DI = alligsum + cracksum + potholesum
     return DI, alligsum, cracksum, potholesum
 
-def calc_DI_v2(aran):
-    aran = aran.fillna(0)
-    
-    alligsum = (3*aran['AlligCracksSmall'] + 4*aran['AlligCracksMed'] + 5*aran['AlligCracksLarge'])**0.3
-    cracksum = (aran['CracksLongitudinalSmall']**2 + aran['CracksLongitudinalMed']**3 + aran['CracksLongitudinalLarge']**4 + \
-                aran['CracksLongitudinalSealed']**2 + 3*aran['CracksTransverseSmall'] + 4*aran['CracksTransverseMed'] + \
-                5*aran['CracksTransverseLarge'] + 2*aran['CracksTransverseSealed'])**0.1
-    potholesum = (5*aran['PotholeAreaAffectedLow'] + 7*aran['PotholeAreaAffectedMed'] + 10*aran['PotholeAreaAffectedHigh'] + \
-                  5*aran['PotholeAreaAffectedDelam'])**0.1
-    DI = alligsum + cracksum + potholesum
-    return DI, alligsum, cracksum, potholesum
+def calc_target(aran_segments):
 
+    hdf5file = h5py.File('aligned_data/CPH1_VH.hdf5', 'r')
+    aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns = hdf5file['aran/trip_1/pass_1']['Allig'].attrs['chNames'])
+    aran_cracks = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Cracks'], columns = hdf5file['aran/trip_1/pass_1']['Cracks'].attrs['chNames'])
+    aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns = hdf5file['aran/trip_1/pass_1']['Pothole'].attrs['chNames'])
+
+    DI = []
+    alligator = []
+    cracks = []
+    potholes = []
+    for i in tqdm(range(int(aran_segments.index.max()[0]+1))):
+        aran_details = aran_segments.loc[i]
+        aran_alligator = aran_details[aran_alligator.columns]
+        aran_cracks = aran_details[aran_cracks.columns]
+        aran_potholes = aran_details[aran_potholes.columns]
+        temp_DI, temp_alligator, temp_cracks, temp_potholes = calc_DI(aran_alligator,aran_cracks,aran_potholes)
+        DI.append(np.mean(temp_DI))
+        alligator.append(np.mean(temp_alligator))
+        cracks.append(np.mean(temp_cracks))
+        potholes.append(np.mean(temp_potholes))
+
+    return DI, cracks, alligator, potholes
 
 def synthetic_data():
 
@@ -102,39 +114,18 @@ def synthetic_data():
 
     return df_dict
 
-def find_min_gps(drd_lat, drd_lon, gm_lat, gm_lon): # From Thea
-    """Find the closest gps points between drd_lat, drd_lon
-    and gm_lat, gm_lon
+def haversine(lon1, lat1, lon2, lat2):
 
-    Args:
-        drd_lat (_type_): _description_
-        drd_lon (_type_): _description_
-        gm_lat (_type_): _description_
-        gm_lon (_type_): _description_
+    lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
 
-    Returns:
-        _type_: _description_
-    """
-    if np.isscalar(gm_lat):
-        gm_lat = [gm_lat]
-        gm_lon = [gm_lon]
-    if np.isscalar(drd_lat):
-        drd_lat = [drd_lat]
-        drd_lon = [drd_lon]
-        
-    dist = np.zeros(len(drd_lat))
-    dist_idx = np.zeros(len(drd_lat))
-    for i, (lat,lon) in enumerate(zip(drd_lat, drd_lon)):    
-        temp_dist = np.zeros(len(gm_lat))
-        for j, (glat, glon) in enumerate(zip(gm_lat, gm_lon)):
-            temp_dist[j] = haversine((lat, lon), (glat, glon),unit=Unit.METERS)
-        dist[i] = np.min(temp_dist)
-        dist_idx[i] = np.argmin(temp_dist)
-    
-    drd_idx = int(np.argmin(dist))
-    gm_idx = int(dist_idx[drd_idx])
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
 
-    return drd_idx, gm_idx, dist[drd_idx]
+    a = np.sin(dlat/2.0)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon/2.0)**2
+
+    c = 2 * np.arcsin(np.sqrt(a))
+    m = 6371 * c
+    return m*1000
 
 def haversine_np(lon1, lat1, lon2, lat2):
 
@@ -164,49 +155,10 @@ def find_min_gps_vector(drd,gm):
     min_dist = np.min(res)
     return min_idx, min_dist
 
-def tester_test(drd,gm):
-
-    res = (np.sqrt((drd[0]-gm[:,0])**2+(drd[1]-gm[:,1])**2))
-    min_idx = np.argmin(res)
-    min_dist = np.min(res)
-
-    if min_dist != res[min_idx]:
-        print('error')
-
-    return min_idx, min_dist
-
-def find_min_gps_cart(drd,gm):
-
-    res = latlon_cart_dist(drd,gm)
-    min_idx = np.argmin(res)
-    min_dist = np.min(res)
-
-    return min_idx, min_dist
-
-def latlon_cart_dist(p1,p2):
-    x = 6371 * np.cos(np.radians(p1[0])) * np.cos(np.radians(p1[1]))
-    y = 6371 * np.cos(np.radians(p1[0])) * np.sin(np.radians(p1[1]))
-                
-    x1 = 6371 * np.cos(np.radians(p2[:,0])) * np.cos(np.radians(p2[:,1]))
-    y1 = 6371 * np.cos(np.radians(p2[:,0])) * np.sin(np.radians(p2[:,1]))
-
-    dist1 = (np.sqrt((x1-x)**2+(y1-y)**2))*1000
-    return dist1
-
-def latlon_cart(p1):
-
-    if len(p1) > 2:
-        x = 6371 * np.cos(np.radians(p1[0])) * np.cos(np.radians(p1[1]))
-        y = 6371 * np.cos(np.radians(p1[0])) * np.sin(np.radians(p1[1]))
-    else:
-        x = 6371 * np.cos(np.radians(p1[:,0])) * np.cos(np.radians(p1[:,1]))
-        y = 6371 * np.cos(np.radians(p1[:,0])) * np.sin(np.radians(p1[:,1]))
-
-    return x, y
-
 def synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0):
     if os.path.isfile("synth_data/"+"aran_segments"+".csv"):
         synth_segments = pd.read_csv("synth_data/"+"synthetic_segments"+".csv")
+        synth_segments.columns = synth_segments.columns.astype(int)
         aran_segment_details = pd.read_csv("synth_data/"+"aran_segments"+".csv",index_col=[0,1])
         route_details = eval(open("synth_data/routes_details.txt", 'r').read())
         print("Loaded already segmented data")              
@@ -323,25 +275,24 @@ def synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0):
         
     return synth_segments, aran_segment_details, route_details
 
-def feature_extraction(data,id,fs=250,min_idx=0):
-    cfg_file = tsfel.get_features_by_domain()
-    if os.path.isfile(id+'.csv'):
-        feature_names = np.transpose(tsfel.time_series_features_extractor(cfg_file,data[str(min_idx)].dropna(),fs=fs,verbose=0))
-        data = pd.read_csv(id+'.csv')
-    else:
-        extracted_features = []
-        feature_names = np.transpose(tsfel.time_series_features_extractor(cfg_file,data[str(min_idx)].dropna(),fs=fs,verbose=0))
-        for i in tqdm(range(np.shape(data)[1])):
-            temp = np.transpose(tsfel.time_series_features_extractor(cfg_file,data[str(i)].dropna(),fs=fs,verbose=0))
-            diff = list(set(temp.index) - set(feature_names.index))
-            extracted_features.append(temp.drop(diff))
-        data = pd.DataFrame(np.concatenate(extracted_features,axis=1))
-        data.to_csv(id+'.csv',index=False)
+def feature_extraction(GM_segments,id,fs=250):
+    GM_segments.columns = GM_segments.columns.astype(int)
+    lens = []
+    for i in range(np.shape(GM_segments)[1]):
+        lens.append(len(GM_segments[i].dropna()))
+    
+    new_GM_seg = {}
+    for i in range(np.shape(GM_segments)[1]):
+        new_GM_seg[i] = signal.resample(GM_segments[i].dropna(),int(np.median(lens)))
+    GM_segments = pd.DataFrame.from_dict(new_GM_seg,orient='index').transpose()
 
-    return data,feature_names
-
-
-def feature_extraction2(data,id,fs=250,min_idx=0):
+    data = GM_segments
+    temp = 1000
+    for i in range(np.shape(data)[1]):
+        min = len(data[i].dropna())
+        if min < temp:
+            temp = min
+            min_idx = i
     cfg_file = tsfel.get_features_by_domain()
     if os.path.isfile(id+'.csv'):
         feature_names = np.transpose(tsfel.time_series_features_extractor(cfg_file,data[min_idx].dropna(),fs=fs,verbose=0))
@@ -431,226 +382,6 @@ def method_RandomForest(features_train, features_test, y_train, y_test, id, mode
         RMSE_train = mean_squared_error(train_y,train_pred, squared=False)
         MAE_train = mean_absolute_error(train_y,train_pred)
     return {"R2":[r2 ,r2_train], "MSE": [MSE, MSE_train], "RMSE": [RMSE, RMSE_train], "MAE": [MAE, MAE_train],"Gridsearchcv_obj": rf_train}
-
-
-def custom_splits(aran_segments,route_details,save=False):
-    if save & os.path.isfile("synth_data/split1"):
-        with open("synth_data/split1",'rb') as fp:
-            split1 = pickle.load(fp)
-        with open("synth_data/split2",'rb') as fp:
-            split2 = pickle.load(fp)
-        with open("synth_data/split3",'rb') as fp:
-            split3 = pickle.load(fp)
-        with open("synth_data/split4",'rb') as fp:
-            split4 = pickle.load(fp)
-        with open("synth_data/split5",'rb') as fp:
-            split5 = pickle.load(fp)
-        print("Loaded cross validation splits")
-    else:
-        cph1_hh = []
-        cph1_vh = []
-        cph6_hh = []
-        cph6_vh = []
-        for i in range(len(route_details)):
-            if route_details[i][:7] == 'CPH1_HH':
-                cph1_hh.extend([i*5,i*5+1,i*5+2,i*5+3,i*5+4])
-            if route_details[i][:7] == 'CPH1_VH':
-                cph1_vh.extend([i*5,i*5+1,i*5+2,i*5+3,i*5+4])
-            if route_details[i][:7] == 'CPH6_HH':
-                cph6_hh.extend([i*5,i*5+1,i*5+2,i*5+3,i*5+4])
-            if route_details[i][:7] == 'CPH6_VH':
-                cph6_vh.extend([i*5,i*5+1,i*5+2,i*5+3,i*5+4])
-
-        cph1_len = (len(cph1_hh) + len(cph1_vh))
-
-        counter = 0
-        chain_start = 645
-        for i in range(int(cph1_len)):
-            counter1 = np.sum(np.sum(aran_segments['EndChainage'].iloc[cph1_hh] < chain_start))
-            counter2 = np.sum(np.sum(aran_segments['BeginChainage'].iloc[cph1_vh] < chain_start))
-            counter = (counter1 + counter2)/5
-            if (counter >= (cph1_len/5)/3):
-                break
-            chain_start += 10
-
-        dd = aran_segments['EndChainage'][cph1_hh] < chain_start
-        temp_cph1_hh = []
-        for i in range(len(cph1_hh)):
-            if dd.iloc[i] == True:
-                temp_cph1_hh.append(cph1_hh[i])
-
-        dd = aran_segments['BeginChainage'][cph1_vh] < chain_start
-        temp_cph1_vh = []
-        for i in range(len(cph1_vh)):
-            if dd.iloc[i] == True:
-                temp_cph1_vh.append(cph1_vh[i])
-        print('split 1',chain_start)
-        split1 = list(set(list((np.array(temp_cph1_hh)/5).astype(int)))) + list(set(list((np.array(temp_cph1_vh)/5).astype(int))))
-
-        counter = 0
-        chain_end = chain_start
-        chain_start = chain_start + 50
-        for i in range(int(cph1_len)):
-            counter1 = np.sum(np.sum((chain_end < aran_segments['BeginChainage'].iloc[cph1_hh]) & (aran_segments['EndChainage'].iloc[cph1_hh] < chain_start)))
-            counter2 = np.sum(np.sum((chain_end < aran_segments['EndChainage'].iloc[cph1_vh]) & (aran_segments['BeginChainage'].iloc[cph1_vh] < chain_start)))
-            counter = (counter1 + counter2)/5
-            if (counter >= (cph1_len/5)/3):
-                break
-            chain_start += 10
-
-        dd = (chain_end < aran_segments['BeginChainage'][cph1_hh]) & (aran_segments['EndChainage'][cph1_hh] < chain_start)
-        temp_cph1_hh = []
-        for i in range(len(cph1_hh)):
-            if dd.iloc[i] == True:
-                temp_cph1_hh.append(cph1_hh[i])
-
-        dd = (chain_end < aran_segments['EndChainage'][cph1_vh]) & (aran_segments['BeginChainage'][cph1_vh] < chain_start)
-        temp_cph1_vh = []
-        for i in range(len(cph1_vh)):
-            if dd.iloc[i] == True:
-                temp_cph1_vh.append(cph1_vh[i])
-        print('split 2',chain_start)
-        split2 = list(set(list((np.array(temp_cph1_hh)/5).astype(int)))) + list(set(list((np.array(temp_cph1_vh)/5).astype(int))))
-
-        counter = 0
-        chain_end = chain_start
-        chain_start = chain_start + 50
-        for i in range(int(cph1_len)):
-            counter1 = np.sum(np.sum(chain_end < aran_segments['BeginChainage'].iloc[cph1_hh]))
-            counter2 = np.sum(np.sum(chain_end < aran_segments['EndChainage'].iloc[cph1_vh]))
-            counter = (counter1 + counter2)/5
-            if (counter >= (cph1_len/5)/3):
-                break
-            chain_start += 10
-
-        dd = chain_end < aran_segments['BeginChainage'][cph1_hh]
-        temp_cph1_hh = []
-        for i in range(len(cph1_hh)):
-            if dd.iloc[i] == True:
-                temp_cph1_hh.append(cph1_hh[i])
-
-        dd = chain_end < aran_segments['EndChainage'][cph1_vh]
-        temp_cph1_vh = []
-        for i in range(len(cph1_vh)):
-            if dd.iloc[i] == True:
-                temp_cph1_vh.append(cph1_vh[i])
-        print('split 3',chain_start)
-        split3 = list(set(list((np.array(temp_cph1_hh)/5).astype(int)))) + list(set(list((np.array(temp_cph1_vh)/5).astype(int))))
-
-
-        cph6_len = (len(cph6_hh) + len(cph6_vh))
-
-        counter = 0
-        chain_start = 0
-        for i in range(int(cph6_len)):
-            counter1 = np.sum(np.sum(aran_segments['EndChainage'].iloc[cph6_hh] < chain_start))
-            counter2 = np.sum(np.sum(aran_segments['BeginChainage'].iloc[cph6_vh] < chain_start))
-            counter = (counter1 + counter2)/5
-            if (counter >= (cph6_len/5)/2):
-                break
-            chain_start += 10
-
-        dd = aran_segments['EndChainage'][cph6_hh] < chain_start
-        temp_cph6_hh = []
-        for i in range(len(cph6_hh)):
-            if dd.iloc[i] == True:
-                temp_cph6_hh.append(cph6_hh[i])
-
-        dd = aran_segments['BeginChainage'][cph6_vh] < chain_start
-        temp_cph6_vh = []
-        for i in range(len(cph6_vh)):
-            if dd.iloc[i] == True:
-                temp_cph6_vh.append(cph6_vh[i])
-        print('split 4',chain_start)
-        split4 = list(set(list((np.array(temp_cph6_hh)/5).astype(int)))) + list(set(list((np.array(temp_cph6_vh)/5).astype(int))))
-        
-        counter = 0
-        chain_end = chain_start
-        for i in range(int(cph6_len)):
-            counter1 = np.sum(np.sum(chain_end < aran_segments['BeginChainage'].iloc[cph6_hh]))
-            counter2 = np.sum(np.sum(chain_end < aran_segments['EndChainage'].iloc[cph6_vh]))
-            counter = (counter1 + counter2)/5
-            if (counter >= (cph6_len/5)/2):
-                break
-            chain_start += 10
-
-        dd = chain_end < aran_segments['BeginChainage'][cph6_hh]
-        temp_cph6_hh = []
-        for i in range(len(cph6_hh)):
-            if dd.iloc[i] == True:
-                temp_cph6_hh.append(cph6_hh[i])
-
-        dd = chain_end < aran_segments['EndChainage'][cph6_vh]
-        temp_cph6_vh = []
-        for i in range(len(cph6_vh)):
-            if dd.iloc[i] == True:
-                temp_cph6_vh.append(cph6_vh[i])
-        print('split 5',chain_start)
-        split5 = list(set(list((np.array(temp_cph6_hh)/5).astype(int)))) + list(set(list((np.array(temp_cph6_vh)/5).astype(int)))) 
-
-        s1 = set(split1)
-        s2 = set(split2)
-        s3 = set(split3)
-        sp1 = s1.difference(s2)
-        sp1 = sp1.difference(s3)
-        sp2 = s2.difference(sp1)
-        split2 = list(sp2.difference(s3))
-        split1 = list(sp1)
-
-        s4 = set(split4)
-        s5 = set(split5)
-        split4 = list(s4.difference(s5))
-        if save:
-            with open("synth_data/split1","wb") as fp:
-                pickle.dump(split1,fp)
-            with open("synth_data/split2","wb") as fp:
-                pickle.dump(split2,fp)
-            with open("synth_data/split3","wb") as fp:
-                pickle.dump(split3,fp)
-            with open("synth_data/split4","wb") as fp:
-                pickle.dump(split4,fp)
-            with open("synth_data/split5","wb") as fp:
-                pickle.dump(split5,fp)
-
-    cv = [(split2+split3+split4,split5),
-          (split5+split3+split4,split2),
-          (split5+split2+split4,split3),
-          (split5+split2+split3,split4)]
-
-    cv2 = [(split2+split3+split4+split5,split1),
-           (split1+split3+split4+split5,split2),
-           (split1+split2+split4+split5,split3),
-           (split1+split2+split3+split5,split4),
-           (split1+split2+split3+split4,split5)]
-
-    splits = {'1': split1, '2': split2, '3': split3, '4': split4, '5': split5}
-
-    return cv, split1, cv2, splits
-
-def rearange_splits(splits,features):
-    cv_train = []
-    split_test = splits['1']
-    features=features.T
-    train = []
-    train = features.iloc[splits['2']].reset_index(drop=True)
-    train = pd.concat([train,features.iloc[splits['3']].reset_index(drop=True)],ignore_index=True)
-    train = pd.concat([train,features.iloc[splits['4']].reset_index(drop=True)],ignore_index=True)
-    train = pd.concat([train,features.iloc[splits['5']].reset_index(drop=True)],ignore_index=True)
-    train = train.T
-    test = features.iloc[splits['1']].reset_index(drop=True).T
-
-    split2 = list(range(0,len(splits['2'])))
-    split3 = list(range(len(split2),len(split2)+len(splits['3'])))
-    split4 = list(range(len(split2+split3),len(split2+split3)+len(splits['4'])))
-    split5 = list(range(len(split2+split3+split4),len(split2+split3+split4)+len(splits['5'])))
-
-    cv_train = [(split2+split3+split4,split5),
-                (split5+split3+split4,split2),
-                (split5+split2+split4,split3),
-                (split5+split2+split3,split4)]
-
-    return cv_train, split_test, train, test
-
 
 def real_splits(features,aran_segments,route_details,cut,split_nr):
 
@@ -947,6 +678,7 @@ def test_synthetic_data():
 def test_segmentation(synth_acc,routes,segment_size=5,overlap=0):
     if os.path.isfile("synth_data/tests/"+"aran_segments"+".csv"):
         synth_segments = pd.read_csv("synth_data/tests/"+"synthetic_segments"+".csv")
+        synth_segments.columns = synth_segments.columns.astype(int)
         aran_segment_details = pd.read_csv("synth_data/tests/"+"aran_segments"+".csv",index_col=[0,1])
         route_details = eval(open("synth_data/tests/routes_details.txt", 'r').read())
         laser_segments = pd.read_csv("synth_data/tests/"+"laser_segments"+".csv")
@@ -1065,11 +797,10 @@ def test_segmentation(synth_acc,routes,segment_size=5,overlap=0):
         
     return synth_segments, aran_segment_details, route_details, laser_segments
 
-
-
 def GM_segmentation(segment_size=5,overlap=0):
     if os.path.isfile("aligned_data/"+"aran_segments"+".csv"):
         synth_segments = pd.read_csv("aligned_data/"+"synthetic_segments"+".csv")
+        synth_segments.columns = synth_segments.columns.astype(int)
         aran_segment_details = pd.read_csv("aligned_data/"+"aran_segments"+".csv",index_col=[0,1])
         route_details = eval(open("aligned_data/routes_details.txt", 'r').read())
         print("Loaded already segmented data")              
@@ -1167,6 +898,7 @@ def GM_sample_segmentation(segment_size=150, overlap=0):
         d = 1
     # if os.path.isfile("aligned_data/"+"aran_segments"+".csv"):
     #     synth_segments = pd.read_csv("aligned_data/"+"synthetic_segments"+".csv")
+    #     synth_segments.columns = synth_segments.columns.astype(int)
     #     aran_segment_details = pd.read_csv("aligned_data/"+"aran_segments"+".csv")
     #     route_details = eval(open("aligned_data/routes_details.txt", 'r').read())
     #     print("Loaded already segmented data")              
@@ -1244,7 +976,15 @@ def GM_sample_segmentation(segment_size=150, overlap=0):
                         if stat1 | stat4 | stat5 | stat6 | stat7:
                             i += int(segment_size/3)
                         else:
-                            aran_new_start = aran_location[['LatitudeFrom','LongitudeFrom']].iloc[aran_end_idx+1].values
+                            p1_dist = haversine(GM_end[1], GM_end[0],aran_location['LongitudeFrom'].iloc[aran_end_idx], aran_location['LatitudeFrom'].iloc[aran_end_idx])
+                            p2_dist = haversine(GM_end[1], GM_end[0],aran_location['LongitudeTo'].iloc[aran_end_idx+1], aran_location['LatitudeTo'].iloc[aran_end_idx+1])
+                            if p1_dist >= p2_dist:
+                                aran_new_start = aran_location[['LatitudeFrom','LongitudeFrom']].iloc[aran_end_idx+1].values
+                            elif p1_dist < p2_dist:
+                                aran_new_start = aran_location[['LatitudeFrom','LongitudeFrom']].iloc[aran_end_idx].values
+
+                            # aran_new_start = aran_location[['LatitudeFrom','LongitudeFrom']].iloc[aran_end_idx+1].values
+
                             GM_start_idx, _ = find_min_gps_vector(aran_new_start,aligned_gps[['lat','lon']].values)
                             i = GM_start_idx
                             # print(i)
@@ -1260,15 +1000,13 @@ def GM_sample_segmentation(segment_size=150, overlap=0):
         synth_segments = pd.DataFrame.from_dict(segments,orient='index').transpose()
         # synth_segments.to_csv("aligned_data/"+"synthetic_segments"+".csv",index=False)
         aran_segment_details = pd.concat(aran_segment_details)
-        # aran_segment_details.to_csv("aligned_data/"+"aran_segments"+".csv",index=False)
+        # aran_segment_details.to_csv("aligned_data/"+"aran_segments"+".csv",index=True)
         # myfile = open("aligned_data/routes_details.txt","w")
         # myfile.write(str(route_details))
         # myfile.close()
         # aran_segment_details = pd.read_csv("aligned_data/"+"aran_segments"+".csv")
 
     return synth_segments, aran_segment_details, route_details, dists
-
-
 
 
 def plot_grid_search(cv_results, grid_param_1, grid_param_2, name_param_1, name_param_2):
@@ -1293,7 +1031,7 @@ def plot_grid_search(cv_results, grid_param_1, grid_param_2, name_param_1, name_
     ax.grid('on')
     plt.show()
 
-# Calling Method 
-# plot_grid_search(knn_train.cv_results_, [10,20,40], ['uniform','distance'], 'n-neighbors', 'weights')
+    # Calling Method 
+    # plot_grid_search(knn_train.cv_results_, [10,20,40], ['uniform','distance'], 'n-neighbors', 'weights')
 
 
