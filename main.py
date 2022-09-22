@@ -6,10 +6,11 @@ import h5py
 from tqdm import tqdm
 
 from functions import *
+from DL_functions import *
 from LiRA_functions import *
 
-from functools import partialmethod
-tqdm.__init__ = partialmethod(tqdm.__init__, disable=True) 
+# from functools import partialmethod
+# tqdm.__init__ = partialmethod(tqdm.__init__, disable=True) 
 
 from tabulate import tabulate
 
@@ -424,4 +425,23 @@ if __name__ == '__main__':
         plt.plot(rf_train.cv_results_['split2_test_score'],label='split2')
         plt.plot(rf_train.cv_results_['split3_test_score'],label='split3')
         plt.legend()
+        plt.show()
+
+
+
+    if sys.argv[1] == 'Deep':
+        GM_segments, aran_segments, route_details, dists = GM_sample_segmentation(segment_size=150)
+
+        aran_dists = []
+        for i in range(aran_segments.index.max()[0]+1):
+            aran_dists.append(abs(aran_segments.loc[i]['EndChainage'].iloc[-1] - aran_segments.loc[i]['BeginChainage'].iloc[0]))
+
+        diff = np.array(dists)-np.array(aran_dists)
+
+        fig, axs = plt.subplots(2,1)
+        axs[0].hist(aran_dists,bins=20)
+        axs[0].hist(dists,bins=20)
+        axs[0].set_title('Median dist: ' + str(round(np.median(dists),2)) + ' Average dist: ' + str(round(np.mean(dists),2)))
+        axs[1].plot(diff)
+        axs[1].set_title('Distances: ')
         plt.show()
