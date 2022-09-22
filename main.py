@@ -406,7 +406,7 @@ if __name__ == '__main__':
         X_test = features_test.iloc[:,:540]
         DI_test = pd.DataFrame(np.array(DI)[idx_test[:540]])
 
-        scores_RandomForest_DI = method_RandomForest(X_train, X_test, DI_train, DI_test, 'DI_GM_shuffle', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
+        scores_RandomForest_DI = method_RandomForest(X_train, X_test, DI_train, DI_test, 'DI_GM_shuffle', model=model, gridsearch=gridsearch, cv_in=[4,False], verbose=verbose,n_jobs=n_jobs)
         
         print(scores_RandomForest_DI['R2'][1])
         print(scores_RandomForest_DI['R2'][0])
