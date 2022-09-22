@@ -256,11 +256,11 @@ def synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0):
                     if stat1 | stat2 | stat3 | stat4:
                         i += 1
                     else:
-                        i += segment_size
                         segments[iter] = synth_seg['synth_acc']
                         aran_concat = pd.concat([aran_location[i:i+segment_size],aran_alligator[i:i+segment_size],aran_cracks[i:i+segment_size],aran_potholes[i:i+segment_size]],axis=1)
                         aran_segment_details[iter] = aran_concat
                         route_details[iter] = routes[j]
+                        i += segment_size
                         iter += 1
                 else:
                     i +=1
@@ -775,12 +775,12 @@ def test_segmentation(synth_acc,routes,segment_size=5,overlap=0):
                     if stat1 | stat2 | stat3 | stat4:
                         i += 1
                     else:
-                        i += segment_size
                         segments[iter] = synth_seg['synth_acc']
                         lasers[iter] = synth_seg['laser']
                         aran_concat = pd.concat([aran_location[i:i+segment_size],aran_alligator[i:i+segment_size],aran_cracks[i:i+segment_size],aran_potholes[i:i+segment_size]],axis=1)
                         aran_segment_details[iter] = aran_concat
                         route_details[iter] = routes[j]
+                        i += segment_size
                         iter += 1
                 else:
                     i +=1
@@ -875,11 +875,11 @@ def GM_segmentation(segment_size=5,overlap=0):
                         if stat1 | stat2 | stat3 | stat4 | stat5:
                             i += 1
                         else:
-                            i += segment_size
                             segments[iter] = acc_seg['acc_z']
                             aran_concat = pd.concat([aran_location[i:i+segment_size],aran_alligator[i:i+segment_size],aran_cracks[i:i+segment_size],aran_potholes[i:i+segment_size]],axis=1)
                             aran_segment_details[iter] = aran_concat
                             route_details[iter] = route[:7]+aligned_passes[k]
+                            i += segment_size
                             iter += 1
                     else:
                         i +=1

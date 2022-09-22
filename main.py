@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
         synth_segments, aran_segments, route_details = synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0)
 
-        features,feature_names = feature_extraction(synth_segments,'aligned_data/features',fs=250)
+        features,feature_names = feature_extraction(synth_segments,'synth_data/extracted_features',fs=250)
 
         DI, cracks, aliigator, potholes = calc_target(aran_segments)
         
@@ -42,19 +42,19 @@ if __name__ == '__main__':
         elif sys.argv[2] == 'test':
             model = 1
 
-        X_train = features.iloc[:,540:].reset_index(drop=True)
-        DI_train = pd.DataFrame(DI[540:])
-        X_test = features.iloc[:,:540]
-        DI_test = pd.DataFrame(DI[:540])
+        cut = [10500,18500,15000]
 
-        cv_in = [4,10]
+        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split1')
+        DI = pd.DataFrame(DI)
+        DI_test = DI.iloc[splits['1']].reset_index(drop=True)
+        DI_train = DI.iloc[splits['2']+splits['3']+splits['4']+splits['5']].reset_index(drop=True)
         
-        scores_RandomForest_DI = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI', model=model, gridsearch=gridsearch, cv_in=cv_in, verbose=verbose,n_jobs=n_jobs)
+        scores_RandomForest_DI = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_synth', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
         
         print(scores_RandomForest_DI['R2'][1])
         print(scores_RandomForest_DI['R2'][0])
 
-        rf_train = joblib.load('models/RandomForest_best_model_DI.sav')
+        rf_train = joblib.load('models/RandomForest_best_model_DI_synth.sav')
         print(rf_train.best_estimator_)
 
 
@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
         synth_segments, aran_segments, route_details, laser_segments = test_segmentation(synth_acc,routes,segment_size=5,overlap=0)
         
-        features,feature_names = feature_extraction(synth_segments,'aligned_data/features',fs=250)
+        features,feature_names = feature_extraction(synth_segments,'synth_data/tests/features_45km',fs=250)
 
         DI, cracks, aliigator, potholes = calc_target(aran_segments)
         
@@ -80,17 +80,14 @@ if __name__ == '__main__':
         elif sys.argv[2] == 'test':
             model = 1
 
-        cut = [10500,18000,15000]
+        cut = [10000,19000,14000]
 
-        #### split 1
-        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split2')
-        
+        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split1')
         DI = pd.DataFrame(DI)
-        DI_test = DI.iloc[splits['2']].reset_index(drop=True)
-        DI_train = DI.iloc[splits['1']+splits['3']+splits['4']+splits['5']].reset_index(drop=True)
+        DI_test = DI.iloc[splits['1']].reset_index(drop=True)
+        DI_train = DI.iloc[splits['2']+splits['3']+splits['4']+splits['5']].reset_index(drop=True)
 
-        cv_in = [4,split_test]
-        scores_RandomForest_DI = method_RandomForest(X_train, X_test, DI_train, DI_test, 'DI_45km', model=model, gridsearch=gridsearch, cv_in=cv_in, verbose=verbose,n_jobs=n_jobs)
+        scores_RandomForest_DI = method_RandomForest(X_train, X_test, DI_train, DI_test, 'DI_45km', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
         
         print(scores_RandomForest_DI['R2'][1])
         print(scores_RandomForest_DI['R2'][0])
@@ -114,7 +111,7 @@ if __name__ == '__main__':
 
         synth_segments, aran_segments, route_details, laser_segments = test_segmentation(synth_acc,routes,segment_size=5,overlap=0)
 
-        features,feature_names = feature_extraction(synth_segments,'aligned_data/features',fs=250)
+        features,feature_names = feature_extraction(synth_segments,'synth_data/tests/features_laser',fs=250)
 
         DI, cracks, aliigator, potholes = calc_target(aran_segments)
         
@@ -126,9 +123,9 @@ if __name__ == '__main__':
         elif sys.argv[2] == 'test':
             model = 1
 
-        cv, test_split, cv2, splits = custom_splits(aran_segments,route_details)
-        cv_train, split_test, X_train, X_test = rearange_splits(splits,features)
+        cut = [10000,19000,14000]
 
+        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split1')
         DI = pd.DataFrame(DI)
         DI_test = DI.iloc[splits['1']].reset_index(drop=True)
         DI_train = DI.iloc[splits['2']+splits['3']+splits['4']+splits['5']].reset_index(drop=True)
@@ -198,8 +195,7 @@ if __name__ == '__main__':
         DI_test = DI.iloc[splits['1']].reset_index(drop=True)
         DI_train = DI.iloc[splits['2']+splits['3']+splits['4']+splits['5']].reset_index(drop=True)
         
-        cv_in = [cv_train,split_test]
-        scores_RandomForest_DI        = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_GM_sample', model=model, gridsearch=gridsearch, cv_in=cv_in, verbose=verbose,n_jobs=n_jobs)
+        scores_RandomForest_DI        = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_GM_sample', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
         
         print(scores_RandomForest_DI['R2'][1])
         print(scores_RandomForest_DI['R2'][0])
@@ -217,7 +213,7 @@ if __name__ == '__main__':
     if sys.argv[1] == 'GM_split_test':
         GM_segments, aran_segments, route_details = GM_segmentation(segment_size=5,overlap=0)
 
-        features,feature_names = feature_extraction(GM_segments,'aligned_data/features',fs=50)
+        features,feature_names = feature_extraction(GM_segments,'aligned_data/features_split',fs=50)
 
         DI, cracks, aliigator, potholes = calc_target(aran_segments)
         
@@ -310,7 +306,7 @@ if __name__ == '__main__':
     if sys.argv[1] == 'GM_route_split':
         GM_segments, aran_segments, route_details = GM_segmentation(segment_size=5,overlap=0)
         
-        features,feature_names = feature_extraction(GM_segments,'aligned_data/features',fs=50)
+        features,feature_names = feature_extraction(GM_segments,'aligned_data/features_route',fs=50)
 
         DI, cracks, aliigator, potholes = calc_target(aran_segments)
         
@@ -386,7 +382,7 @@ if __name__ == '__main__':
     if sys.argv[1] == 'GM_shuffle_test':
         GM_segments, aran_segments, route_details = GM_segmentation(segment_size=5,overlap=0)
 
-        features,feature_names = feature_extraction(GM_segments,'aligned_data/features',fs=50)
+        features,feature_names = feature_extraction(GM_segments,'aligned_data/features_shuffle',fs=50)
 
         DI, cracks, aliigator, potholes = calc_target(aran_segments)
         
@@ -438,10 +434,27 @@ if __name__ == '__main__':
 
         diff = np.array(dists)-np.array(aran_dists)
 
-        fig, axs = plt.subplots(2,1)
-        axs[0].hist(aran_dists,bins=20)
-        axs[0].hist(dists,bins=20)
-        axs[0].set_title('Median dist: ' + str(round(np.median(dists),2)) + ' Average dist: ' + str(round(np.mean(dists),2)))
-        axs[1].plot(diff)
-        axs[1].set_title('Distances: ')
+        fig, axs = plt.subplots(2,2)
+        axs[0,0].hist(aran_dists,bins=20)
+        axs[0,0].hist(dists,bins=20)
+        axs[0,0].set_title('Median dist: ' + str(round(np.median(dists),2)) + ' Average dist: ' + str(round(np.mean(dists),2)))
+        axs[1,0].plot(diff,'.')
+        axs[1,0].set(ylim=(-15,15))
+        axs[1,0].set_title('Distances: ')
+        
+        GM_segments, aran_segments, route_details, dists = GM_sample_segmentation2(segment_size=150)
+
+        aran_dists = []
+        for i in range(aran_segments.index.max()[0]+1):
+            aran_dists.append(abs(aran_segments.loc[i]['EndChainage'].iloc[-1] - aran_segments.loc[i]['BeginChainage'].iloc[0]))
+
+        diff = np.array(dists)-np.array(aran_dists)
+
+        axs[0,1].hist(aran_dists,bins=20)
+        axs[0,1].hist(dists,bins=20)
+        axs[0,1].set_title('Median dist: ' + str(round(np.median(dists),2)) + ' Average dist: ' + str(round(np.mean(dists),2)))
+        axs[1,1].plot(diff,'.')
+        axs[1,1].set(ylim=(-15,15))
+        axs[1,1].set_title('Distances: ')
         plt.show()
+
