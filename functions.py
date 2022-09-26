@@ -165,13 +165,13 @@ def synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0):
         
     else:    
         files = glob.glob("p79/*.csv")
-        df_cph1_hh = pd.read_csv(files[0])
+        df_cph1_hh = pd.read_csv('p79/CPH1_HH.csv')
         df_cph1_hh.drop(df_cph1_hh.columns.difference(['Distance','Latitude','Longitude']),axis=1,inplace=True)
-        df_cph1_vh = pd.read_csv(files[1])
+        df_cph1_vh = pd.read_csv('p79/CPH1_VH.csv')
         df_cph1_vh.drop(df_cph1_vh.columns.difference(['Distance','Latitude','Longitude']),axis=1,inplace=True)
-        df_cph6_hh = pd.read_csv(files[2])
+        df_cph6_hh = pd.read_csv('p79/CPH6_HH.csv')
         df_cph6_hh.drop(df_cph6_hh.columns.difference(['Distance','Latitude','Longitude']),axis=1,inplace=True)
-        df_cph6_vh = pd.read_csv(files[3])
+        df_cph6_vh = pd.read_csv('p79/CPH6_VH.csv')
         df_cph6_vh.drop(df_cph6_vh.columns.difference(['Distance','Latitude','Longitude']),axis=1,inplace=True)
         iter = 0
         segments = {}
@@ -346,15 +346,15 @@ def method_RandomForest(features_train, features_test, y_train, y_test, id, mode
                     'min_samples_split': [2, 3, 4, 5],
                     'min_weight_fraction_leaf': [0.0],
                     'n_estimators': [250]}
-        parameters={'criterion': ['squared_error','absolute_error','poisson'],
-                    'bootstrap': [True,False],
-                    'max_depth': [2, 3, 4, 5, 6, 7, 8, 10, 12, 15, None],
-                    'max_features': [0.33, 0.5, 0.66, 1.0, 'log2', 'sqrt'],
-                    'min_samples_leaf': [1, 2, 5, 10, 20, 30, 40, 50],
-                    'min_samples_split': [2, 5, 10, 20, 30, 40, 50],
-                    'min_weight_fraction_leaf': [0.0, 0.2, 0.4],
-                    'oob_score': [True,False],
-                    'n_estimators': [500]}
+        parameters={'criterion': ['squared_error'],
+                    'bootstrap': [True],
+                    'max_depth': [3, 4, 5, 6],
+                    'max_features': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 'log2', 'sqrt'],
+                    'min_samples_leaf': [10, 20, 30, 40, 50, 60, 70, 80],
+                    'min_samples_split': [2],
+                    'min_weight_fraction_leaf': [0.0],
+                    'oob_score': [False],
+                    'n_estimators': [1000]}
         
         start_time = time.time()
         if gridsearch == 1:
@@ -687,10 +687,10 @@ def test_segmentation(synth_acc,routes,segment_size=5,overlap=0):
         
     else:    
         files = glob.glob("p79/*.csv")
-        df_cph1_hh = pd.read_csv(files[0])
-        df_cph1_vh = pd.read_csv(files[1])
-        df_cph6_hh = pd.read_csv(files[2])
-        df_cph6_vh = pd.read_csv(files[3])
+        df_cph1_hh = pd.read_csv('p79/CPH1_HH.csv')
+        df_cph1_vh = pd.read_csv('p79/CPH1_VH.csv')
+        df_cph6_hh = pd.read_csv('p79/CPH6_HH.csv')
+        df_cph6_vh = pd.read_csv('p79/CPH6_VH.csv')
         iter = 0
         segments = {}
         lasers = {}

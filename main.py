@@ -9,8 +9,8 @@ from functions import *
 from DL_functions import *
 from LiRA_functions import *
 
-# from functools import partialmethod
-# tqdm.__init__ = partialmethod(tqdm.__init__, disable=True) 
+from functools import partialmethod
+tqdm.__init__ = partialmethod(tqdm.__init__, disable=True) 
 
 from tabulate import tabulate
 
@@ -23,6 +23,7 @@ if __name__ == '__main__':
         os.remove('aligned_data/features.csv')
 
     if sys.argv[1] == 'synth_test':
+        print('synth_test')
         synth_acc = synthetic_data()
         routes = []
         for i in range(len(synth_acc)): 
@@ -44,10 +45,10 @@ if __name__ == '__main__':
 
         cut = [10500,18500,15000]
 
-        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split1')
+        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split3')
         DI = pd.DataFrame(DI)
-        DI_test = DI.iloc[splits['1']].reset_index(drop=True)
-        DI_train = DI.iloc[splits['2']+splits['3']+splits['4']+splits['5']].reset_index(drop=True)
+        DI_test = DI.iloc[splits['3']].reset_index(drop=True)
+        DI_train = DI.iloc[splits['1']+splits['2']+splits['4']+splits['5']].reset_index(drop=True)
         
         scores_RandomForest_DI = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_synth', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
         
@@ -61,6 +62,7 @@ if __name__ == '__main__':
 
     ################################################## TESTS - 45 km/h speed #################################################
     if sys.argv[1] == '45km_test':
+        print('45km_test')
         synth_acc = test_synthetic_data()
         routes = []
         for i in range(len(synth_acc)): 
@@ -80,12 +82,12 @@ if __name__ == '__main__':
         elif sys.argv[2] == 'test':
             model = 1
 
-        cut = [10000,19000,14000]
+        cut = [10500,18400,15000]
 
-        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split1')
+        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split3')
         DI = pd.DataFrame(DI)
-        DI_test = DI.iloc[splits['1']].reset_index(drop=True)
-        DI_train = DI.iloc[splits['2']+splits['3']+splits['4']+splits['5']].reset_index(drop=True)
+        DI_test = DI.iloc[splits['3']].reset_index(drop=True)
+        DI_train = DI.iloc[splits['1']+splits['2']+splits['4']+splits['5']].reset_index(drop=True)
 
         scores_RandomForest_DI = method_RandomForest(X_train, X_test, DI_train, DI_test, 'DI_45km', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
         
@@ -95,15 +97,10 @@ if __name__ == '__main__':
         rf_train = joblib.load('models/RandomForest_best_model_DI_45km.sav')
         print(rf_train.best_estimator_)
 
-        print(scores_RandomForest_DI['R2'][1])
-        print(scores_RandomForest_DI['R2'][0])
-
-        rf_train = joblib.load('models/RandomForest_best_model_DI_45km.sav')
-        print(rf_train.best_estimator_)
-
 
     ################################################## TESTS - (laser5+laser21)/2/1e3 #################################################
     if sys.argv[1] == 'laser_test':
+        print('laser_test')
         synth_acc = test_synthetic_data()
         routes = []
         for i in range(len(synth_acc)): 
@@ -111,7 +108,7 @@ if __name__ == '__main__':
 
         synth_segments, aran_segments, route_details, laser_segments = test_segmentation(synth_acc,routes,segment_size=5,overlap=0)
 
-        features,feature_names = feature_extraction(synth_segments,'synth_data/tests/features_laser',fs=250)
+        features,feature_names = feature_extraction(laser_segments,'synth_data/tests/features_laser',fs=250)
 
         DI, cracks, aliigator, potholes = calc_target(aran_segments)
         
@@ -123,12 +120,12 @@ if __name__ == '__main__':
         elif sys.argv[2] == 'test':
             model = 1
 
-        cut = [10000,19000,14000]
+        cut = [10500,18400,15000]
 
-        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split1')
+        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split3')
         DI = pd.DataFrame(DI)
-        DI_test = DI.iloc[splits['1']].reset_index(drop=True)
-        DI_train = DI.iloc[splits['2']+splits['3']+splits['4']+splits['5']].reset_index(drop=True)
+        DI_test = DI.iloc[splits['3']].reset_index(drop=True)
+        DI_train = DI.iloc[splits['1']+splits['2']+splits['4']+splits['5']].reset_index(drop=True)
 
         scores_RandomForest_DI        = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_laser', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
 
@@ -141,6 +138,7 @@ if __name__ == '__main__':
 
     ########################################################### GREEN MOBILITY TEST ##############################################################
     if sys.argv[1] == 'GM_test':
+        print('GM_test')
         GM_segments, aran_segments, route_details = GM_segmentation(segment_size=5,overlap=0)
         
         features,feature_names = feature_extraction(GM_segments,'aligned_data/features',fs=50)
@@ -211,6 +209,7 @@ if __name__ == '__main__':
 
 
     if sys.argv[1] == 'GM_split_test':
+        print('GM_split_test')
         GM_segments, aran_segments, route_details = GM_segmentation(segment_size=5,overlap=0)
 
         features,feature_names = feature_extraction(GM_segments,'aligned_data/features_split',fs=50)
@@ -303,7 +302,8 @@ if __name__ == '__main__':
         rf_train = joblib.load('models/RandomForest_best_model_DI_GM_split5.sav')
         print(rf_train.best_estimator_)
 
-    if sys.argv[1] == 'GM_route_split':
+    if sys.argv[1] == 'GM_route_test':
+        print('GM_route_test')
         GM_segments, aran_segments, route_details = GM_segmentation(segment_size=5,overlap=0)
         
         features,feature_names = feature_extraction(GM_segments,'aligned_data/features_route',fs=50)
@@ -380,6 +380,7 @@ if __name__ == '__main__':
 
     
     if sys.argv[1] == 'GM_shuffle_test':
+        print('GM_shuffle_test')
         GM_segments, aran_segments, route_details = GM_segmentation(segment_size=5,overlap=0)
 
         features,feature_names = feature_extraction(GM_segments,'aligned_data/features_shuffle',fs=50)
@@ -413,7 +414,7 @@ if __name__ == '__main__':
 
 
     if sys.argv[1] == 'plot':
-        rf_train = joblib.load('models/RandomForest_best_model_DI_GM_split1.sav')
+        rf_train = joblib.load('models/RandomForest_best_model_DI_GM_shuffle.sav')
         plt.plot(rf_train.cv_results_['mean_train_score'],label='train')
         plt.plot(rf_train.cv_results_['mean_test_score'],label='test')
         plt.plot(rf_train.cv_results_['split0_test_score'],label='split0')

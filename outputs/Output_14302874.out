@@ -1,0 +1,84 @@
+GM_route_test
+Loaded already segmented data
+---------cph1_vh--------
+Run time: 14.66 mins
+0.3068757090199026
+0.2488893977704919
+RandomForestRegressor(max_depth=4, max_features=70, min_samples_leaf=60,
+                      n_estimators=1000)
+---------cph1_hh--------
+Run time: 18.28 mins
+0.3900501969770007
+0.24454948086907158
+RandomForestRegressor(max_depth=6, max_features=50, min_samples_leaf=30,
+                      n_estimators=1000)
+---------cph6_vh--------
+Run time: 14.62 mins
+0.3443853089036999
+0.13771645706069557
+RandomForestRegressor(max_depth=5, max_features=50, min_samples_leaf=70,
+                      n_estimators=1000)
+---------cph6_hh--------
+Run time: 22.22 mins
+0.38846131276858853
+0.3049300314266321
+RandomForestRegressor(max_depth=5, max_features=60, min_samples_leaf=10,
+                      n_estimators=1000)
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 14302874: <Tests> in cluster <dcc> Done
+
+Job <Tests> was submitted from host <n-62-30-1> by user <s174503> in cluster <dcc> at Sun Sep 25 17:29:32 2022
+Job was executed on host(s) <16*n-62-30-24>, in queue <hpc>, as user <s174503> in cluster <dcc> at Sun Sep 25 17:29:34 2022
+</zhome/fd/6/127382> was used as the home directory.
+</zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis> was used as the working directory.
+Started at Sun Sep 25 17:29:34 2022
+Terminated at Sun Sep 25 18:41:11 2022
+Results reported at Sun Sep 25 18:41:11 2022
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q hpc
+#BSUB -J Tests
+#BSUB -n 16
+#BSUB -R "span[hosts=1]"
+#BSUB -R "rusage[mem=4GB]"
+#BSUB -W 08:00
+#BSUB -o outputs/Output_%J.out
+#BSUB -e outputs/errors/Error_%J.err
+
+source $HOME/miniconda3/bin/activate
+source venv_1/bin/activate
+
+python3 main.py GM_route_test train
+
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   65496.00 sec.
+    Max Memory :                                 1416 MB
+    Average Memory :                             1276.05 MB
+    Total Requested Memory :                     65536.00 MB
+    Delta Memory :                               64120.00 MB
+    Max Swap :                                   -
+    Max Processes :                              22
+    Max Threads :                                26
+    Run time :                                   4297 sec.
+    Turnaround time :                            4299 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <outputs/errors/Error_14302874.err> for stderr output of this job.
+

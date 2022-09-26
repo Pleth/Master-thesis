@@ -1,0 +1,88 @@
+GM_split_test
+---------SPLIT 1--------
+Run time: 10.42 mins
+0.3689781929486323
+0.16650535250861054
+RandomForestRegressor(max_depth=4, max_features=80, min_samples_leaf=50,
+                      n_estimators=500)
+---------SPLIT 2--------
+Run time: 10.26 mins
+0.3353023782318385
+0.26749118659161963
+RandomForestRegressor(max_depth=5, max_features=50, min_samples_leaf=50,
+                      n_estimators=500)
+---------SPLIT 3--------
+Run time: 10.5 mins
+0.3260286298454056
+0.27496474141193183
+RandomForestRegressor(max_depth=4, max_features=90, min_samples_leaf=50,
+                      n_estimators=500)
+---------SPLIT 4--------
+Run time: 10.94 mins
+0.38447812258333103
+-0.1598576615943026
+RandomForestRegressor(max_depth=5, max_features=50, min_samples_leaf=30,
+                      n_estimators=500)
+---------SPLIT 5--------
+Run time: 10.77 mins
+0.3190617751588779
+0.11740360008607942
+RandomForestRegressor(max_depth=3, max_features=100, min_samples_leaf=30,
+                      n_estimators=500)
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 14268001: <Tests> in cluster <dcc> Done
+
+Job <Tests> was submitted from host <n-62-30-1> by user <s174503> in cluster <dcc> at Sun Sep 25 10:48:46 2022
+Job was executed on host(s) <16*n-62-30-25>, in queue <hpc>, as user <s174503> in cluster <dcc> at Sun Sep 25 10:48:47 2022
+</zhome/fd/6/127382> was used as the home directory.
+</zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis> was used as the working directory.
+Started at Sun Sep 25 10:48:47 2022
+Terminated at Sun Sep 25 11:45:14 2022
+Results reported at Sun Sep 25 11:45:14 2022
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q hpc
+#BSUB -J Tests
+#BSUB -n 16
+#BSUB -R "span[hosts=1]"
+#BSUB -R "rusage[mem=4GB]"
+#BSUB -W 08:00
+#BSUB -o outputs/Output_%J.out
+#BSUB -e outputs/errors/Error_%J.err
+
+source $HOME/miniconda3/bin/activate
+source venv_1/bin/activate
+
+python3 main.py GM_split_test train
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   49985.00 sec.
+    Max Memory :                                 1383 MB
+    Average Memory :                             1139.77 MB
+    Total Requested Memory :                     65536.00 MB
+    Delta Memory :                               64153.00 MB
+    Max Swap :                                   -
+    Max Processes :                              22
+    Max Threads :                                26
+    Run time :                                   3412 sec.
+    Turnaround time :                            3388 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <outputs/errors/Error_14268001.err> for stderr output of this job.
+

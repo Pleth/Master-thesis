@@ -1,0 +1,97 @@
+GM_split_test
+---------SPLIT 1--------
+Run time: 30.51 mins
+0.3557860770129275
+0.1661484279822213
+RandomForestRegressor(max_depth=4, max_features=90, min_samples_leaf=70,
+                      n_estimators=1000)
+---------SPLIT 2--------
+Run time: 29.92 mins
+0.28407152319499385
+0.26611513436759093
+RandomForestRegressor(max_depth=3, max_features=60, min_samples_leaf=70,
+                      n_estimators=1000)
+---------SPLIT 3--------
+Run time: 30.69 mins
+0.29803572500785114
+0.26923333917775283
+RandomForestRegressor(max_depth=3, max_features=120, min_samples_leaf=50,
+                      n_estimators=1000)
+---------SPLIT 4--------
+Run time: 31.85 mins
+0.3272742143464955
+-0.16262173950438275
+RandomForestRegressor(max_depth=5, max_features=60, min_samples_leaf=80,
+                      n_estimators=1000)
+---------SPLIT 5--------
+Run time: 31.32 mins
+0.3631179173855341
+0.12133151975766876
+RandomForestRegressor(max_depth=4, max_features=90, min_samples_leaf=30,
+                      n_estimators=1000)
+GM_shuffle_test
+Loaded already segmented data
+Run time: 35.52 mins
+0.47726867856822686
+0.24934030849760758
+RandomForestRegressor(max_depth=6, max_features=100, min_samples_leaf=10,
+                      n_estimators=1000)
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 14292774: <Tests> in cluster <dcc> Done
+
+Job <Tests> was submitted from host <n-62-30-1> by user <s174503> in cluster <dcc> at Sun Sep 25 13:45:44 2022
+Job was executed on host(s) <16*n-62-31-14>, in queue <hpc>, as user <s174503> in cluster <dcc> at Sun Sep 25 13:45:45 2022
+</zhome/fd/6/127382> was used as the home directory.
+</zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis> was used as the working directory.
+Started at Sun Sep 25 13:45:45 2022
+Terminated at Sun Sep 25 17:01:50 2022
+Results reported at Sun Sep 25 17:01:50 2022
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q hpc
+#BSUB -J Tests
+#BSUB -n 16
+#BSUB -R "span[hosts=1]"
+#BSUB -R "rusage[mem=4GB]"
+#BSUB -W 08:00
+#BSUB -o outputs/Output_%J.out
+#BSUB -e outputs/errors/Error_%J.err
+
+source $HOME/miniconda3/bin/activate
+source venv_1/bin/activate
+
+python3 main.py GM_split_test train
+python3 main,py GM_route_test train
+python3 main.py GM_shuffle_test train
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   177814.00 sec.
+    Max Memory :                                 1421 MB
+    Average Memory :                             1354.90 MB
+    Total Requested Memory :                     65536.00 MB
+    Delta Memory :                               64115.00 MB
+    Max Swap :                                   -
+    Max Processes :                              22
+    Max Threads :                                26
+    Run time :                                   11862 sec.
+    Turnaround time :                            11766 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <outputs/errors/Error_14292774.err> for stderr output of this job.
+
