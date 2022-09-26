@@ -1,0 +1,144 @@
+45km_test
+Generating Synthetic Profile for trip: 1 / 4
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 2 / 4
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 3 / 4
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 4 / 4
+Generating Synthetic Profile ...
+
+Run time: 11.05 mins
+0.5064277106155666
+0.3398718365697231
+RandomForestRegressor(max_depth=6, max_features=90, min_samples_leaf=10,
+                      n_estimators=1000)
+laser_test
+Loaded Synthetic Profile for trip: 1 / 4
+Loaded Synthetic Profile for trip: 2 / 4
+Loaded Synthetic Profile for trip: 3 / 4
+Loaded Synthetic Profile for trip: 4 / 4
+Loaded already segmented data
+
+Run time: 10.65 mins
+0.49139229610040724
+0.3642206095368844
+RandomForestRegressor(max_depth=6, max_features=100, min_samples_leaf=10,
+                      n_estimators=1000)
+synth_test
+Generating Synthetic Profile for trip: 1 / 4 - passage: 1 / 5
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 1 / 4 - passage: 2 / 5
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 1 / 4 - passage: 3 / 5
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 1 / 4 - passage: 4 / 5
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 1 / 4 - passage: 5 / 5
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 2 / 4 - passage: 1 / 7
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 2 / 4 - passage: 2 / 7
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 2 / 4 - passage: 3 / 7
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 2 / 4 - passage: 4 / 7
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 2 / 4 - passage: 5 / 7
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 2 / 4 - passage: 6 / 7
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 2 / 4 - passage: 7 / 7
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 3 / 4 - passage: 1 / 7
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 3 / 4 - passage: 2 / 7
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 3 / 4 - passage: 3 / 7
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 3 / 4 - passage: 4 / 7
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 3 / 4 - passage: 5 / 7
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 3 / 4 - passage: 6 / 7
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 3 / 4 - passage: 7 / 7
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 4 / 4 - passage: 1 / 6
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 4 / 4 - passage: 2 / 6
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 4 / 4 - passage: 3 / 6
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 4 / 4 - passage: 4 / 6
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 4 / 4 - passage: 5 / 6
+Generating Synthetic Profile ...
+Generating Synthetic Profile for trip: 4 / 4 - passage: 6 / 6
+Generating Synthetic Profile ...
+
+Run time: 89.12 mins
+0.36379300588810115
+0.3901312933171097
+RandomForestRegressor(max_depth=5, max_features=120, min_samples_leaf=40,
+                      n_estimators=1000)
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 14303017: <Tests> in cluster <dcc> Done
+
+Job <Tests> was submitted from host <n-62-30-1> by user <s174503> in cluster <dcc> at Sun Sep 25 21:11:01 2022
+Job was executed on host(s) <16*n-62-29-12>, in queue <hpc>, as user <s174503> in cluster <dcc> at Sun Sep 25 21:11:02 2022
+</zhome/fd/6/127382> was used as the home directory.
+</zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis> was used as the working directory.
+Started at Sun Sep 25 21:11:02 2022
+Terminated at Mon Sep 26 00:05:51 2022
+Results reported at Mon Sep 26 00:05:51 2022
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q hpc
+#BSUB -J Tests
+#BSUB -n 16
+#BSUB -R "span[hosts=1]"
+#BSUB -R "rusage[mem=4GB]"
+#BSUB -W 14:00
+#BSUB -o outputs/Output_%J.out
+#BSUB -e outputs/errors/Error_%J.err
+
+source $HOME/miniconda3/bin/activate
+source venv_1/bin/activate
+
+python3 main.py 45km_test train
+python3 main.py laser_test train
+python3 main.py synth_test train
+
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   107065.00 sec.
+    Max Memory :                                 3123 MB
+    Average Memory :                             1915.41 MB
+    Total Requested Memory :                     65536.00 MB
+    Delta Memory :                               62413.00 MB
+    Max Swap :                                   -
+    Max Processes :                              22
+    Max Threads :                                26
+    Run time :                                   10489 sec.
+    Turnaround time :                            10490 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <outputs/errors/Error_14303017.err> for stderr output of this job.
+

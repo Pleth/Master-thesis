@@ -9,8 +9,8 @@ from functions import *
 from DL_functions import *
 from LiRA_functions import *
 
-from functools import partialmethod
-tqdm.__init__ = partialmethod(tqdm.__init__, disable=True) 
+# from functools import partialmethod
+# tqdm.__init__ = partialmethod(tqdm.__init__, disable=True) 
 
 from tabulate import tabulate
 
@@ -414,7 +414,7 @@ if __name__ == '__main__':
 
 
     if sys.argv[1] == 'plot':
-        rf_train = joblib.load('models/RandomForest_best_model_DI_GM_shuffle.sav')
+        rf_train = joblib.load('models/RandomForest_best_model_DI_GM_cph6_vh.sav')
         plt.plot(rf_train.cv_results_['mean_train_score'],label='train')
         plt.plot(rf_train.cv_results_['mean_test_score'],label='test')
         plt.plot(rf_train.cv_results_['split0_test_score'],label='split0')
