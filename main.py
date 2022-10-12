@@ -1,4 +1,5 @@
 import sys
+from this import d
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -428,34 +429,19 @@ if __name__ == '__main__':
 
     if sys.argv[1] == 'Deep':
         GM_segments, aran_segments, route_details, dists = GM_sample_segmentation(segment_size=150)
-
-        aran_dists = []
-        for i in range(aran_segments.index.max()[0]+1):
-            aran_dists.append(abs(aran_segments.loc[i]['EndChainage'].iloc[-1] - aran_segments.loc[i]['BeginChainage'].iloc[0]))
-
-        diff = np.array(dists)-np.array(aran_dists)
-
-        fig, axs = plt.subplots(2,2)
-        axs[0,0].hist(aran_dists,bins=20)
-        axs[0,0].hist(dists,bins=20)
-        axs[0,0].set_title('Median dist: ' + str(round(np.median(dists),2)) + ' Average dist: ' + str(round(np.mean(dists),2)))
-        axs[1,0].plot(diff,'.')
-        axs[1,0].set(ylim=(-15,15))
-        axs[1,0].set_title('Distances: ')
         
-        GM_segments, aran_segments, route_details, dists = GM_sample_segmentation2(segment_size=150)
+        
 
-        aran_dists = []
-        for i in range(aran_segments.index.max()[0]+1):
-            aran_dists.append(abs(aran_segments.loc[i]['EndChainage'].iloc[-1] - aran_segments.loc[i]['BeginChainage'].iloc[0]))
-
-        diff = np.array(dists)-np.array(aran_dists)
-
-        axs[0,1].hist(aran_dists,bins=20)
-        axs[0,1].hist(dists,bins=20)
-        axs[0,1].set_title('Median dist: ' + str(round(np.median(dists),2)) + ' Average dist: ' + str(round(np.mean(dists),2)))
-        axs[1,1].plot(diff,'.')
-        axs[1,1].set(ylim=(-15,15))
-        axs[1,1].set_title('Distances: ')
-        plt.show()
+        # prepare the data
+        path = 'DL_data'
+        labelsFile = 'DL_data/labelsfile.csv'
+        train_dl, test_dl = prepare_data(path,labelsFile)
+        print(len(train_dl.dataset), len(test_dl.dataset))
+        
+        model = CNN_simple(1)
+        
+        train_model(train_dl, model)
+        
+        acc = evaluate_model(test_dl, model)
+        print('Accuracy: %.3f' % acc)
 

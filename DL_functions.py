@@ -10,6 +10,287 @@ import csv
 from functions import *
 from LiRA_functions import *
 
+# pytorch cnn for multiclass classification
+from numpy import vstack
+from numpy import argmax
+from pandas import read_csv
+from sklearn.metrics import accuracy_score
+from torchvision.datasets import MNIST
+from torchvision.transforms import Compose
+from torchvision.transforms import ToTensor
+from torchvision.transforms import Normalize
+from torch.utils.data import DataLoader
+from torch.nn import Conv2d
+from torch.nn import MaxPool2d
+from torch.nn import Linear
+from torch.nn import ReLU
+from torch.nn import Softmax
+from torch.nn import Module
+from torch.optim import SGD
+from torch.nn import CrossEntropyLoss
+from torch.nn import MSELoss
+from torch.nn.init import kaiming_uniform_
+from torch.nn.init import xavier_uniform_
+
+import torch
+import torch.nn as nn
+import skimage.io as sk
+from torchvision import transforms
+from PIL import ImageTk, Image
+
+
+class CustomDataset(torch.utils.data.Dataset):
+    def __init__(self, labelsFile, rootDir, sourceTransform):
+        self.data = pd.read_csv(labelsFile)
+        self.rootDir = rootDir
+        self.sourceTransform = sourceTransform
+        return
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        print("getitem")
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+        imagePath = self.rootDir + "/" + self.data['Image_path'][idx]
+        image = sk.imread(imagePath)
+        label = self.data['Condition'][idx]
+        image = Image.fromarray(image)
+
+        if self.sourceTransform:
+            image = self.sourceTransform(image)
+
+        return image, label
+
+
+# model definition
+class CNN_simple(Module):
+    # define model elements
+    def __init__(self, n_channels):
+        super(CNN_simple, self).__init__()
+        # input to first hidden layer
+        self.hidden1 = Conv2d(n_channels, 32, (3,3))
+        kaiming_uniform_(self.hidden1.weight, nonlinearity='relu')
+        self.act1 = ReLU()
+        # first pooling layer
+        self.pool1 = MaxPool2d((2,2), stride=(2,2))
+        # second hidden layer
+        self.hidden2 = Conv2d(32, 32, (3,3))
+        kaiming_uniform_(self.hidden2.weight, nonlinearity='relu')
+        self.act2 = ReLU()
+        # second pooling layer
+        self.pool2 = MaxPool2d((2,2), stride=(2,2))
+        # fully connected layer
+        self.hidden3 = Linear(5*5*32, 100)
+        kaiming_uniform_(self.hidden3.weight, nonlinearity='relu')
+        self.act3 = ReLU()
+        # output layer
+        self.hidden4 = Linear(100, 10)
+        xavier_uniform_(self.hidden4.weight)
+        self.act4 = Softmax(dim=1)
+
+    # forward propagate input
+    def forward(self, X):
+        # input to first hidden layer
+        X = self.hidden1(X)
+        X = self.act1(X)
+        X = self.pool1(X)
+        # second hidden layer
+        X = self.hidden2(X)
+        X = self.act2(X)
+        X = self.pool2(X)
+        # flatten
+        X = X.view(-1, 4*4*50)
+        # third hidden layer
+        X = self.hidden3(X)
+        X = self.act3(X)
+        # output layer
+        X = self.hidden4(X)
+        X = self.act4(X)
+        return X
+
+def prepare_data(path,labelsFile):
+    # define standardization
+    sourceTransform = Compose([ToTensor(), Normalize((0.1307,), (0.3081,))])
+    # load dataset
+    train = CustomDataset(labelsFile, path+'/train/', sourceTransform)
+    test = CustomDataset(labelsFile, path+'/test/', sourceTransform)
+    # prepare data loaders
+    train_dl = DataLoader(train, batch_size=64, shuffle=True)
+    test_dl = DataLoader(test, batch_size=1024, shuffle=False)
+    return train_dl, test_dl
+
+# train the model
+def train_model(train_dl, model):
+    # define the optimization
+    # criterion = MSELoss()
+    criterion = CrossEntropyLoss()
+    optimizer = SGD(model.parameters(), lr=0.01, momentum=0.9)
+    # enumerate epochs
+    for epoch in range(10):
+        # enumerate mini batches
+        for i, (inputs, targets) in enumerate(train_dl):
+            # clear the gradients
+            optimizer.zero_grad()
+            # compute the model output
+            yhat = model(inputs)
+            # calculate loss
+            loss = criterion(yhat, targets)
+            # credit assignment
+            loss.backward()
+            # update model weights
+            optimizer.step()
+
+# evaluate the model
+def evaluate_model(test_dl, model):
+    predictions, actuals = list(), list()
+    for i, (inputs, targets) in enumerate(test_dl):
+        # evaluate the model on the test set
+        yhat = model(inputs)
+        # retrieve numpy array
+        yhat = yhat.detach().numpy()
+        actual = targets.numpy()
+        # convert to class labels
+        yhat = argmax(yhat, axis=1)
+        # reshape for stacking
+        actual = actual.reshape((len(actual), 1))
+        yhat = yhat.reshape((len(yhat), 1))
+        # store
+        predictions.append(yhat)
+        actuals.append(actual)
+    predictions, actuals = vstack(predictions), vstack(actuals)
+    # calculate accuracy
+    acc = accuracy_score(actuals, predictions)
+    return acc
+
+class ConvBlock(nn.Module):
+    def __init__(self, in_fts, out_fts, k, s, p):
+        super(ConvBlock, self).__init__()
+        self.convolution = nn.Sequential(
+            nn.Conv2d(in_channels=in_fts, out_channels=out_fts, kernel_size=(k, k), stride=(s, s), padding=(p, p)),
+            nn.ReLU()
+        )
+
+    def forward(self, input_img):
+        x = self.convolution(input_img)
+
+        return x
+
+class ReduceConvBlock(nn.Module):
+    def __init__(self, in_fts, out_fts_1, out_fts_2, k, p):
+        super(ReduceConvBlock, self).__init__()
+        self.redConv = nn.Sequential(
+            nn.Conv2d(in_channels=in_fts, out_channels=out_fts_1, kernel_size=(1, 1), stride=(1, 1)),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=out_fts_1, out_channels=out_fts_2, kernel_size=(k, k), stride=(1, 1), padding=(p, p)),
+            nn.ReLU()
+        )
+
+    def forward(self, input_img):
+        x = self.redConv(input_img)
+
+        return x
+
+class AuxClassifier(nn.Module):
+    def __init__(self, in_fts, num_classes):
+        super(AuxClassifier, self).__init__()
+        self.avgpool = nn.AvgPool2d(kernel_size=(5, 5), stride=(3, 3))
+        self.conv = nn.Conv2d(in_channels=in_fts, out_channels=128, kernel_size=(1, 1), stride=(1, 1))
+        self.relu = nn.ReLU()
+        self.fc = nn.Linear(4 * 4 * 128, 1024)
+        self.dropout = nn.Dropout(p=0.7)
+        self.classifier = nn.Linear(1024, num_classes)
+
+    def forward(self, input_img):
+        N = input_img.shape[0]
+        x = self.avgpool(input_img)
+        x = self.conv(x)
+        x = self.relu(x)
+        x = x.reshape(N, -1)
+        x = self.fc(x)
+        x = self.dropout(x)
+        x = self.classifier(x)
+
+        return x
+
+class InceptionModule(nn.Module):
+    def __init__(self, curr_in_fts, f_1x1, f_3x3_r, f_3x3, f_5x5_r, f_5x5, f_pool_proj):
+        super(InceptionModule, self).__init__()
+        self.conv1 = ConvBlock(curr_in_fts, f_1x1, 1, 1, 0)
+        self.conv2 = ReduceConvBlock(curr_in_fts, f_3x3_r, f_3x3, 3, 1)
+        self.conv3 = ReduceConvBlock(curr_in_fts, f_5x5_r, f_5x5, 5, 2)
+
+        self.pool_proj = nn.Sequential(
+            nn.MaxPool2d(kernel_size=(1, 1), stride=(1, 1)),
+            nn.Conv2d(in_channels=curr_in_fts, out_channels=f_pool_proj, kernel_size=(1, 1), stride=(1, 1)),
+            nn.ReLU()
+        )
+
+    def forward(self, input_img):
+        out1 = self.conv1(input_img)
+        out2 = self.conv2(input_img)
+        out3 = self.conv3(input_img)
+        out4 = self.pool_proj(input_img)
+
+        x = torch.cat([out1, out2, out3, out4], dim=1)
+
+        return x
+
+class MyGoogleNet(nn.Module):
+    def __init__(self, in_fts=3, num_class=1000):
+        super(MyGoogleNet, self).__init__()
+        self.conv1 = ConvBlock(in_fts, 64, 7, 2, 3)
+        self.maxpool1 = nn.MaxPool2d(kernel_size=(3, 3), stride=(2, 2), padding=(1, 1))
+        self.conv2 = nn.Sequential(
+            ConvBlock(64, 64, 1, 1, 0),
+            ConvBlock(64, 192, 3, 1, 1)
+        )
+
+        self.inception_3a = InceptionModule(192, 64, 96, 128, 16, 32, 32)
+        self.inception_3b = InceptionModule(256, 128, 128, 192, 32, 96, 64)
+        self.inception_4a = InceptionModule(480, 192, 96, 208, 16, 48, 64)
+        self.inception_4b = InceptionModule(512, 160, 112, 224, 24, 64, 64)
+        self.inception_4c = InceptionModule(512, 128, 128, 256, 24, 64, 64)
+        self.inception_4d = InceptionModule(512, 112, 144, 288, 32, 64, 64)
+        self.inception_4e = InceptionModule(528, 256, 160, 320, 32, 128, 128)
+        self.inception_5a = InceptionModule(832, 256, 160, 320, 32, 128, 128)
+        self.inception_5b = InceptionModule(832, 384, 192, 384, 48, 128, 128)
+
+        self.aux_classifier1 = AuxClassifier(512, num_class)
+        self.aux_classifier2 = AuxClassifier(528, num_class)
+        self.avgpool = nn.AdaptiveAvgPool2d(output_size=(7, 7))
+        self.classifier = nn.Sequential(
+            nn.Dropout(p=0.4),
+            nn.Linear(1024 * 7 * 7, num_class)
+        )
+
+    def forward(self, input_img):
+        N = input_img.shape[0]
+        x = self.conv1(input_img)
+        x = self.maxpool1(x)
+        x = self.conv2(x)
+        x = self.maxpool1(x)
+        x = self.inception_3a(x)
+        x = self.inception_3b(x)
+        x = self.maxpool1(x)
+        x = self.inception_4a(x)
+        out1 = self.aux_classifier1(x)
+        x = self.inception_4b(x)
+        x = self.inception_4c(x)
+        x = self.inception_4d(x)
+        out2 = self.aux_classifier2(x)
+        x = self.inception_4e(x)
+        x = self.maxpool1(x)
+        x = self.inception_5a(x)
+        x = self.inception_5b(x)
+        x = self.avgpool(x)
+        x = x.reshape(N, -1)
+        x = self.classifier(x)
+        if self.training == True:
+            return [x, out1, out2]
+        else:
+            return x
 
 def GM_sample_segmentation(segment_size=150, overlap=0):
     sz = str(segment_size)
