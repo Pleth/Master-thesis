@@ -1,5 +1,4 @@
 import sys
-from this import d
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -13,7 +12,6 @@ from LiRA_functions import *
 # from functools import partialmethod
 # tqdm.__init__ = partialmethod(tqdm.__init__, disable=True) 
 
-from tabulate import tabulate
 
 if __name__ == '__main__':
 
@@ -425,23 +423,54 @@ if __name__ == '__main__':
         plt.legend()
         plt.show()
 
-
-
     if sys.argv[1] == 'Deep':
         GM_segments, aran_segments, route_details, dists = GM_sample_segmentation(segment_size=150)
+        DI, cracks, alligator, potholes = calc_target(aran_segments)
+        cut = [10500,18500,15000]
+        splits = DL_splits(aran_segments,route_details,cut)
         
+
+
+        from ssqueezepy import cwt
+        from ssqueezepy.visuals import plot, imshow
         
+       
+        for i in range(10):
+            fig = plt.figure()
+            ax = fig.add_subplot()
+            xtest = np.array(GM_segments[0])
+            Wx, scales = cwt(xtest, 'morlet')
+            id = imshow(Wx, yticks=scales, abs=1)
+            ax.axis(False)
+            ax.set_position([0,0,1,1])
+            fig.savefig("test.png")
+            plt.close(fig)
+
+        im = plt.imread("test.png")
+        imshow(im)
+
+
 
         # prepare the data
         path = 'DL_data'
-        labelsFile = 'DL_data/labelsfile.csv'
+        labelsFile = 'DL_data/labelsfile'
         train_dl, test_dl = prepare_data(path,labelsFile)
         print(len(train_dl.dataset), len(test_dl.dataset))
+
+        train_features, train_labels = next(iter(train_dl))
+        print(f"Feature batch shape: {train_features.size()}")
+        print(f"Labels batch shape: {train_labels.size()}")
+        img = train_features[0] #.squeeze()
+        img1 = img.permute(1,2,0)
+        label = train_labels[0]
+        plt.imshow(img1,cmap="gray")
+        plt.show()
+        print(f"Label: {label}")
         
-        model = CNN_simple(1)
+        model = CNN_simple(4)
         
-        train_model(train_dl, model)
+        train_model(train_dl, model,100)
         
         acc = evaluate_model(test_dl, model)
-        print('Accuracy: %.3f' % acc)
+        print('R2: %.3f' % acc)
 

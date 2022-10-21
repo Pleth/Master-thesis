@@ -15,10 +15,12 @@ from numpy import vstack
 from numpy import argmax
 from pandas import read_csv
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import r2_score
 from torchvision.datasets import MNIST
 from torchvision.transforms import Compose
 from torchvision.transforms import ToTensor
 from torchvision.transforms import Normalize
+from torchvision.transforms import Resize
 from torch.utils.data import DataLoader
 from torch.nn import Conv2d
 from torch.nn import MaxPool2d
@@ -50,7 +52,6 @@ class CustomDataset(torch.utils.data.Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        print("getitem")
         if torch.is_tensor(idx):
             idx = idx.tolist()
         imagePath = self.rootDir + "/" + self.data['Image_path'][idx]
@@ -82,13 +83,13 @@ class CNN_simple(Module):
         # second pooling layer
         self.pool2 = MaxPool2d((2,2), stride=(2,2))
         # fully connected layer
-        self.hidden3 = Linear(5*5*32, 100)
+        self.hidden3 = Linear(54144, 100)
         kaiming_uniform_(self.hidden3.weight, nonlinearity='relu')
         self.act3 = ReLU()
         # output layer
-        self.hidden4 = Linear(100, 10)
+        self.hidden4 = Linear(100, 1)
         xavier_uniform_(self.hidden4.weight)
-        self.act4 = Softmax(dim=1)
+        # self.act4 = Softmax(dim=1)
 
     # forward propagate input
     def forward(self, X):
@@ -101,34 +102,37 @@ class CNN_simple(Module):
         X = self.act2(X)
         X = self.pool2(X)
         # flatten
-        X = X.view(-1, 4*4*50)
+        # print(X.shape)
+        X = X.view(X.size(0), -1)
         # third hidden layer
         X = self.hidden3(X)
         X = self.act3(X)
         # output layer
         X = self.hidden4(X)
-        X = self.act4(X)
+        # X = self.act4(X)
         return X
 
 def prepare_data(path,labelsFile):
     # define standardization
-    sourceTransform = Compose([ToTensor(), Normalize((0.1307,), (0.3081,))])
+    sourceTransform = Compose([ToTensor(), Resize((195,150))]) # (195,150)
     # load dataset
-    train = CustomDataset(labelsFile, path+'/train/', sourceTransform)
-    test = CustomDataset(labelsFile, path+'/test/', sourceTransform)
+    train = CustomDataset(labelsFile+"_train.csv", path+'/train/', sourceTransform) 
+    test = CustomDataset(labelsFile+"_test.csv", path+'/test/', sourceTransform)
     # prepare data loaders
     train_dl = DataLoader(train, batch_size=64, shuffle=True)
     test_dl = DataLoader(test, batch_size=1024, shuffle=False)
     return train_dl, test_dl
 
 # train the model
-def train_model(train_dl, model):
+def train_model(train_dl, model,epochs):
     # define the optimization
-    # criterion = MSELoss()
-    criterion = CrossEntropyLoss()
-    optimizer = SGD(model.parameters(), lr=0.01, momentum=0.9)
+    criterion = MSELoss()
+    # criterion = CrossEntropyLoss()
+    optimizer = SGD(model.parameters(), lr=0.0001, momentum=0.9)
     # enumerate epochs
-    for epoch in range(10):
+    for epoch in range(epochs):
+        epoch_loss = 0.0
+        running_loss = 0.0
         # enumerate mini batches
         for i, (inputs, targets) in enumerate(train_dl):
             # clear the gradients
@@ -136,11 +140,21 @@ def train_model(train_dl, model):
             # compute the model output
             yhat = model(inputs)
             # calculate loss
-            loss = criterion(yhat, targets)
+            loss = criterion(yhat, targets.reshape((-1,1)).float())
             # credit assignment
             loss.backward()
             # update model weights
             optimizer.step()
+
+            epoch_loss += yhat.shape[0] * loss.item()
+
+            # print statistics
+            running_loss += loss.item()
+            if i % 1 == 0:    
+                # print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / 2000))
+                running_loss = 0.0
+        # print epoch loss
+        print(epoch+1, epoch_loss / len(train_dl.dataset))
 
 # evaluate the model
 def evaluate_model(test_dl, model):
@@ -161,7 +175,7 @@ def evaluate_model(test_dl, model):
         actuals.append(actual)
     predictions, actuals = vstack(predictions), vstack(actuals)
     # calculate accuracy
-    acc = accuracy_score(actuals, predictions)
+    acc = r2_score(actuals, predictions)
     return acc
 
 class ConvBlock(nn.Module):
@@ -291,6 +305,105 @@ class MyGoogleNet(nn.Module):
             return [x, out1, out2]
         else:
             return x
+
+def create_cwt_data(GM_segments,splits,target):
+    from ssqueezepy import cwt
+    from ssqueezepy.visuals import plot, imshow
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+
+    labels = []
+    paths = []
+    for i in tqdm(splits['1']):
+        fig = plt.figure()
+        ax = fig.add_subplot()
+        xtest = np.array(GM_segments[i])
+        Wx, scales = cwt(xtest, 'morlet')
+        imshow(Wx, yticks=scales, abs=1)
+        _ = ax.axis(False)
+        ax.set_position([0,0,1,1])
+        fig.savefig("DL_data/test/cwt_im_"+str(i).zfill(4)+".png")
+        plt.close(fig)
+
+        labels.append(target[i])
+        paths.append("cwt_im_"+str(i).zfill(4)+".png")
+
+    d = {'Image_path': paths, 'Condition': labels}
+    df = pd.DataFrame(d)
+    df.to_csv("DL_data/labelsfile_test.csv",index=False)
+    
+    train_split = splits['2'] + splits['3'] + splits['4'] + splits['5']
+    labels = []
+    paths = []
+    for i in tqdm(train_split):
+        fig = plt.figure()
+        ax = fig.add_subplot()
+        xtest = np.array(GM_segments[i])
+        Wx, scales = cwt(xtest, 'morlet')
+        imshow(Wx, yticks=scales, abs=1)
+        _ = ax.axis(False)
+        ax.set_position([0,0,1,1])
+        fig.savefig("DL_data/train/cwt_im_"+str(i).zfill(4)+".png")
+        plt.close(fig)
+
+        labels.append(target[i])
+        paths.append("cwt_im_"+str(i).zfill(4)+".png")
+
+    d = {'Image_path': paths, 'Condition': labels}
+    df = pd.DataFrame(d)
+    df.to_csv("DL_data/labelsfile_train.csv",index=False)
+
+    return
+
+def DL_splits(aran_segments,route_details,cut):
+
+    cph1 = []
+    cph6 = []
+    for i in range(len(route_details)):
+        if (route_details[i][:7] == 'CPH1_VH') | (route_details[i][:7] == 'CPH1_HH'):
+            cph1.append(i)
+        elif  (route_details[i][:7] == 'CPH6_VH') | (route_details[i][:7] == 'CPH6_HH'):
+            cph6.append(i)
+
+    cph1_aran = {}
+    for i in cph1:
+        cph1_aran[i] = aran_segments.loc[i]
+    cph1_aran = pd.concat(cph1_aran)
+
+    cph6_aran = {}
+    for i in cph6:
+        cph6_aran[i] = aran_segments.loc[i]
+    cph6_aran = pd.concat(cph6_aran)
+
+    cph1_aran.index = cph1_aran.index.get_level_values(0)
+    cph6_aran.index = cph6_aran.index.get_level_values(0)
+
+    split1 = []
+    for i in list(cph1_aran[cph1_aran['BeginChainage'] < cut[0]].index):
+       if i not in split1:
+          split1.append(i)
+    split2 = []
+    for i in list(cph1_aran[(cph1_aran['BeginChainage'] >= cut[0]) & (cph1_aran['BeginChainage'] <= cut[1]) ].index):
+       if i not in split2:
+          split2.append(i)
+    split3 = []
+    for i in list(cph1_aran[cph1_aran['BeginChainage'] > cut[1]].index):
+       if i not in split3:
+          split3.append(i)
+    
+    split4 = []
+    for i in list(cph6_aran[(cph6_aran['BeginChainage'] < cut[2]) & (cph6_aran['BeginChainage'] > 7500) ].index):
+       if i not in split4:
+          split4.append(i)
+    split5 = []
+    for i in list(cph6_aran[(cph6_aran['BeginChainage'] >= cut[2]) & (cph6_aran['BeginChainage'] > 7500)].index):
+       if i not in split5:
+          split5.append(i)
+    
+    splits = {'1': split1, '2': split2, '3': split3, '4': split4, '5': split5}
+
+    return splits
 
 def GM_sample_segmentation(segment_size=150, overlap=0):
     sz = str(segment_size)
