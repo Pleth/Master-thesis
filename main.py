@@ -423,33 +423,25 @@ if __name__ == '__main__':
         plt.legend()
         plt.show()
 
-    if sys.argv[1] == 'Deep':
+
+    if sys.argv[1] == 'Dataset_create':
         GM_segments, aran_segments, route_details, dists = GM_sample_segmentation(segment_size=150)
         DI, cracks, alligator, potholes = calc_target(aran_segments)
         cut = [10500,18500,15000]
         splits = DL_splits(aran_segments,route_details,cut)
-        
+        target = DI
+        create_cwt_data(GM_segments,splits,target)
 
-
-        from ssqueezepy import cwt
-        from ssqueezepy.visuals import plot, imshow
-        
-       
-        for i in range(10):
-            fig = plt.figure()
-            ax = fig.add_subplot()
-            xtest = np.array(GM_segments[0])
-            Wx, scales = cwt(xtest, 'morlet')
-            id = imshow(Wx, yticks=scales, abs=1)
-            ax.axis(False)
-            ax.set_position([0,0,1,1])
-            fig.savefig("test.png")
-            plt.close(fig)
-
-        im = plt.imread("test.png")
-        imshow(im)
-
-
+    if sys.argv[1] == 'Deep':
+        # fig = plt.figure()
+        # ax = fig.add_subplot()
+        # xtest = np.array(GM_segments[0])
+        # Wx, scales = cwt(xtest, 'morlet')
+        # id = imshow(Wx, yticks=scales, abs=1)
+        # ax.axis(False)
+        # ax.set_position([0,0,1,1])
+        # fig.savefig("test.png")
+        # plt.close(fig)
 
         # prepare the data
         path = 'DL_data'
@@ -469,7 +461,7 @@ if __name__ == '__main__':
         
         model = CNN_simple(4)
         
-        train_model(train_dl, model,100)
+        train_model(train_dl, test_dl, model, 10, 0.001)
         
         acc = evaluate_model(test_dl, model)
         print('R2: %.3f' % acc)

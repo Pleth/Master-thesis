@@ -120,15 +120,15 @@ def prepare_data(path,labelsFile):
     test = CustomDataset(labelsFile+"_test.csv", path+'/test/', sourceTransform)
     # prepare data loaders
     train_dl = DataLoader(train, batch_size=64, shuffle=True)
-    test_dl = DataLoader(test, batch_size=1024, shuffle=False)
+    test_dl = DataLoader(test, batch_size=64, shuffle=False)
     return train_dl, test_dl
 
 # train the model
-def train_model(train_dl, model,epochs):
+def train_model(train_dl, test_dl, model, epochs, lr):
     # define the optimization
     criterion = MSELoss()
     # criterion = CrossEntropyLoss()
-    optimizer = SGD(model.parameters(), lr=0.0001, momentum=0.9)
+    optimizer = SGD(model.parameters(), lr=lr, momentum=0.9)
     # enumerate epochs
     for epoch in range(epochs):
         epoch_loss = 0.0
@@ -156,6 +156,13 @@ def train_model(train_dl, model,epochs):
         # print epoch loss
         print(epoch+1, epoch_loss / len(train_dl.dataset))
 
+        if (epoch+1) % 10 == 0:
+            acc = evaluate_model(train_dl, model)
+            print('Train R2: %.3f' % acc)
+
+            acc = evaluate_model(test_dl, model)
+            print('Test R2: %.3f' % acc)
+
 # evaluate the model
 def evaluate_model(test_dl, model):
     predictions, actuals = list(), list()
@@ -166,7 +173,7 @@ def evaluate_model(test_dl, model):
         yhat = yhat.detach().numpy()
         actual = targets.numpy()
         # convert to class labels
-        yhat = argmax(yhat, axis=1)
+        # yhat = argmax(yhat, axis=1)
         # reshape for stacking
         actual = actual.reshape((len(actual), 1))
         yhat = yhat.reshape((len(yhat), 1))
