@@ -452,16 +452,16 @@ if __name__ == '__main__':
         train_features, train_labels = next(iter(train_dl))
         print(f"Feature batch shape: {train_features.size()}")
         print(f"Labels batch shape: {train_labels.size()}")
-        img = train_features[0] #.squeeze()
-        img1 = img.permute(1,2,0)
-        label = train_labels[0]
-        plt.imshow(img1,cmap="gray")
-        plt.show()
-        print(f"Label: {label}")
+        # img = train_features[0] #.squeeze()
+        # img1 = img.permute(1,2,0)
+        # label = train_labels[0]
+        # plt.imshow(img1,cmap="gray")
+        # plt.show()
+        # print(f"Label: {label}")
         
         model = CNN_simple(4)
         
-        train_model(train_dl, test_dl, model, 10, 0.001)
+        train_model(train_dl, test_dl, model, 100, 0.0001)
         
         acc = evaluate_model(test_dl, model)
         print('R2: %.3f' % acc)
