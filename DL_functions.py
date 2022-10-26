@@ -56,7 +56,13 @@ class CustomDataset(torch.utils.data.Dataset):
             idx = idx.tolist()
         imagePath = self.rootDir + "/" + self.data['Image_path'][idx]
         image = sk.imread(imagePath)
-        label = self.data['Condition'][idx]
+        label = [None] * 4
+        label[0] = self.data['DI'][idx]
+        label[1] = self.data['Cracks'][idx]
+        label[2] = self.data['Alligator'][idx]
+        label[3] = self.data['Potholes'][idx]
+        # label = torch.transpose(torch.stack(label),0,1)
+        label = torch.Tensor(label)
         image = Image.fromarray(image)
 
         if self.sourceTransform:
@@ -87,7 +93,7 @@ class CNN_simple(Module):
         kaiming_uniform_(self.hidden3.weight, nonlinearity='relu')
         self.act3 = ReLU()
         # output layer
-        self.hidden4 = Linear(100, 1)
+        self.hidden4 = Linear(100, 4)
         xavier_uniform_(self.hidden4.weight)
         # self.act4 = Softmax(dim=1)
 
@@ -114,7 +120,7 @@ class CNN_simple(Module):
 
 def prepare_data(path,labelsFile):
     # define standardization
-    sourceTransform = Compose([ToTensor(), Resize((195,150))]) # (195,150)
+    sourceTransform = Compose([ToTensor(), Resize((224,224))]) # (195,150)
     # load dataset
     train = CustomDataset(labelsFile+"_train.csv", path+'/train/', sourceTransform) 
     test = CustomDataset(labelsFile+"_test.csv", path+'/test/', sourceTransform)
@@ -138,9 +144,10 @@ def train_model(train_dl, test_dl, model, epochs, lr):
             # clear the gradients
             optimizer.zero_grad()
             # compute the model output
-            yhat = model(inputs)
+            yhat, aux1, aux2 = model(inputs)
+        
             # calculate loss
-            loss = criterion(yhat, targets.reshape((-1,1)).float())
+            loss = criterion(yhat, targets) + 0.3 * criterion(aux1,targets) + 0.3 * criterion(aux2,targets)
             # credit assignment
             loss.backward()
             # update model weights
@@ -158,31 +165,31 @@ def train_model(train_dl, test_dl, model, epochs, lr):
 
         if (epoch+1) % 10 == 0:
             acc = evaluate_model(train_dl, model)
-            print('Train R2: %.3f' % acc)
+            print('Train R2 - DI: %.3f' % acc[0] + ' Cracks: %.3f' % acc[1] + ' Alligator: %.3f' % acc[2] + ' Potholes: %.3f' % acc[3])
 
             acc = evaluate_model(test_dl, model)
-            print('Test R2: %.3f' % acc)
+            print('Test R2 - DI: %.3f' % acc[0] + ' Cracks: %.3f' % acc[1] + ' Alligator: %.3f' % acc[2] + ' Potholes: %.3f' % acc[3])
 
 # evaluate the model
 def evaluate_model(test_dl, model):
     predictions, actuals = list(), list()
     for i, (inputs, targets) in enumerate(test_dl):
         # evaluate the model on the test set
-        yhat = model(inputs)
+        yhat, _, _ = model(inputs)
         # retrieve numpy array
         yhat = yhat.detach().numpy()
         actual = targets.numpy()
         # convert to class labels
         # yhat = argmax(yhat, axis=1)
         # reshape for stacking
-        actual = actual.reshape((len(actual), 1))
-        yhat = yhat.reshape((len(yhat), 1))
+        actual = actual.reshape((len(actual), 4))
+        yhat = yhat.reshape((len(yhat), 4))
         # store
         predictions.append(yhat)
         actuals.append(actual)
     predictions, actuals = vstack(predictions), vstack(actuals)
     # calculate accuracy
-    acc = r2_score(actuals, predictions)
+    acc = r2_score(actuals, predictions,multioutput='raw_values')
     return acc
 
 class ConvBlock(nn.Module):
@@ -313,14 +320,17 @@ class MyGoogleNet(nn.Module):
         else:
             return x
 
-def create_cwt_data(GM_segments,splits,target):
+def create_cwt_data(GM_segments,splits,targets):
     from ssqueezepy import cwt
     from ssqueezepy.visuals import plot, imshow
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
 
-    labels = []
+    DI_lab = []
+    cracks_lab = []
+    alligator_lab = []
+    pothole_lab = []
     paths = []
     for i in tqdm(splits['1']):
         fig = plt.figure()
@@ -333,15 +343,21 @@ def create_cwt_data(GM_segments,splits,target):
         fig.savefig("DL_data/test/cwt_im_"+str(i).zfill(4)+".png")
         plt.close(fig)
 
-        labels.append(target[i])
+        DI_lab.append(targets[0][i])
+        cracks_lab.append(targets[1][i])
+        alligator_lab.append(targets[2][i])
+        pothole_lab.append(targets[3][i])
         paths.append("cwt_im_"+str(i).zfill(4)+".png")
 
-    d = {'Image_path': paths, 'Condition': labels}
+    d = {'Image_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
     df = pd.DataFrame(d)
     df.to_csv("DL_data/labelsfile_test.csv",index=False)
     
     train_split = splits['2'] + splits['3'] + splits['4'] + splits['5']
-    labels = []
+    DI_lab = []
+    cracks_lab = []
+    alligator_lab = []
+    pothole_lab = []
     paths = []
     for i in tqdm(train_split):
         fig = plt.figure()
@@ -354,10 +370,13 @@ def create_cwt_data(GM_segments,splits,target):
         fig.savefig("DL_data/train/cwt_im_"+str(i).zfill(4)+".png")
         plt.close(fig)
 
-        labels.append(target[i])
+        DI_lab.append(targets[0][i])
+        cracks_lab.append(targets[1][i])
+        alligator_lab.append(targets[2][i])
+        pothole_lab.append(targets[3][i])
         paths.append("cwt_im_"+str(i).zfill(4)+".png")
 
-    d = {'Image_path': paths, 'Condition': labels}
+    d = {'Image_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
     df = pd.DataFrame(d)
     df.to_csv("DL_data/labelsfile_train.csv",index=False)
 

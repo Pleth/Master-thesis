@@ -429,8 +429,12 @@ if __name__ == '__main__':
         DI, cracks, alligator, potholes = calc_target(aran_segments)
         cut = [10500,18500,15000]
         splits = DL_splits(aran_segments,route_details,cut)
-        target = DI
-        create_cwt_data(GM_segments,splits,target)
+        targets = {}
+        targets[0] = DI
+        targets[1] = cracks
+        targets[2] = alligator
+        targets[3] = potholes
+        create_cwt_data(GM_segments,splits,targets)
 
     if sys.argv[1] == 'Deep':
         # fig = plt.figure()
@@ -459,10 +463,13 @@ if __name__ == '__main__':
         # plt.show()
         # print(f"Label: {label}")
         
-        model = CNN_simple(4)
-        
-        train_model(train_dl, test_dl, model, 100, 0.0001)
+        # model = CNN_simple(4)
+        model = MyGoogleNet(in_fts=4,num_class=4)
+        # print(model)
+        train_model(train_dl, test_dl, model, 1, 0.001)
         
         acc = evaluate_model(test_dl, model)
-        print('R2: %.3f' % acc)
+        print('R2 - DI: %.3f' % acc[0] + ' Cracks: %.3f' % acc[1] + ' Alligator: %.3f' % acc[2] + ' Potholes: %.3f' % acc[3])
+
+
 
