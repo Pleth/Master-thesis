@@ -136,8 +136,12 @@ def prepare_data(path,labelsFile,batch_size,nr_tar):
     return train_dl, val_dl, test_dl
 
 # train the model
-def train_model(train_dl, test_dl, model, epochs, lr):
+def train_model(train_dl, val_dl, model, epochs, lr):
     # define the optimization
+    max_acc = -5
+    loss_save = []
+    R2_train = []
+    R2_val = []
     criterion = MSELoss()
     # criterion = CrossEntropyLoss()
     optimizer = SGD(model.parameters(), lr=lr, momentum=0.9)
@@ -172,20 +176,38 @@ def train_model(train_dl, test_dl, model, epochs, lr):
                 running_loss = 0.0
         # print epoch loss
         print(epoch+1, epoch_loss / len(train_dl.dataset))
+        loss_save.append(epoch_loss / len(train_dl.dataset))
 
-        if ((epoch+1) % 1 == 0) & ((epoch+1)>=1):
+        if ((epoch+1) % 10 == 0) & ((epoch+1)>=1):
             if yhat.size()[1] == 1:
-                acc = evaluate_model(train_dl, model)
-                print('Train R2 - DI: %.3f' % acc)
+                acc_t = evaluate_model(train_dl, model)
+                print('Train R2 - DI: %.3f' % acc_t)
+                R2_train.append(acc_t)
 
-                acc = evaluate_model(test_dl, model)
-                print('Test R2 - DI: %.3f' % acc)
+                acc_v = evaluate_model(val_dl, model)
+                print('Val R2 - DI: %.3f' % acc_v)
+                R2_val.append(acc_v)
             else:
                 acc = evaluate_model(train_dl, model)
                 print('Train R2 - DI: %.3f' % acc[0] + ' Cracks: %.3f' % acc[1] + ' Alligator: %.3f' % acc[2] + ' Potholes: %.3f' % acc[3])
 
-                acc = evaluate_model(test_dl, model)
-                print('Test R2 - DI: %.3f' % acc[0] + ' Cracks: %.3f' % acc[1] + ' Alligator: %.3f' % acc[2] + ' Potholes: %.3f' % acc[3])
+                acc = evaluate_model(val_dl, model)
+                print('Val R2 - DI: %.3f' % acc[0] + ' Cracks: %.3f' % acc[1] + ' Alligator: %.3f' % acc[2] + ' Potholes: %.3f' % acc[3])
+        
+        if acc_v > max_acc:
+            torch.save(model.state_dict(), "models/your_model_path.pt")
+
+        with open("loss_save.csv", 'w', newline='') as myfile:
+            wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
+            wr.writerow(loss_save)
+
+        with open("R2_train.csv", 'w', newline='') as myfile:
+            wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
+            wr.writerow(R2_train)
+
+        with open("R2_val.csv", 'w', newline='') as myfile:
+            wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
+            wr.writerow(R2_val)
 
 # evaluate the model
 def evaluate_model(test_dl, model):
