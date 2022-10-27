@@ -138,6 +138,9 @@ def prepare_data(path,labelsFile,batch_size,nr_tar):
 # train the model
 def train_model(train_dl, val_dl, model, epochs, lr):
     # define the optimization
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print(device)
+    model = model.to(device)
     max_acc = -5
     loss_save = []
     R2_train = []
@@ -147,10 +150,12 @@ def train_model(train_dl, val_dl, model, epochs, lr):
     optimizer = SGD(model.parameters(), lr=lr, momentum=0.9)
     # enumerate epochs
     for epoch in range(epochs):
+        model.train()
         epoch_loss = 0.0
         running_loss = 0.0
         # enumerate mini batches
         for i, (inputs, targets) in enumerate(train_dl):
+            inputs, targets = inputs.to(device), targets.to(device)
             # clear the gradients
             optimizer.zero_grad()
             # compute the model output
@@ -179,23 +184,25 @@ def train_model(train_dl, val_dl, model, epochs, lr):
         loss_save.append(epoch_loss / len(train_dl.dataset))
 
         if ((epoch+1) % 10 == 0) & ((epoch+1)>=1):
-            if yhat.size()[1] == 1:
-                acc_t = evaluate_model(train_dl, model)
-                print('Train R2 - DI: %.3f' % acc_t)
-                R2_train.append(acc_t)
+            model.eval()
+            with torch.no_grad():
+                if yhat.size()[1] == 1:
+                    acc_t = evaluate_model(train_dl, model)
+                    print('Train R2 - DI: %.3f' % acc_t)
+                    R2_train.append(acc_t)
 
-                acc_v = evaluate_model(val_dl, model)
-                print('Val R2 - DI: %.3f' % acc_v)
-                R2_val.append(acc_v)
-            else:
-                acc = evaluate_model(train_dl, model)
-                print('Train R2 - DI: %.3f' % acc[0] + ' Cracks: %.3f' % acc[1] + ' Alligator: %.3f' % acc[2] + ' Potholes: %.3f' % acc[3])
+                    acc_v = evaluate_model(val_dl, model)
+                    print('Val R2 - DI: %.3f' % acc_v)
+                    R2_val.append(acc_v)
+                else:
+                    acc = evaluate_model(train_dl, model)
+                    print('Train R2 - DI: %.3f' % acc[0] + ' Cracks: %.3f' % acc[1] + ' Alligator: %.3f' % acc[2] + ' Potholes: %.3f' % acc[3])
 
-                acc = evaluate_model(val_dl, model)
-                print('Val R2 - DI: %.3f' % acc[0] + ' Cracks: %.3f' % acc[1] + ' Alligator: %.3f' % acc[2] + ' Potholes: %.3f' % acc[3])
-        
-        if acc_v > max_acc:
-            torch.save(model.state_dict(), "models/your_model_path.pt")
+                    acc = evaluate_model(val_dl, model)
+                    print('Val R2 - DI: %.3f' % acc[0] + ' Cracks: %.3f' % acc[1] + ' Alligator: %.3f' % acc[2] + ' Potholes: %.3f' % acc[3])
+
+            if acc_v > max_acc:
+                torch.save(model.state_dict(), "models/your_model_path.pt")
 
         with open("loss_save.csv", 'w', newline='') as myfile:
             wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
@@ -211,14 +218,17 @@ def train_model(train_dl, val_dl, model, epochs, lr):
 
 # evaluate the model
 def evaluate_model(test_dl, model):
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    model = model.to(device)
     predictions, actuals = list(), list()
     for i, (inputs, targets) in enumerate(test_dl):
+        inputs, targets = inputs.to(device), targets.to(device)
         # evaluate the model on the test set
         # yhat, _, _ = model(inputs)
         yhat = model(inputs)
         # retrieve numpy array
-        yhat = yhat.detach().numpy()
-        actual = targets.numpy()
+        yhat = yhat.detach().cpu().numpy()
+        actual = targets.cpu().numpy()
         # convert to class labels
         # yhat = argmax(yhat, axis=1)
         # reshape for stacking

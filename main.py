@@ -454,6 +454,7 @@ if __name__ == '__main__':
         create_cwt_data(GM_segments,splits,targets,'DL_synth_data','synth')
 
     if sys.argv[1] == 'Deep':
+        print('Deep')
         # fig = plt.figure()
         # ax = fig.add_subplot()
         # xtest = np.array(GM_segments[0])
@@ -482,17 +483,14 @@ if __name__ == '__main__':
         # plt.imshow(img1,cmap="gray")
         # plt.show()
         # print(f"Label: {label}")
-        
         # model = CNN_simple(4)
         model = MyGoogleNet(in_fts=4,num_class=1)
         # print(model)
         train_model(train_dl, val_dl, model, 200, 0.001)
         
-
-
         model_test = MyGoogleNet(in_fts=4,num_class=1)
         model_test.load_state_dict(torch.load("models/your_model_path.pt"))
-
+        model.eval()
         acc = evaluate_model(test_dl, model_test)
         print('Test R2 - DI: %.3f' % acc)
 
