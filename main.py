@@ -486,7 +486,7 @@ if __name__ == '__main__':
         # model = CNN_simple(4)
         model = MyGoogleNet(in_fts=4,num_class=1)
         # print(model)
-        train_model(train_dl, val_dl, model, 2, 0.001)
+        train_model(train_dl, val_dl, model, 200, 0.001)
         
 
 

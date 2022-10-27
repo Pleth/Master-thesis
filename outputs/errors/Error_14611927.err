@@ -1,0 +1,38 @@
+Traceback (most recent call last):
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/main.py", line 8, in <module>
+    from functions import *
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/functions.py", line 8, in <module>
+    import tsfel
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/tsfel/__init__.py", line 1, in <module>
+    from tsfel.utils import *
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/tsfel/utils/__init__.py", line 1, in <module>
+    from tsfel.utils.gSheetsFilters import *
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/tsfel/utils/gSheetsFilters.py", line 9, in <module>
+    from tsfel.feature_extraction.features_settings import load_json
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/tsfel/feature_extraction/__init__.py", line 2, in <module>
+    from tsfel.feature_extraction.features import *
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/tsfel/feature_extraction/features.py", line 1, in <module>
+    import scipy.signal
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/scipy/signal/__init__.py", line 323, in <module>
+    from ._filter_design import *
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/scipy/signal/_filter_design.py", line 16, in <module>
+    from scipy import special, optimize, fft as sp_fft
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/scipy/optimize/__init__.py", line 400, in <module>
+    from ._minimize import *
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/scipy/optimize/_minimize.py", line 27, in <module>
+    from ._trustregion_constr import _minimize_trustregion_constr
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/scipy/optimize/_trustregion_constr/__init__.py", line 4, in <module>
+    from .minimize_trustregion_constr import _minimize_trustregion_constr
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/scipy/optimize/_trustregion_constr/minimize_trustregion_constr.py", line 5, in <module>
+    from .._constraints import (
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/scipy/optimize/_constraints.py", line 8, in <module>
+    from numpy.testing import suppress_warnings
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/numpy/testing/__init__.py", line 8, in <module>
+    from unittest import TestCase
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 986, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 680, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 846, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 941, in get_code
+  File "<frozen importlib._bootstrap_external>", line 1039, in get_data
+KeyboardInterrupt
