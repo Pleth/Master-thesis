@@ -448,9 +448,10 @@ if __name__ == '__main__':
         # plt.close(fig)
 
         # prepare the data
+        batch_size = 16
         path = 'DL_data'
         labelsFile = 'DL_data/labelsfile'
-        train_dl, test_dl = prepare_data(path,labelsFile)
+        train_dl, test_dl = prepare_data(path,labelsFile,batch_size)
         print(len(train_dl.dataset), len(test_dl.dataset))
 
         train_features, train_labels = next(iter(train_dl))
@@ -466,7 +467,7 @@ if __name__ == '__main__':
         # model = CNN_simple(4)
         model = MyGoogleNet(in_fts=4,num_class=4)
         # print(model)
-        train_model(train_dl, test_dl, model, 100, 0.001)
+        train_model(train_dl, test_dl, model, 100, 0.0001)
         
         acc = evaluate_model(test_dl, model)
         print('R2 - DI: %.3f' % acc[0] + ' Cracks: %.3f' % acc[1] + ' Alligator: %.3f' % acc[2] + ' Potholes: %.3f' % acc[3])

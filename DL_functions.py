@@ -118,15 +118,15 @@ class CNN_simple(Module):
         # X = self.act4(X)
         return X
 
-def prepare_data(path,labelsFile):
+def prepare_data(path,labelsFile,batch_size):
     # define standardization
     sourceTransform = Compose([ToTensor(), Resize((224,224))]) # (195,150)
     # load dataset
     train = CustomDataset(labelsFile+"_train.csv", path+'/train/', sourceTransform) 
     test = CustomDataset(labelsFile+"_test.csv", path+'/test/', sourceTransform)
     # prepare data loaders
-    train_dl = DataLoader(train, batch_size=64, shuffle=True)
-    test_dl = DataLoader(test, batch_size=64, shuffle=False)
+    train_dl = DataLoader(train, batch_size=batch_size, shuffle=True)
+    test_dl = DataLoader(test, batch_size=batch_size, shuffle=False)
     return train_dl, test_dl
 
 # train the model
@@ -144,10 +144,11 @@ def train_model(train_dl, test_dl, model, epochs, lr):
             # clear the gradients
             optimizer.zero_grad()
             # compute the model output
-            yhat, aux1, aux2 = model(inputs)
-        
+            # yhat, aux1, aux2 = model(inputs)
+            yhat = model(inputs)
             # calculate loss
-            loss = criterion(yhat, targets) + 0.3 * criterion(aux1,targets) + 0.3 * criterion(aux2,targets)
+            # loss = criterion(yhat, targets) + 0.3 * criterion(aux1,targets) + 0.3 * criterion(aux2,targets)
+            loss = criterion(yhat,targets)
             # credit assignment
             loss.backward()
             # update model weights
@@ -163,7 +164,7 @@ def train_model(train_dl, test_dl, model, epochs, lr):
         # print epoch loss
         print(epoch+1, epoch_loss / len(train_dl.dataset))
 
-        if (epoch+1) % 10 == 0:
+        if ((epoch+1) % 1 == 0) & ((epoch+1)>=10):
             acc = evaluate_model(train_dl, model)
             print('Train R2 - DI: %.3f' % acc[0] + ' Cracks: %.3f' % acc[1] + ' Alligator: %.3f' % acc[2] + ' Potholes: %.3f' % acc[3])
 
@@ -175,7 +176,8 @@ def evaluate_model(test_dl, model):
     predictions, actuals = list(), list()
     for i, (inputs, targets) in enumerate(test_dl):
         # evaluate the model on the test set
-        yhat, _, _ = model(inputs)
+        # yhat, _, _ = model(inputs)
+        yhat = model(inputs)
         # retrieve numpy array
         yhat = yhat.detach().numpy()
         actual = targets.numpy()
@@ -304,21 +306,22 @@ class MyGoogleNet(nn.Module):
         x = self.maxpool1(x)
         x = self.inception_4a(x)
         out1 = self.aux_classifier1(x)
-        x = self.inception_4b(x)
-        x = self.inception_4c(x)
-        x = self.inception_4d(x)
-        out2 = self.aux_classifier2(x)
-        x = self.inception_4e(x)
-        x = self.maxpool1(x)
-        x = self.inception_5a(x)
-        x = self.inception_5b(x)
-        x = self.avgpool(x)
-        x = x.reshape(N, -1)
-        x = self.classifier(x)
-        if self.training == True:
-            return [x, out1, out2]
-        else:
-            return x
+        # x = self.inception_4b(x)
+        # x = self.inception_4c(x)
+        # x = self.inception_4d(x)
+        # out2 = self.aux_classifier2(x)
+        # x = self.inception_4e(x)
+        # x = self.maxpool1(x)
+        # x = self.inception_5a(x)
+        # x = self.inception_5b(x)
+        # x = self.avgpool(x)
+        # x = x.reshape(N, -1)
+        # x = self.classifier(x)
+        # if self.training == True:
+        #     return [x, out1, out2]
+        # else:
+        #     return x
+        return out1
 
 def create_cwt_data(GM_segments,splits,targets):
     from ssqueezepy import cwt
