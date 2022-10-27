@@ -4,6 +4,7 @@ from tqdm import tqdm
 import glob
 import h5py
 import matplotlib.pyplot as plt
+from bisect import bisect_left
 
 import csv
 
@@ -42,10 +43,11 @@ from PIL import ImageTk, Image
 
 
 class CustomDataset(torch.utils.data.Dataset):
-    def __init__(self, labelsFile, rootDir, sourceTransform):
+    def __init__(self, labelsFile, rootDir, sourceTransform, nr_tar):
         self.data = pd.read_csv(labelsFile)
         self.rootDir = rootDir
         self.sourceTransform = sourceTransform
+        self.nr = nr_tar
         return
 
     def __len__(self):
@@ -56,13 +58,15 @@ class CustomDataset(torch.utils.data.Dataset):
             idx = idx.tolist()
         imagePath = self.rootDir + "/" + self.data['Image_path'][idx]
         image = sk.imread(imagePath)
-        label = [None] * 4
-        label[0] = self.data['DI'][idx]
-        label[1] = self.data['Cracks'][idx]
-        label[2] = self.data['Alligator'][idx]
-        label[3] = self.data['Potholes'][idx]
-        # label = torch.transpose(torch.stack(label),0,1)
-        label = torch.Tensor(label)
+        if self.nr == 1:
+            label = self.data['DI'][idx]
+        else:
+            label = [None] * 4
+            label[0] = self.data['DI'][idx]
+            label[1] = self.data['Cracks'][idx]
+            label[2] = self.data['Alligator'][idx]
+            label[3] = self.data['Potholes'][idx]
+            label = torch.Tensor(label)
         image = Image.fromarray(image)
 
         if self.sourceTransform:
@@ -118,16 +122,18 @@ class CNN_simple(Module):
         # X = self.act4(X)
         return X
 
-def prepare_data(path,labelsFile,batch_size):
+def prepare_data(path,labelsFile,batch_size,nr_tar):
     # define standardization
     sourceTransform = Compose([ToTensor(), Resize((224,224))]) # (195,150)
     # load dataset
-    train = CustomDataset(labelsFile+"_train.csv", path+'/train/', sourceTransform) 
-    test = CustomDataset(labelsFile+"_test.csv", path+'/test/', sourceTransform)
+    train = CustomDataset(labelsFile+"_train.csv", path+'/train/', sourceTransform, nr_tar) 
+    val = CustomDataset(labelsFile+"_val.csv", path+'/val/', sourceTransform, nr_tar)
+    test = CustomDataset(labelsFile+"_test.csv", path+'/test/', sourceTransform, nr_tar)
     # prepare data loaders
     train_dl = DataLoader(train, batch_size=batch_size, shuffle=True)
+    val_dl = DataLoader(val, batch_size=batch_size, shuffle=False)
     test_dl = DataLoader(test, batch_size=batch_size, shuffle=False)
-    return train_dl, test_dl
+    return train_dl, val_dl, test_dl
 
 # train the model
 def train_model(train_dl, test_dl, model, epochs, lr):
@@ -148,7 +154,10 @@ def train_model(train_dl, test_dl, model, epochs, lr):
             yhat = model(inputs)
             # calculate loss
             # loss = criterion(yhat, targets) + 0.3 * criterion(aux1,targets) + 0.3 * criterion(aux2,targets)
-            loss = criterion(yhat,targets)
+            if yhat.size()[1] == 1:
+                loss = criterion(yhat,targets.unsqueeze(1).float())
+            else:
+                loss = criterion(yhat,targets)
             # credit assignment
             loss.backward()
             # update model weights
@@ -323,9 +332,9 @@ class MyGoogleNet(nn.Module):
         #     return x
         return out1
 
-def create_cwt_data(GM_segments,splits,targets):
+def create_cwt_data(GM_segments,splits,targets,path,check):
     from ssqueezepy import cwt
-    from ssqueezepy.visuals import plot, imshow
+    from ssqueezepy.visuals import imshow
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
@@ -343,7 +352,7 @@ def create_cwt_data(GM_segments,splits,targets):
         imshow(Wx, yticks=scales, abs=1)
         _ = ax.axis(False)
         ax.set_position([0,0,1,1])
-        fig.savefig("DL_data/test/cwt_im_"+str(i).zfill(4)+".png")
+        fig.savefig(path+"/test/cwt_im_"+str(i).zfill(4)+".png")
         plt.close(fig)
 
         DI_lab.append(targets[0][i])
@@ -354,9 +363,39 @@ def create_cwt_data(GM_segments,splits,targets):
 
     d = {'Image_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
     df = pd.DataFrame(d)
-    df.to_csv("DL_data/labelsfile_test.csv",index=False)
+    df.to_csv(path+"/labelsfile_test.csv",index=False)
+
+    DI_lab = []
+    cracks_lab = []
+    alligator_lab = []
+    pothole_lab = []
+    paths = []
+    for i in tqdm(splits['2']):
+        fig = plt.figure()
+        ax = fig.add_subplot()
+        xtest = np.array(GM_segments[i])
+        Wx, scales = cwt(xtest, 'morlet')
+        imshow(Wx, yticks=scales, abs=1)
+        _ = ax.axis(False)
+        ax.set_position([0,0,1,1])
+        fig.savefig(path+"/val/cwt_im_"+str(i).zfill(4)+".png")
+        plt.close(fig)
+
+        DI_lab.append(targets[0][i])
+        cracks_lab.append(targets[1][i])
+        alligator_lab.append(targets[2][i])
+        pothole_lab.append(targets[3][i])
+        paths.append("cwt_im_"+str(i).zfill(4)+".png")
+
+    d = {'Image_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
+    df = pd.DataFrame(d)
+    df.to_csv(path+"/labelsfile_val.csv",index=False)
     
-    train_split = splits['2'] + splits['3'] + splits['4'] + splits['5']
+    if check == 'real':
+        train_split = splits['3'] + splits['4']
+    else:
+        train_split = splits['3'] + splits['4'] + splits['5'] + splits['6']
+
     DI_lab = []
     cracks_lab = []
     alligator_lab = []
@@ -370,7 +409,7 @@ def create_cwt_data(GM_segments,splits,targets):
         imshow(Wx, yticks=scales, abs=1)
         _ = ax.axis(False)
         ax.set_position([0,0,1,1])
-        fig.savefig("DL_data/train/cwt_im_"+str(i).zfill(4)+".png")
+        fig.savefig(path+"/train/cwt_im_"+str(i).zfill(4)+".png")
         plt.close(fig)
 
         DI_lab.append(targets[0][i])
@@ -381,7 +420,7 @@ def create_cwt_data(GM_segments,splits,targets):
 
     d = {'Image_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
     df = pd.DataFrame(d)
-    df.to_csv("DL_data/labelsfile_train.csv",index=False)
+    df.to_csv(path+"/labelsfile_train.csv",index=False)
 
     return
 
@@ -417,20 +456,24 @@ def DL_splits(aran_segments,route_details,cut):
        if i not in split2:
           split2.append(i)
     split3 = []
-    for i in list(cph1_aran[cph1_aran['BeginChainage'] > cut[1]].index):
+    for i in list(cph1_aran[(cph1_aran['BeginChainage'] >= cut[1]) & (cph1_aran['BeginChainage'] <= cut[2]) ].index):
        if i not in split3:
           split3.append(i)
-    
     split4 = []
-    for i in list(cph6_aran[(cph6_aran['BeginChainage'] < cut[2]) & (cph6_aran['BeginChainage'] > 7500) ].index):
+    for i in list(cph1_aran[cph1_aran['BeginChainage'] > cut[2]].index):
        if i not in split4:
           split4.append(i)
+    
     split5 = []
-    for i in list(cph6_aran[(cph6_aran['BeginChainage'] >= cut[2]) & (cph6_aran['BeginChainage'] > 7500)].index):
+    for i in list(cph6_aran[(cph6_aran['BeginChainage'] < cut[3]) & (cph6_aran['BeginChainage'] > 7500) ].index):
        if i not in split5:
           split5.append(i)
+    split6 = []
+    for i in list(cph6_aran[(cph6_aran['BeginChainage'] >= cut[3]) & (cph6_aran['BeginChainage'] > 7500)].index):
+       if i not in split6:
+          split6.append(i)
     
-    splits = {'1': split1, '2': split2, '3': split3, '4': split4, '5': split5}
+    splits = {'1': split1, '2': split2, '3': split3, '4': split4, '5': split5, '6': split6}
 
     return splits
 
@@ -539,6 +582,183 @@ def GM_sample_segmentation(segment_size=150, overlap=0):
             wr.writerow(dists)
 
     return synth_segments, aran_segment_details, route_details, dists
+
+
+def synthetic_sample_segmentation(synth_acc,routes,segment_size=5,overlap=0):
+    sz = str(segment_size)
+    if os.path.isfile("synth_data/sample/"+"aran_segments_"+sz+".csv"):
+        synth_segments = pd.read_csv("synth_data/sample/"+"synthetic_segments_"+sz+".csv")
+        synth_segments.columns = synth_segments.columns.astype(int)
+        aran_segment_details = pd.read_csv("synth_data/sample/"+"aran_segments_"+sz+".csv",index_col=[0,1])
+        route_details = eval(open("synth_data/sample/routes_details_"+sz+".txt", 'r').read())
+        with open("synth_data/sample/distances_"+sz+".csv", newline='') as f:
+            reader = csv.reader(f)
+            temp = list(reader)
+        dists = [float(i) for i in temp[0]]
+        print("Loaded already segmented data")              
+        
+    else:    
+        files = glob.glob("p79/*.csv")
+        df_cph1_hh = pd.read_csv('p79/CPH1_HH.csv')
+        df_cph1_hh.drop(df_cph1_hh.columns.difference(['Distance','Latitude','Longitude']),axis=1,inplace=True)
+        df_cph1_vh = pd.read_csv('p79/CPH1_VH.csv')
+        df_cph1_vh.drop(df_cph1_vh.columns.difference(['Distance','Latitude','Longitude']),axis=1,inplace=True)
+        df_cph6_hh = pd.read_csv('p79/CPH6_HH.csv')
+        df_cph6_hh.drop(df_cph6_hh.columns.difference(['Distance','Latitude','Longitude']),axis=1,inplace=True)
+        df_cph6_vh = pd.read_csv('p79/CPH6_VH.csv')
+        df_cph6_vh.drop(df_cph6_vh.columns.difference(['Distance','Latitude','Longitude']),axis=1,inplace=True)
+        iter = 0
+        segments = {}
+        aran_segment_details = {}
+        route_details = {}
+        dists = []
+        for j in tqdm(range(len(routes))):
+            synth = synth_acc[j]
+            synth = synth[synth['synth_acc'].notna()]
+            synth = synth[synth['gm_speed'] >= 20]
+            synth = synth.reset_index(drop=True)
+            route = routes[j][:7]
+
+            if route == 'CPH1_HH':
+                p79_gps = df_cph1_hh
+                hdf5_route = ('aligned_data/'+route+'.hdf5')
+                hdf5file = h5py.File(hdf5_route, 'r')
+                aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+                aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns = hdf5file['aran/trip_1/pass_1']['Allig'].attrs['chNames'])
+                aran_cracks = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Cracks'], columns = hdf5file['aran/trip_1/pass_1']['Cracks'].attrs['chNames'])
+                aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns = hdf5file['aran/trip_1/pass_1']['Pothole'].attrs['chNames'])
+            elif route == 'CPH1_VH':
+                p79_gps = df_cph1_vh
+                hdf5_route = ('aligned_data/'+route+'.hdf5')
+                hdf5file = h5py.File(hdf5_route, 'r')
+                aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+                aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns = hdf5file['aran/trip_1/pass_1']['Allig'].attrs['chNames'])
+                aran_cracks = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Cracks'], columns = hdf5file['aran/trip_1/pass_1']['Cracks'].attrs['chNames'])
+                aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns = hdf5file['aran/trip_1/pass_1']['Pothole'].attrs['chNames'])
+            elif route == 'CPH6_HH':
+                p79_gps = df_cph6_hh
+                hdf5_route = ('aligned_data/'+route+'.hdf5')
+                hdf5file = h5py.File(hdf5_route, 'r')
+                aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+                aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns = hdf5file['aran/trip_1/pass_1']['Allig'].attrs['chNames'])
+                aran_cracks = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Cracks'], columns = hdf5file['aran/trip_1/pass_1']['Cracks'].attrs['chNames'])
+                aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns = hdf5file['aran/trip_1/pass_1']['Pothole'].attrs['chNames'])
+            elif route == 'CPH6_VH':
+                p79_gps = df_cph6_vh
+                hdf5_route = ('aligned_data/'+route+'.hdf5')
+                hdf5file = h5py.File(hdf5_route, 'r')
+                aran_location = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Location'], columns = hdf5file['aran/trip_1/pass_1']['Location'].attrs['chNames'])
+                aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns = hdf5file['aran/trip_1/pass_1']['Allig'].attrs['chNames'])
+                aran_cracks = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Cracks'], columns = hdf5file['aran/trip_1/pass_1']['Cracks'].attrs['chNames'])
+                aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns = hdf5file['aran/trip_1/pass_1']['Pothole'].attrs['chNames'])
+
+
+            p79_start = p79_gps[['Latitude','Longitude']].iloc[0].values
+            aran_start_idx, _ = find_min_gps_vector(p79_start,aran_location[['LatitudeFrom','LongitudeFrom']].iloc[:100].values)
+            p79_end = p79_gps[['Latitude','Longitude']].iloc[-1].values
+            aran_end_idx, _ = find_min_gps_vector(p79_end,aran_location[['LatitudeTo','LongitudeTo']].iloc[-100:].values)
+            aran_end_idx = (len(aran_location)-100)+aran_end_idx
+            aran_max_idx = aran_end_idx
+            i = aran_start_idx
+            # Get 50m from ARAN -> Find gps signal from p79 -> Get measurements from synthetic data
+            while (i < (aran_max_idx-10) ):
+                aran_start = [aran_location['LatitudeFrom'][i],aran_location['LongitudeFrom'][i]]
+                p79_start_idx, start_dist = find_min_gps_vector(aran_start,p79_gps[['Latitude','Longitude']].values)
+
+                # if p79_start_idx+segment_size-1 >= len(p79_gps):
+                #     break
+                
+                m, idx_start = take_closest(synth['Distance'],p79_gps['Distance'][p79_start_idx])  
+                idx_end = idx_start+segment_size
+                if idx_end >= len(synth):
+                    i+=1
+                    break
+                new_m, idx_temp = take_closest(p79_gps['Distance'],synth['Distance'][idx_end])
+                
+
+                p79_end = p79_gps[['Latitude','Longitude']].iloc[idx_temp].values
+                aran_end_idx, end_dist = find_min_gps_vector(p79_end,aran_location[['LatitudeTo','LongitudeTo']].values)
+
+                if start_dist < 5 and end_dist < 5 and i != aran_end_idx:
+                    dfdf = p79_gps['Distance'][p79_start_idx:idx_temp+1]
+                    dfdf = dfdf.reset_index(drop=True)   
+
+                    # synth_seg = synth[((synth['Distance'] >= np.min(dfdf)) & (synth['Distance'] <= np.max(dfdf)))]
+                    # synth_seg = synth_seg.reset_index(drop=True)
+
+                    synth_seg = synth.iloc[idx_start:idx_start+segment_size]
+                    synth_seg = synth_seg.reset_index(drop=True)
+
+                    stat1 = synth_seg['Distance'].empty
+                    lag = []
+                    for h in range(len(synth_seg)-1):
+                        lag.append(synth_seg['Distance'][h+1]-synth_seg['Distance'][h])        
+                    large = [y for y in lag if y > 5]
+                    
+                    if stat1:
+                        # stat2 = True
+                        # stat3 = True
+                        stat4 = True
+                        stat5 = True
+                        stat6 = True
+                        stat7 = True
+                    else:
+                        # stat2 = not 40 <= (synth_seg['Distance'][len(synth_seg['Distance'])-1]-synth_seg['Distance'][0]) <= 60
+                        # stat3 = (len(synth_seg['synth_acc'])) > 5000
+                        stat4 = False if bool(large) == False else (np.max(large) > 5)
+                        stat5 = False if (len(synth_seg) == segment_size) else True
+                        stat6 = False if abs(aran_end_idx - i) < 100 else True
+                        stat7 = False if (dfdf.iloc[-1] - dfdf.iloc[0]) < 80 else True
+                        
+                    if stat1 | stat4 | stat5 | stat6 | stat7:
+                        i += 1
+                    else:
+                        segments[iter] = synth_seg['synth_acc']
+                        aran_concat = pd.concat([aran_location[i:aran_end_idx+1],aran_alligator[i:aran_end_idx+1],aran_cracks[i:aran_end_idx+1],aran_potholes[i:aran_end_idx+1]],axis=1)
+                        aran_segment_details[iter] = aran_concat
+                        route_details[iter] = routes[j]
+                        dists.append(dfdf.iloc[-1] - dfdf.iloc[0])
+                        i = aran_end_idx+1
+                        iter += 1
+                else:
+                    i +=1
+
+        synth_segments = pd.DataFrame.from_dict(segments,orient='index').transpose()
+        synth_segments.to_csv("synth_data/sample/"+"synthetic_segments_"+sz+".csv",index=False)
+        aran_segment_details = pd.concat(aran_segment_details)
+        aran_segment_details.to_csv("synth_data/sample/"+"aran_segments_"+sz+".csv",index=True)
+        myfile = open("synth_data/sample/routes_details_"+sz+".txt","w")
+        myfile.write(str(route_details))
+        myfile.close()
+        with open("synth_data/sample/distances_"+sz+".csv", 'w', newline='') as myfile:
+            wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
+            wr.writerow(dists)
+        
+    return synth_segments, aran_segment_details, route_details, dists
+
+def take_closest(myList, myNumber):
+    """
+    Assumes myList is sorted. Returns closest value to myNumber.
+
+    If two numbers are equally close, return the smallest number.
+    """
+    pos = bisect_left(myList, myNumber)
+    if pos == 0:
+        return myList.iloc[0], pos
+    if pos == len(myList):
+        return myList.iloc[-1], pos
+    before = myList.iloc[pos - 1]
+    after = myList.iloc[pos]
+    if after - myNumber < myNumber - before:
+        return after, pos
+    else:
+        return before, pos-1
+
+
+
+
+
+
 
 
 def GM_sample_segmentation2(segment_size=150, overlap=0):

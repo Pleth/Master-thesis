@@ -427,14 +427,31 @@ if __name__ == '__main__':
     if sys.argv[1] == 'Dataset_create':
         GM_segments, aran_segments, route_details, dists = GM_sample_segmentation(segment_size=150)
         DI, cracks, alligator, potholes = calc_target(aran_segments)
-        cut = [10500,18500,15000]
+        cut = [4700,9500,18500,15000]
+        splits = DL_splits(aran_segments,route_details,cut)
+        print(len(splits['1']), len(splits['2']), len(splits['3']), len(splits['4']))
+        targets = {}
+        targets[0] = DI
+        targets[1] = cracks
+        targets[2] = alligator
+        targets[3] = potholes
+        create_cwt_data(GM_segments,splits,targets,'DL_data','real')
+
+    if sys.argv[1] == 'synth_dataset_create':
+        synth_acc = synthetic_data()
+        routes = []
+        for i in range(len(synth_acc)): 
+            routes.append(synth_acc[i].axes[0].name)
+        GM_segments, aran_segments, route_details, dists = synthetic_sample_segmentation(synth_acc,routes,segment_size=1000)
+        DI, cracks, alligator, potholes = calc_target(aran_segments)
+        cut = [8800,16300,22000,15000]
         splits = DL_splits(aran_segments,route_details,cut)
         targets = {}
         targets[0] = DI
         targets[1] = cracks
         targets[2] = alligator
         targets[3] = potholes
-        create_cwt_data(GM_segments,splits,targets)
+        create_cwt_data(GM_segments,splits,targets,'DL_synth_data','synth')
 
     if sys.argv[1] == 'Deep':
         # fig = plt.figure()
@@ -449,10 +466,10 @@ if __name__ == '__main__':
 
         # prepare the data
         batch_size = 16
-        path = 'DL_data'
-        labelsFile = 'DL_data/labelsfile'
-        train_dl, test_dl = prepare_data(path,labelsFile,batch_size)
-        print(len(train_dl.dataset), len(test_dl.dataset))
+        path = 'DL_synth_data'
+        labelsFile = 'DL_synth_data/labelsfile'
+        train_dl, val_dl, test_dl = prepare_data(path,labelsFile,batch_size,nr_tar=1)
+        print(len(train_dl.dataset), len(val_dl.dataset), len(test_dl.dataset))
 
         train_features, train_labels = next(iter(train_dl))
         print(f"Feature batch shape: {train_features.size()}")
@@ -465,9 +482,9 @@ if __name__ == '__main__':
         # print(f"Label: {label}")
         
         # model = CNN_simple(4)
-        model = MyGoogleNet(in_fts=4,num_class=4)
+        model = MyGoogleNet(in_fts=4,num_class=1)
         # print(model)
-        train_model(train_dl, test_dl, model, 100, 0.0001)
+        train_model(train_dl, val_dl, model, 100, 0.0001)
         
         acc = evaluate_model(test_dl, model)
         print('R2 - DI: %.3f' % acc[0] + ' Cracks: %.3f' % acc[1] + ' Alligator: %.3f' % acc[2] + ' Potholes: %.3f' % acc[3])
