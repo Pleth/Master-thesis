@@ -29,6 +29,7 @@ from torch.nn import Linear
 from torch.nn import ReLU
 from torch.nn import Softmax
 from torch.nn import Module
+from torch.nn import BatchNorm2d
 from torch.optim import SGD
 from torch.nn import CrossEntropyLoss
 from torch.nn import MSELoss
@@ -183,7 +184,7 @@ def train_model(train_dl, val_dl, model, epochs, lr):
         print(epoch+1, epoch_loss / len(train_dl.dataset))
         loss_save.append(epoch_loss / len(train_dl.dataset))
 
-        if ((epoch+1) % 10 == 0) & ((epoch+1)>=1):
+        if ((epoch+1) % 1 == 0) & ((epoch+1)>=1):
             model.eval()
             with torch.no_grad():
                 if yhat.size()[1] == 1:
@@ -253,6 +254,7 @@ class ConvBlock(nn.Module):
         super(ConvBlock, self).__init__()
         self.convolution = nn.Sequential(
             nn.Conv2d(in_channels=in_fts, out_channels=out_fts, kernel_size=(k, k), stride=(s, s), padding=(p, p)),
+            nn.BatchNorm2d(out_fts),
             nn.ReLU()
         )
 
@@ -266,8 +268,10 @@ class ReduceConvBlock(nn.Module):
         super(ReduceConvBlock, self).__init__()
         self.redConv = nn.Sequential(
             nn.Conv2d(in_channels=in_fts, out_channels=out_fts_1, kernel_size=(1, 1), stride=(1, 1)),
+            nn.BatchNorm2d(out_fts_1),
             nn.ReLU(),
             nn.Conv2d(in_channels=out_fts_1, out_channels=out_fts_2, kernel_size=(k, k), stride=(1, 1), padding=(p, p)),
+            nn.BatchNorm2d(out_fts_2),
             nn.ReLU()
         )
 
@@ -281,6 +285,7 @@ class AuxClassifier(nn.Module):
         super(AuxClassifier, self).__init__()
         self.avgpool = nn.AvgPool2d(kernel_size=(5, 5), stride=(3, 3))
         self.conv = nn.Conv2d(in_channels=in_fts, out_channels=128, kernel_size=(1, 1), stride=(1, 1))
+        self.batchnorm = nn.BatchNorm2d(128)
         self.relu = nn.ReLU()
         self.fc = nn.Linear(4 * 4 * 128, 1024)
         self.dropout = nn.Dropout(p=0.7)
@@ -290,6 +295,7 @@ class AuxClassifier(nn.Module):
         N = input_img.shape[0]
         x = self.avgpool(input_img)
         x = self.conv(x)
+        x = self.batchnorm(x)
         x = self.relu(x)
         x = x.reshape(N, -1)
         x = self.fc(x)
@@ -308,6 +314,7 @@ class InceptionModule(nn.Module):
         self.pool_proj = nn.Sequential(
             nn.MaxPool2d(kernel_size=(1, 1), stride=(1, 1)),
             nn.Conv2d(in_channels=curr_in_fts, out_channels=f_pool_proj, kernel_size=(1, 1), stride=(1, 1)),
+            nn.BatchNorm2d(f_pool_proj),
             nn.ReLU()
         )
 

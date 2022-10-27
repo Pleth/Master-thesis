@@ -466,11 +466,11 @@ if __name__ == '__main__':
         # plt.close(fig)
 
         # prepare the data
-        batch_size = 16
-        path = 'DL_synth_data'
-        # path = 'DL_data'
-        labelsFile = 'DL_synth_data/labelsfile'
-        # labelsFile = 'DL_data/labelsfile'
+        batch_size = 32
+        # path = 'DL_synth_data'
+        path = 'DL_data'
+        # labelsFile = 'DL_synth_data/labelsfile'
+        labelsFile = 'DL_data/labelsfile'
         train_dl, val_dl, test_dl = prepare_data(path,labelsFile,batch_size,nr_tar=1)
         print(len(train_dl.dataset), len(val_dl.dataset), len(test_dl.dataset))
 
@@ -486,11 +486,11 @@ if __name__ == '__main__':
         # model = CNN_simple(4)
         model = MyGoogleNet(in_fts=4,num_class=1)
         # print(model)
-        train_model(train_dl, val_dl, model, 200, 0.001)
+        train_model(train_dl, val_dl, model, 100, 0.0001)
         
         model_test = MyGoogleNet(in_fts=4,num_class=1)
         model_test.load_state_dict(torch.load("models/your_model_path.pt"))
-        model.eval()
+        model_test.eval()
         acc = evaluate_model(test_dl, model_test)
         print('Test R2 - DI: %.3f' % acc)
 
