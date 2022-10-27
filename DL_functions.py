@@ -173,12 +173,19 @@ def train_model(train_dl, test_dl, model, epochs, lr):
         # print epoch loss
         print(epoch+1, epoch_loss / len(train_dl.dataset))
 
-        if ((epoch+1) % 1 == 0) & ((epoch+1)>=10):
-            acc = evaluate_model(train_dl, model)
-            print('Train R2 - DI: %.3f' % acc[0] + ' Cracks: %.3f' % acc[1] + ' Alligator: %.3f' % acc[2] + ' Potholes: %.3f' % acc[3])
+        if ((epoch+1) % 1 == 0) & ((epoch+1)>=1):
+            if yhat.size()[1] == 1:
+                acc = evaluate_model(train_dl, model)
+                print('Train R2 - DI: %.3f' % acc)
 
-            acc = evaluate_model(test_dl, model)
-            print('Test R2 - DI: %.3f' % acc[0] + ' Cracks: %.3f' % acc[1] + ' Alligator: %.3f' % acc[2] + ' Potholes: %.3f' % acc[3])
+                acc = evaluate_model(test_dl, model)
+                print('Test R2 - DI: %.3f' % acc)
+            else:
+                acc = evaluate_model(train_dl, model)
+                print('Train R2 - DI: %.3f' % acc[0] + ' Cracks: %.3f' % acc[1] + ' Alligator: %.3f' % acc[2] + ' Potholes: %.3f' % acc[3])
+
+                acc = evaluate_model(test_dl, model)
+                print('Test R2 - DI: %.3f' % acc[0] + ' Cracks: %.3f' % acc[1] + ' Alligator: %.3f' % acc[2] + ' Potholes: %.3f' % acc[3])
 
 # evaluate the model
 def evaluate_model(test_dl, model):
@@ -193,8 +200,14 @@ def evaluate_model(test_dl, model):
         # convert to class labels
         # yhat = argmax(yhat, axis=1)
         # reshape for stacking
-        actual = actual.reshape((len(actual), 4))
-        yhat = yhat.reshape((len(yhat), 4))
+        # loss = criterion(yhat, targets) + 0.3 * criterion(aux1,targets) + 0.3 * criterion(aux2,targets)
+        if np.shape(yhat)[1] == 1:
+            actual = actual.reshape((len(actual), 1))
+            yhat = yhat.reshape((len(yhat), 1))
+        else:
+            actual = actual.reshape((len(actual), 4))
+            yhat = yhat.reshape((len(yhat), 4))
+        
         # store
         predictions.append(yhat)
         actuals.append(actual)

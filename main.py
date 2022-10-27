@@ -466,8 +466,10 @@ if __name__ == '__main__':
 
         # prepare the data
         batch_size = 16
-        path = 'DL_synth_data'
-        labelsFile = 'DL_synth_data/labelsfile'
+        # path = 'DL_synth_data'
+        path = 'DL_data'
+        # labelsFile = 'DL_synth_data/labelsfile'
+        labelsFile = 'DL_data/labelsfile'
         train_dl, val_dl, test_dl = prepare_data(path,labelsFile,batch_size,nr_tar=1)
         print(len(train_dl.dataset), len(val_dl.dataset), len(test_dl.dataset))
 
