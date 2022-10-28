@@ -455,16 +455,6 @@ if __name__ == '__main__':
 
     if sys.argv[1] == 'Deep':
         print('Deep')
-        # fig = plt.figure()
-        # ax = fig.add_subplot()
-        # xtest = np.array(GM_segments[0])
-        # Wx, scales = cwt(xtest, 'morlet')
-        # id = imshow(Wx, yticks=scales, abs=1)
-        # ax.axis(False)
-        # ax.set_position([0,0,1,1])
-        # fig.savefig("test.png")
-        # plt.close(fig)
-
         # prepare the data
         batch_size = 16
         # path = 'DL_synth_data'

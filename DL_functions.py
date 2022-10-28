@@ -148,7 +148,7 @@ def train_model(train_dl, val_dl, model, epochs, lr):
     R2_val = []
     criterion = MSELoss()
     # criterion = CrossEntropyLoss()
-    optimizer = SGD(model.parameters(), lr=lr, momentum=0.9)
+    optimizer = SGD(model.parameters(), lr=lr, momentum=0.9,weight_decay=0.1)
     # enumerate epochs
     for epoch in range(epochs):
         model.train()
