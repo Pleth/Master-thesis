@@ -466,7 +466,7 @@ if __name__ == '__main__':
         # plt.close(fig)
 
         # prepare the data
-        batch_size = 32
+        batch_size = 16
         # path = 'DL_synth_data'
         path = 'DL_data'
         # labelsFile = 'DL_synth_data/labelsfile'

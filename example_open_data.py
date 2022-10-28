@@ -27,6 +27,23 @@ aran_alligator = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Allig'], columns =
 aran_cracks = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Cracks'], columns = hdf5file['aran/trip_1/pass_1']['Cracks'].attrs['chNames'])
 aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns = hdf5file['aran/trip_1/pass_1']['Pothole'].attrs['chNames'])
 
+
+
+hdf5file = h5py.File('aligned_data/CPH1_VH.hdf5', 'r')
+gps_aran = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['GPS'], columns = hdf5file['aran/trip_1/pass_1']['GPS'].attrs['chNames'])
+plt.scatter(x=gps_aran['lon'], y=gps_aran['lat'],s=1,c="blue")
+hdf5file = h5py.File('aligned_data/CPH1_HH.hdf5', 'r')
+gps_aran = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['GPS'], columns = hdf5file['aran/trip_1/pass_1']['GPS'].attrs['chNames'])
+plt.scatter(x=gps_aran['lon'], y=gps_aran['lat'],s=1,c="blue")
+hdf5file = h5py.File('aligned_data/CPH6_VH.hdf5', 'r')
+gps_aran = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['GPS'], columns = hdf5file['aran/trip_1/pass_1']['GPS'].attrs['chNames'])
+plt.scatter(x=gps_aran['lon'], y=gps_aran['lat'],s=1,c="red")
+hdf5file = h5py.File('aligned_data/CPH6_HH.hdf5', 'r')
+gps_aran = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['GPS'], columns = hdf5file['aran/trip_1/pass_1']['GPS'].attrs['chNames'])
+plt.scatter(x=gps_aran['lon'], y=gps_aran['lat'],s=1,c="red")
+plt.show()
+
+
 DI = pd.DataFrame(calc_DI(aran_alligator,aran_cracks,aran_potholes))
 DI.columns=['DI']
 gt = pd.concat([aran_location,DI],axis=1)
