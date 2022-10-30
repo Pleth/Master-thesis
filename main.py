@@ -476,7 +476,7 @@ if __name__ == '__main__':
         # model = CNN_simple(4)
         model = MyGoogleNet(in_fts=4,num_class=1)
         # print(model)
-        train_model(train_dl, val_dl, model, 100, 0.0001)
+        train_model(train_dl, val_dl, model, 100, 0.00001)
         
         model_test = MyGoogleNet(in_fts=4,num_class=1)
         model_test.load_state_dict(torch.load("models/your_model_path.pt"))
