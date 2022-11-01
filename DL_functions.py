@@ -31,6 +31,7 @@ from torch.nn import Softmax
 from torch.nn import Module
 from torch.nn import BatchNorm2d
 from torch.optim import SGD
+from torch.optim import Adam
 from torch.nn import CrossEntropyLoss
 from torch.nn import MSELoss
 from torch.nn.init import kaiming_uniform_
@@ -99,7 +100,7 @@ class CNN_simple(Module):
         self.act3 = ReLU()
         # output layer
         self.hidden4 = Linear(100, 4)
-        xavier_uniform_(self.hidden4.weight)
+        # xavier_uniform_(self.hidden4.weight)
         # self.act4 = Softmax(dim=1)
 
     # forward propagate input
@@ -137,7 +138,7 @@ def prepare_data(path,labelsFile,batch_size,nr_tar):
     return train_dl, val_dl, test_dl
 
 # train the model
-def train_model(train_dl, val_dl, model, epochs, lr):
+def train_model(train_dl, val_dl, model, epochs, lr,mom=0.9,wd=0.0,id=id):
     # define the optimization
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
@@ -148,7 +149,8 @@ def train_model(train_dl, val_dl, model, epochs, lr):
     R2_val = []
     criterion = MSELoss()
     # criterion = CrossEntropyLoss()
-    optimizer = SGD(model.parameters(), lr=lr, momentum=0.9,weight_decay=0.1)
+    # optimizer = SGD(model.parameters(), lr=lr, momentum=mom,weight_decay=wd)
+    optimizer = Adam(model.parameters(), lr=lr,weight_decay=wd)
     # enumerate epochs
     for epoch in range(epochs):
         model.train()
@@ -164,7 +166,8 @@ def train_model(train_dl, val_dl, model, epochs, lr):
             yhat = model(inputs)
             # calculate loss
             # loss = criterion(yhat, targets) + 0.3 * criterion(aux1,targets) + 0.3 * criterion(aux2,targets)
-            if yhat.size()[1] == 1:
+            # loss = criterion(yhat,targets)
+            if len(targets.size()) == 1:
                 loss = criterion(yhat,targets.unsqueeze(1).float())
             else:
                 loss = criterion(yhat,targets)
@@ -184,7 +187,7 @@ def train_model(train_dl, val_dl, model, epochs, lr):
         print(epoch+1, epoch_loss / len(train_dl.dataset))
         loss_save.append(epoch_loss / len(train_dl.dataset))
 
-        if ((epoch+1) % 1 == 0) & ((epoch+1)>=1):
+        if ((epoch+1) % 10 == 0) & ((epoch+1)>=1):
             model.eval()
             with torch.no_grad():
                 if yhat.size()[1] == 1:
@@ -203,19 +206,22 @@ def train_model(train_dl, val_dl, model, epochs, lr):
                     print('Val R2 - DI: %.3f' % acc[0] + ' Cracks: %.3f' % acc[1] + ' Alligator: %.3f' % acc[2] + ' Potholes: %.3f' % acc[3])
 
             if acc_v > max_acc:
-                torch.save(model.state_dict(), "models/your_model_path.pt")
+                torch.save(model.state_dict(), "models/model_"+id+".pt")
+                max_acc = acc_v
 
-        with open("loss_save.csv", 'w', newline='') as myfile:
+        with open("training/loss_save_"+id+".csv", 'w', newline='') as myfile:
             wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
             wr.writerow(loss_save)
 
-        with open("R2_train.csv", 'w', newline='') as myfile:
+        with open("training/R2_train_"+id+".csv", 'w', newline='') as myfile:
             wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
             wr.writerow(R2_train)
 
-        with open("R2_val.csv", 'w', newline='') as myfile:
+        with open("training/R2_val_"+id+".csv", 'w', newline='') as myfile:
             wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
             wr.writerow(R2_val)
+
+    print(max_acc)
 
 # evaluate the model
 def evaluate_model(test_dl, model):
@@ -925,3 +931,103 @@ def GM_sample_segmentation2(segment_size=150, overlap=0):
             wr.writerow(dists)
 
     return synth_segments, aran_segment_details, route_details, dists
+
+
+
+class FeatureDataset(torch.utils.data.Dataset):   
+    def __init__(self, X, y):
+        X = X.T.values
+        y = y.values
+        self.X=torch.tensor(X,dtype=torch.float32)
+        self.y=torch.tensor(y,dtype=torch.float32)
+
+    def __len__(self):
+        return len(self.y)
+
+    def __getitem__(self, index):
+        return (self.X[index], self.y[index])
+
+
+class LinearRegression_class(torch.nn.Module):
+    
+     def __init__(self, input_dim, output_dim):
+
+        super(LinearRegression_class, self).__init__()
+
+        self.linear = torch.nn.Linear(input_dim, output_dim)
+
+     def forward(self, x):
+        
+        outputs = self.linear(x)
+
+        return outputs
+
+        
+class ImageRegression_class(torch.nn.Module):
+    
+     def __init__(self, input_dim, output_dim):
+
+        super(ImageRegression_class, self).__init__()
+
+        self.linear = torch.nn.Linear(input_dim, output_dim)
+
+     def forward(self, x):
+        
+        x = x.view(x.size(0), -1)
+        outputs = self.linear(x)
+
+        return outputs
+
+
+
+
+import torch
+from torch import nn
+
+
+class LinearBaseline(nn.Module):
+    """A PyTorch implementation of the Linear Baseline
+    From https://arxiv.org/abs/1909.04939
+    Attributes
+    ----------
+    sequence_length:
+        The size of the input sequence
+    num_pred_classes:
+        The number of output classes
+    """
+
+    def __init__(self, num_inputs: int, num_pred_classes: int = 1) -> None:
+        super().__init__()
+
+        # for easier saving and loading
+        self.input_args = {
+            'num_inputs': num_inputs,
+            'num_pred_classes': num_pred_classes
+        }
+
+        self.layers = nn.Sequential(
+            nn.Dropout(0.1),
+            LinearBlock(num_inputs, 250, 0.2),
+            LinearBlock(250, 250, 0.2),
+            LinearBlock(250, num_pred_classes, 0.3),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:  # type: ignore
+        return self.layers(x.view(x.shape[0], -1))
+
+
+class LinearBlock(nn.Module):
+
+    def __init__(self, input_size: int, output_size: int,
+                 dropout: float) -> None:
+        super().__init__()
+
+        self.layers = nn.Sequential(
+            nn.Linear(input_size, output_size),
+            nn.ReLU(),
+            nn.Dropout(p=dropout)
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:  # type: ignore
+
+        return self.layers(x)

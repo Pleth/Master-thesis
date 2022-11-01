@@ -457,9 +457,9 @@ if __name__ == '__main__':
         print('Deep')
         # prepare the data
         batch_size = 16
-        # path = 'DL_synth_data'
-        path = 'DL_data'
-        # labelsFile = 'DL_synth_data/labelsfile'
+        path = 'DL_synth_data'
+        # path = 'DL_data'
+        labelsFile = 'DL_synth_data/labelsfile'
         labelsFile = 'DL_data/labelsfile'
         train_dl, val_dl, test_dl = prepare_data(path,labelsFile,batch_size,nr_tar=1)
         print(len(train_dl.dataset), len(val_dl.dataset), len(test_dl.dataset))
@@ -486,3 +486,98 @@ if __name__ == '__main__':
 
 
 
+if sys.argv[1] == 'Linear':
+        print('Linear')
+        synth_acc = synthetic_data()
+        routes = []
+        for i in range(len(synth_acc)): 
+            routes.append(synth_acc[i].axes[0].name)
+
+        synth_segments, aran_segments, route_details = synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0)
+
+        features,feature_names = feature_extraction(synth_segments,'synth_data/extracted_features',fs=250)
+
+        DI, cracks, aliigator, potholes = calc_target(aran_segments)
+        cut = [7000,13700,22000,13000]
+        splits = DL_splits(aran_segments,route_details,cut)
+        
+        feats = features.T
+        feats = (feats - feats.min())/(feats.max()-feats.min()+0.001)
+        X_train = feats.iloc[splits['3']].reset_index(drop=True)
+        X_train = pd.concat([X_train,feats.iloc[splits['4']]],ignore_index=True)
+        X_train = pd.concat([X_train,feats.iloc[splits['5']]],ignore_index=True)
+        X_train = pd.concat([X_train,feats.iloc[splits['6']]],ignore_index=True).reset_index(drop=True).T
+        
+        DI = pd.DataFrame(DI)
+        y_train = DI.iloc[splits['3'] + splits['4'] + splits['5'] + splits['6']].reset_index(drop=True)
+
+        train_dataset = FeatureDataset(X_train, y_train)
+        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size = 128, shuffle = True)
+        print(len(train_loader.dataset))
+
+        X_val = feats.iloc[splits['2']].reset_index(drop=True).T
+        y_val = DI.iloc[splits['2']].reset_index(drop=True)
+        val_dataset = FeatureDataset(X_val, y_val)
+        val_loader = torch.utils.data.DataLoader(val_dataset, batch_size = 1100, shuffle = True)
+        print(len(val_loader.dataset))
+
+        X_test = feats.iloc[splits['1']].reset_index(drop=True).T
+        y_test = DI.iloc[splits['1']].reset_index(drop=True)
+        test_dataset = FeatureDataset(X_test, y_test)
+        test_loader = torch.utils.data.DataLoader(test_dataset, batch_size = 1100, shuffle = True)
+
+
+
+
+
+        model = LinearRegression_class(390,1)
+        train_model(train_loader, val_loader, model, 100, 0.001,0.0,0.01,'NNLinReg')
+
+        model_test = LinearRegression_class(390,1)
+        model_test.load_state_dict(torch.load("models/model_NNLinReg.pt"))
+        model_test.eval()
+        acc = evaluate_model(test_loader, model_test)
+        print('Test R2 - DI: %.3f' % acc)
+        
+        from sklearn.linear_model import Ridge
+        clf = Ridge(alpha=0.01).fit(X_train.T, y_train.values.reshape(-1,))
+        y_pred = clf.predict(X_test.T)
+        r2 = r2_score(y_test,y_pred)
+        print(r2)
+
+        batch_size = 128
+        path = 'DL_synth_data'
+        labelsFile = 'DL_synth_data/labelsfile'
+        train_dl, val_dl, test_dl = prepare_data(path,labelsFile,batch_size,nr_tar=1)
+
+        model = ImageRegression_class(224*224*4,1)
+        train_model(train_dl, val_dl, model, 20, 0.001,0.0,0.9,'IMLinReg')
+        
+        model_test = ImageRegression_class(224*224*4,1)
+        model_test.load_state_dict(torch.load("models/model_IMLinReg.pt"))
+        model_test.eval()
+        acc = evaluate_model(test_dl, model_test)
+        print('Test R2 - DI: %.3f' % acc)
+
+
+        model = MyGoogleNet(in_fts=4,num_class=1)
+        # print(model)
+        train_model(train_dl, val_dl, model, 100, 0.01,0.0,0.01,'GoogleNet')
+        
+        model_test = MyGoogleNet(in_fts=4,num_class=1)
+        model_test.load_state_dict(torch.load("models/model_GoogleNet.pt"))
+        model_test.eval()
+        acc = evaluate_model(test_dl, model_test)
+        print('Test R2 - DI: %.3f' % acc)
+
+
+
+        model = LinearBaseline(390,1)
+        train_model(train_loader, val_loader, model, 1000, 0.01,0.0,0.01,'LinearBaseline')
+
+        model_test = LinearBaseline(390,1)
+        model_test.load_state_dict(torch.load("models/model_LinearBaseline.pt"))
+        model_test.eval()
+        acc = evaluate_model(test_loader, model_test)
+        print('Test R2 - DI: %.3f' % acc)
+        
