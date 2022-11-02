@@ -58,8 +58,10 @@ class CustomDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
-        imagePath = self.rootDir + "/" + self.data['Image_path'][idx]
-        image = sk.imread(imagePath)
+        imagePath = self.rootDir + "/" + self.data['cwt_path'][idx]
+        image = np.load(imagePath)
+        image = image['Wx']
+        # image = sk.imread(imagePath)
         if self.nr == 1:
             label = self.data['DI'][idx]
         else:
@@ -69,7 +71,8 @@ class CustomDataset(torch.utils.data.Dataset):
             label[2] = self.data['Alligator'][idx]
             label[3] = self.data['Potholes'][idx]
             label = torch.Tensor(label)
-        image = Image.fromarray(image)
+        # image = Image.fromarray(image)
+        image = (image - image.min())/(image.max()-image.min()+0.001)
 
         if self.sourceTransform:
             image = self.sourceTransform(image)
@@ -187,7 +190,7 @@ def train_model(train_dl, val_dl, model, epochs, lr,mom=0.9,wd=0.0,id=id):
         print(epoch+1, epoch_loss / len(train_dl.dataset))
         loss_save.append(epoch_loss / len(train_dl.dataset))
 
-        if ((epoch+1) % 10 == 0) & ((epoch+1)>=1):
+        if ((epoch+1) % 1 == 0) & ((epoch+1)>=1):
             model.eval()
             with torch.no_grad():
                 if yhat.size()[1] == 1:
@@ -392,10 +395,10 @@ class MyGoogleNet(nn.Module):
 
 def create_cwt_data(GM_segments,splits,targets,path,check):
     from ssqueezepy import cwt
-    from ssqueezepy.visuals import imshow
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
+    # from ssqueezepy.visuals import imshow
+    # import matplotlib
+    # matplotlib.use('Agg')
+    # import matplotlib.pyplot as plt
 
     DI_lab = []
     cracks_lab = []
@@ -403,23 +406,24 @@ def create_cwt_data(GM_segments,splits,targets,path,check):
     pothole_lab = []
     paths = []
     for i in tqdm(splits['1']):
-        fig = plt.figure()
-        ax = fig.add_subplot()
+        # fig = plt.figure()
+        # ax = fig.add_subplot()
         xtest = np.array(GM_segments[i])
-        Wx, scales = cwt(xtest, 'morlet')
-        imshow(Wx, yticks=scales, abs=1)
-        _ = ax.axis(False)
-        ax.set_position([0,0,1,1])
-        fig.savefig(path+"/test/cwt_im_"+str(i).zfill(4)+".png")
-        plt.close(fig)
+        Wx, scales = cwt(xtest, 'bump')
+        np.savez_compressed(path+"/test/cwt_"+str(i).zfill(4),Wx=abs(Wx))
+        # imshow(Wx, yticks=scales, abs=1)
+        # _ = ax.axis(False)
+        # ax.set_position([0,0,1,1])
+        # fig.savefig(path+"/test/cwt_im_"+str(i).zfill(4)+".png")
+        # plt.close(fig)
 
         DI_lab.append(targets[0][i])
         cracks_lab.append(targets[1][i])
         alligator_lab.append(targets[2][i])
         pothole_lab.append(targets[3][i])
-        paths.append("cwt_im_"+str(i).zfill(4)+".png")
+        paths.append("cwt_"+str(i).zfill(4)+".npz")
 
-    d = {'Image_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
+    d = {'cwt_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
     df = pd.DataFrame(d)
     df.to_csv(path+"/labelsfile_test.csv",index=False)
 
@@ -429,23 +433,24 @@ def create_cwt_data(GM_segments,splits,targets,path,check):
     pothole_lab = []
     paths = []
     for i in tqdm(splits['2']):
-        fig = plt.figure()
-        ax = fig.add_subplot()
+        # fig = plt.figure()
+        # ax = fig.add_subplot()
         xtest = np.array(GM_segments[i])
-        Wx, scales = cwt(xtest, 'morlet')
-        imshow(Wx, yticks=scales, abs=1)
-        _ = ax.axis(False)
-        ax.set_position([0,0,1,1])
-        fig.savefig(path+"/val/cwt_im_"+str(i).zfill(4)+".png")
-        plt.close(fig)
+        Wx, scales = cwt(xtest, 'bump')
+        np.savez_compressed(path+"/val/cwt_"+str(i).zfill(4),Wx=abs(Wx))
+        # imshow(Wx, yticks=scales, abs=1)
+        # _ = ax.axis(False)
+        # ax.set_position([0,0,1,1])
+        # fig.savefig(path+"/val/cwt_im_"+str(i).zfill(4)+".png")
+        # plt.close(fig)
 
         DI_lab.append(targets[0][i])
         cracks_lab.append(targets[1][i])
         alligator_lab.append(targets[2][i])
         pothole_lab.append(targets[3][i])
-        paths.append("cwt_im_"+str(i).zfill(4)+".png")
+        paths.append("cwt_"+str(i).zfill(4)+".npz")
 
-    d = {'Image_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
+    d = {'cwt_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
     df = pd.DataFrame(d)
     df.to_csv(path+"/labelsfile_val.csv",index=False)
     
@@ -460,23 +465,24 @@ def create_cwt_data(GM_segments,splits,targets,path,check):
     pothole_lab = []
     paths = []
     for i in tqdm(train_split):
-        fig = plt.figure()
-        ax = fig.add_subplot()
-        xtest = np.array(GM_segments[i])
-        Wx, scales = cwt(xtest, 'morlet')
-        imshow(Wx, yticks=scales, abs=1)
-        _ = ax.axis(False)
-        ax.set_position([0,0,1,1])
-        fig.savefig(path+"/train/cwt_im_"+str(i).zfill(4)+".png")
-        plt.close(fig)
+        # fig = plt.figure()
+        # ax = fig.add_subplot()
+        # xtest = np.array(GM_segments[i])
+        Wx, _ = cwt(np.array(GM_segments[i]), 'bump')
+        np.savez_compressed(path+"/train/cwt_"+str(i).zfill(4),Wx=abs(Wx))
+        # imshow(Wx, yticks=scales, abs=1)
+        # _ = ax.axis(False)
+        # ax.set_position([0,0,1,1])
+        # fig.savefig(path+"/train/cwt_im_"+str(i).zfill(4)+".png")
+        # plt.close(fig)
 
         DI_lab.append(targets[0][i])
         cracks_lab.append(targets[1][i])
         alligator_lab.append(targets[2][i])
         pothole_lab.append(targets[3][i])
-        paths.append("cwt_im_"+str(i).zfill(4)+".png")
+        paths.append("cwt_"+str(i).zfill(4)+".npz")
 
-    d = {'Image_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
+    d = {'cwt_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
     df = pd.DataFrame(d)
     df.to_csv(path+"/labelsfile_train.csv",index=False)
 
@@ -1008,8 +1014,8 @@ class LinearBaseline(nn.Module):
         self.layers = nn.Sequential(
             nn.Dropout(0.1),
             LinearBlock(num_inputs, 250, 0.2),
-            LinearBlock(250, 250, 0.2),
-            LinearBlock(250, num_pred_classes, 0.3),
+            LinearBlock(250, 100, 0.2),
+            LinearBlock(100, num_pred_classes, 0.3),
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:  # type: ignore

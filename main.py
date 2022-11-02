@@ -539,30 +539,86 @@ if sys.argv[1] == 'Linear':
         acc = evaluate_model(test_loader, model_test)
         print('Test R2 - DI: %.3f' % acc)
         
-        from sklearn.linear_model import Ridge
+        from sklearn.linear_model import Ridge, RidgeCV
         clf = Ridge(alpha=0.01).fit(X_train.T, y_train.values.reshape(-1,))
         y_pred = clf.predict(X_test.T)
         r2 = r2_score(y_test,y_pred)
         print(r2)
 
-        batch_size = 128
+        batch_size = 32
+        nr_tar=1
         path = 'DL_synth_data'
         labelsFile = 'DL_synth_data/labelsfile'
-        train_dl, val_dl, test_dl = prepare_data(path,labelsFile,batch_size,nr_tar=1)
+        sourceTransform = Compose([ToTensor(), Resize((224,224))]) #, Resize((224,224))
+        # load dataset
+        train = CustomDataset(labelsFile+"_train.csv", path+'/train/', sourceTransform, nr_tar) 
+        val = CustomDataset(labelsFile+"_val.csv", path+'/val/', sourceTransform, nr_tar)
+        test = CustomDataset(labelsFile+"_test.csv", path+'/test/', sourceTransform, nr_tar)
+        # prepare data loaders
+        train_dl = DataLoader(train, batch_size=batch_size, shuffle=True)
+        val_dl = DataLoader(val, batch_size=batch_size, shuffle=False)
+        test_dl = DataLoader(test, batch_size=batch_size, shuffle=False)
+        print(len(train_dl.dataset), len(val_dl.dataset), len(test_dl.dataset))
 
-        model = ImageRegression_class(224*224*4,1)
-        train_model(train_dl, val_dl, model, 20, 0.001,0.0,0.9,'IMLinReg')
+        test_features, test_labels = next(iter(test_dl))
+        print(f"Feature batch shape: {test_features.size()}")
+        print(f"Labels batch shape: {test_labels.size()}")
+
+        img = test_features[0] #.squeeze()
+        img1 = img.permute(1,2,0)
+        label = test_labels[0]
+        plt.imshow(img1,cmap="gray")
+        plt.imshow(img2,cmap="gray")
+        plt.show()
+
+        img2 = img1
+
+        model = ImageRegression_class(224*224,1)
+        train_model(train_dl, val_dl, model, 100, 1e-6,0.0,0.001,'IMLinReg')
         
-        model_test = ImageRegression_class(224*224*4,1)
+        model_test = ImageRegression_class(224*224,1)
         model_test.load_state_dict(torch.load("models/model_IMLinReg.pt"))
         model_test.eval()
         acc = evaluate_model(test_dl, model_test)
         print('Test R2 - DI: %.3f' % acc)
 
+        segs = []
+        tar = []
+        for i, (inputs, targets) in enumerate(train_dl):
+            inputs, targets = inputs, targets
+            for j in range(inputs.size()[0]):
+                arr = np.array(inputs[j].view(224*224,-1).squeeze())
+                segs.append(arr)
+                tar.append(np.array(targets[j]))
+        trainer = pd.DataFrame(np.vstack(segs))        
+        trainer = trainer.T
+        train_tar = pd.DataFrame(tar)
 
-        model = MyGoogleNet(in_fts=4,num_class=1)
+        segs = []
+        tar = []
+        for i, (inputs, targets) in enumerate(test_dl):
+            inputs, targets = inputs, targets
+            for j in range(inputs.size()[0]):
+                arr = np.array(inputs[j].view(224*224,-1).squeeze())
+                segs.append(arr)
+                tar.append(np.array(targets[j]))
+        tester = pd.DataFrame(np.vstack(segs))        
+        tester = tester.T
+        test_tar = pd.DataFrame(tar)
+
+        clf = RidgeCV(alphas=[1e-3, 1e-2, 1e-1, 1]).fit(trainer.T, train_tar.values.reshape(-1,))
+        y_pred = clf.predict(tester.T)
+        r2 = r2_score(test_tar,y_pred)
+        print(r2)
+
+
+
+
+
+
+        model = MyGoogleNet(in_fts=1,num_class=1)
         # print(model)
-        train_model(train_dl, val_dl, model, 100, 0.01,0.0,0.01,'GoogleNet')
+        train_model(train_dl, val_dl, model, 100, 1e-6,0.0,0.001,'GoogleNet')
         
         model_test = MyGoogleNet(in_fts=4,num_class=1)
         model_test.load_state_dict(torch.load("models/model_GoogleNet.pt"))
@@ -573,7 +629,7 @@ if sys.argv[1] == 'Linear':
 
 
         model = LinearBaseline(390,1)
-        train_model(train_loader, val_loader, model, 1000, 0.01,0.0,0.01,'LinearBaseline')
+        train_model(train_loader, val_loader, model, 100, 0.001,0.0,0.01,'LinearBaseline')
 
         model_test = LinearBaseline(390,1)
         model_test.load_state_dict(torch.load("models/model_LinearBaseline.pt"))
