@@ -12,5 +12,4 @@ source $HOME/miniconda3/bin/activate
 source venv_1/bin/activate
 
 python3 main.py synth_dataset_create
-python3 main.py Deep
 

@@ -444,8 +444,9 @@ if __name__ == '__main__':
             routes.append(synth_acc[i].axes[0].name)
         GM_segments, aran_segments, route_details, dists = synthetic_sample_segmentation(synth_acc,routes,segment_size=1000)
         DI, cracks, alligator, potholes = calc_target(aran_segments)
-        cut = [8800,16300,22000,15000]
+        cut = [8800,16300,20600,15500]
         splits = DL_splits(aran_segments,route_details,cut)
+        print(len(splits['1']),len(splits['2']),len(splits['3']),len(splits['4']),len(splits['5']),len(splits['6']))
         targets = {}
         targets[0] = DI
         targets[1] = cracks
@@ -460,7 +461,7 @@ if __name__ == '__main__':
         path = 'DL_synth_data'
         # path = 'DL_data'
         labelsFile = 'DL_synth_data/labelsfile'
-        labelsFile = 'DL_data/labelsfile'
+        # labelsFile = 'DL_data/labelsfile'
         train_dl, val_dl, test_dl = prepare_data(path,labelsFile,batch_size,nr_tar=1)
         print(len(train_dl.dataset), len(val_dl.dataset), len(test_dl.dataset))
 
@@ -486,7 +487,7 @@ if __name__ == '__main__':
 
 
 
-if sys.argv[1] == 'Linear':
+    if sys.argv[1] == 'Linear':
         print('Linear')
         synth_acc = synthetic_data()
         routes = []
@@ -560,21 +561,21 @@ if sys.argv[1] == 'Linear':
         test_dl = DataLoader(test, batch_size=batch_size, shuffle=False)
         print(len(train_dl.dataset), len(val_dl.dataset), len(test_dl.dataset))
 
-        test_features, test_labels = next(iter(test_dl))
-        print(f"Feature batch shape: {test_features.size()}")
-        print(f"Labels batch shape: {test_labels.size()}")
+        # test_features, test_labels = next(iter(test_dl))
+        # print(f"Feature batch shape: {test_features.size()}")
+        # print(f"Labels batch shape: {test_labels.size()}")
 
-        img = test_features[0] #.squeeze()
-        img1 = img.permute(1,2,0)
-        label = test_labels[0]
-        plt.imshow(img1,cmap="gray")
-        plt.imshow(img2,cmap="gray")
-        plt.show()
+        # img = test_features[0] #.squeeze()
+        # img1 = img.permute(1,2,0)
+        # label = test_labels[0]
+        # plt.imshow(img1,cmap="gray")
+        # plt.imshow(img2,cmap="gray")
+        # plt.show()
 
-        img2 = img1
+        # img2 = img1
 
         model = ImageRegression_class(224*224,1)
-        train_model(train_dl, val_dl, model, 100, 1e-6,0.0,0.001,'IMLinReg')
+        train_model(train_dl, val_dl,test_dl, model, 100, 1e-5,0.0,0.001,'IMLinReg')
         
         model_test = ImageRegression_class(224*224,1)
         model_test.load_state_dict(torch.load("models/model_IMLinReg.pt"))
@@ -606,7 +607,10 @@ if sys.argv[1] == 'Linear':
         tester = tester.T
         test_tar = pd.DataFrame(tar)
 
-        clf = RidgeCV(alphas=[1e-3, 1e-2, 1e-1, 1]).fit(trainer.T, train_tar.values.reshape(-1,))
+        clf = RidgeCV(alphas=[0.9],scoring='r2').fit(trainer.T, train_tar.values.reshape(-1,))
+        y_pred = clf.predict(trainer.T)
+        r2 = r2_score(train_tar,y_pred)
+        print(r2)
         y_pred = clf.predict(tester.T)
         r2 = r2_score(test_tar,y_pred)
         print(r2)
@@ -620,7 +624,7 @@ if sys.argv[1] == 'Linear':
         # print(model)
         train_model(train_dl, val_dl, model, 100, 1e-6,0.0,0.001,'GoogleNet')
         
-        model_test = MyGoogleNet(in_fts=4,num_class=1)
+        model_test = MyGoogleNet(in_fts=1,num_class=1)
         model_test.load_state_dict(torch.load("models/model_GoogleNet.pt"))
         model_test.eval()
         acc = evaluate_model(test_dl, model_test)
@@ -637,3 +641,47 @@ if sys.argv[1] == 'Linear':
         acc = evaluate_model(test_loader, model_test)
         print('Test R2 - DI: %.3f' % acc)
         
+
+
+
+    if sys.argv[1] == 'Deep_linear':
+        print('Deep_linear')
+        
+        batch_size = 64
+        nr_tar=1
+        path = 'DL_synth_data'
+        labelsFile = 'DL_synth_data/labelsfile'
+        train_dl, val_dl, test_dl = prepare_data(path,labelsFile,batch_size,nr_tar=1)
+        print(len(train_dl.dataset), len(val_dl.dataset), len(test_dl.dataset))
+
+        model = ImageRegression_class(224*224,1)
+        train_model(train_dl, val_dl,test_dl, model, 100, 1e-6,0.0,0.001,'IMLinReg')
+        
+        model_test = ImageRegression_class(224*224,1)
+        model_test.load_state_dict(torch.load("models/model_IMLinReg.pt"))
+        model_test.eval()
+        acc = evaluate_model(test_dl, model_test)
+        print('Test R2 - DI: %.3f' % acc)
+    
+    if sys.argv[1] == 'Deep_google':
+        print('Deep_google')
+        
+        batch_size = 64
+        nr_tar=1
+        path = 'DL_synth_data'
+        labelsFile = 'DL_synth_data/labelsfile'
+        train_dl, val_dl, test_dl = prepare_data(path,labelsFile,batch_size,nr_tar=1)
+        print(len(train_dl.dataset), len(val_dl.dataset), len(test_dl.dataset))
+
+        model = MyGoogleNet(in_fts=1,num_class=1)
+        train_model(train_dl, val_dl, test_dl, model, 100, 1e-5,0.0,0.001,'GoogleNet')
+
+        model.eval()
+        acc = evaluate_model(test_dl, model)
+        print('Test R2 - DI: %.3f' % acc)
+
+        model_test = MyGoogleNet(in_fts=1,num_class=1)
+        model_test.load_state_dict(torch.load("models/model_GoogleNet.pt"))
+        model_test.eval()
+        acc = evaluate_model(test_dl, model_test)
+        print('Test R2 - DI: %.3f' % acc)

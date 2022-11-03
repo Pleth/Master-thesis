@@ -136,12 +136,12 @@ def prepare_data(path,labelsFile,batch_size,nr_tar):
     test = CustomDataset(labelsFile+"_test.csv", path+'/test/', sourceTransform, nr_tar)
     # prepare data loaders
     train_dl = DataLoader(train, batch_size=batch_size, shuffle=True)
-    val_dl = DataLoader(val, batch_size=batch_size, shuffle=False)
-    test_dl = DataLoader(test, batch_size=batch_size, shuffle=False)
+    val_dl = DataLoader(val, batch_size=batch_size*4, shuffle=False)
+    test_dl = DataLoader(test, batch_size=batch_size*4, shuffle=False)
     return train_dl, val_dl, test_dl
 
 # train the model
-def train_model(train_dl, val_dl, model, epochs, lr,mom=0.9,wd=0.0,id=id):
+def train_model(train_dl, val_dl,test_dl, model, epochs, lr,mom=0.9,wd=0.0,id=id):
     # define the optimization
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
@@ -201,6 +201,9 @@ def train_model(train_dl, val_dl, model, epochs, lr,mom=0.9,wd=0.0,id=id):
                     acc_v = evaluate_model(val_dl, model)
                     print('Val R2 - DI: %.3f' % acc_v)
                     R2_val.append(acc_v)
+
+                    acc = evaluate_model(test_dl, model)
+                    print('Test R2 - DI: %.3f' % acc)
                 else:
                     acc = evaluate_model(train_dl, model)
                     print('Train R2 - DI: %.3f' % acc[0] + ' Cracks: %.3f' % acc[1] + ' Alligator: %.3f' % acc[2] + ' Potholes: %.3f' % acc[3])
@@ -255,7 +258,7 @@ def evaluate_model(test_dl, model):
         actuals.append(actual)
     predictions, actuals = vstack(predictions), vstack(actuals)
     # calculate accuracy
-    acc = r2_score(actuals, predictions,multioutput='raw_values')
+    acc = r2_score(actuals, predictions) #,multioutput='raw_values'
     return acc
 
 class ConvBlock(nn.Module):
@@ -405,7 +408,7 @@ def create_cwt_data(GM_segments,splits,targets,path,check):
     alligator_lab = []
     pothole_lab = []
     paths = []
-    for i in tqdm(splits['1']):
+    for i in tqdm(splits['3']):
         # fig = plt.figure()
         # ax = fig.add_subplot()
         xtest = np.array(GM_segments[i])
@@ -457,7 +460,7 @@ def create_cwt_data(GM_segments,splits,targets,path,check):
     if check == 'real':
         train_split = splits['3'] + splits['4']
     else:
-        train_split = splits['3'] + splits['4'] + splits['5'] + splits['6']
+        train_split = splits['1'] + splits['4'] + splits['5'] + splits['6']
 
     DI_lab = []
     cracks_lab = []
@@ -467,8 +470,8 @@ def create_cwt_data(GM_segments,splits,targets,path,check):
     for i in tqdm(train_split):
         # fig = plt.figure()
         # ax = fig.add_subplot()
-        # xtest = np.array(GM_segments[i])
-        Wx, _ = cwt(np.array(GM_segments[i]), 'bump')
+        xtest = np.array(GM_segments[i])
+        Wx, _ = cwt(np.array(xtest), 'bump')
         np.savez_compressed(path+"/train/cwt_"+str(i).zfill(4),Wx=abs(Wx))
         # imshow(Wx, yticks=scales, abs=1)
         # _ = ax.axis(False)
