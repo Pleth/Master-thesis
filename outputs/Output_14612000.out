@@ -1,0 +1,60 @@
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 14612000: <Tests> in cluster <dcc> Exited
+
+Job <Tests> was submitted from host <n-62-27-19> by user <s174503> in cluster <dcc> at Thu Oct 27 21:56:33 2022
+Job was executed on host(s) <16*n-62-29-18>, in queue <hpc>, as user <s174503> in cluster <dcc> at Thu Oct 27 21:56:34 2022
+</zhome/fd/6/127382> was used as the home directory.
+</zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis> was used as the working directory.
+Started at Thu Oct 27 21:56:34 2022
+Terminated at Thu Oct 27 21:56:41 2022
+Results reported at Thu Oct 27 21:56:41 2022
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q hpc
+#BSUB -J Tests
+#BSUB -n 16
+#BSUB -R "span[hosts=1]"
+#BSUB -R "rusage[mem=4GB]"
+#BSUB -W 11:00
+#BSUB -o outputs/Output_%J.out
+#BSUB -e outputs/errors/Error_%J.err
+
+source $HOME/miniconda3/bin/activate
+source venv_1/bin/activate
+
+python3 main.py synth_dataset_create
+python3 main.py Deep
+
+
+------------------------------------------------------------
+
+TERM_OWNER: job killed by owner.
+Exited with exit code 130.
+
+Resource usage summary:
+
+    CPU time :                                   2.66 sec.
+    Max Memory :                                 73 MB
+    Average Memory :                             73.00 MB
+    Total Requested Memory :                     65536.00 MB
+    Delta Memory :                               65463.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                5
+    Run time :                                   51 sec.
+    Turnaround time :                            8 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <outputs/errors/Error_14612000.err> for stderr output of this job.
+

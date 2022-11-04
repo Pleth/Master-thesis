@@ -1,0 +1,28 @@
+Traceback (most recent call last):
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/main.py", line 489, in <module>
+    train_model(train_dl, val_dl, model, 100, 0.0001)
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/DL_functions.py", line 164, in train_model
+    yhat = model(inputs)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1130, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/DL_functions.py", line 366, in forward
+    x = self.inception_3b(x)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1130, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/DL_functions.py", line 323, in forward
+    out2 = self.conv2(input_img)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1130, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/DL_functions.py", line 279, in forward
+    x = self.redConv(input_img)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1130, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/nn/modules/container.py", line 139, in forward
+    input = module(input)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1130, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/nn/modules/conv.py", line 457, in forward
+    return self._conv_forward(input, self.weight, self.bias)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/nn/modules/conv.py", line 453, in _conv_forward
+    return F.conv2d(input, weight, bias, self.stride,
+KeyboardInterrupt

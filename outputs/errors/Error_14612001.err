@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/main.py", line 489, in <module>
+    train_model(train_dl, val_dl, model, 200, 0.001)
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/DL_functions.py", line 171, in train_model
+    loss.backward()
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/_tensor.py", line 396, in backward
+    torch.autograd.backward(self, gradient, retain_graph, create_graph, inputs=inputs)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/autograd/__init__.py", line 173, in backward
+    Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+KeyboardInterrupt

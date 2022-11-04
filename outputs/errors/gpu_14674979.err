@@ -1,0 +1,27 @@
+Loaded module: cuda/11.6
+Traceback (most recent call last):
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/main.py", line 683, in <module>
+    train_model(train_dl, val_dl, test_dl, model, epoch_nr, lr,0.0,wd,'GoogleNet')
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/DL_functions.py", line 163, in train_model
+    for i, (inputs, targets) in enumerate(train_dl):
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/utils/data/dataloader.py", line 681, in __next__
+    data = self._next_data()
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/utils/data/dataloader.py", line 721, in _next_data
+    data = self._dataset_fetcher.fetch(index)  # may raise StopIteration
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/utils/data/_utils/fetch.py", line 49, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/utils/data/_utils/fetch.py", line 49, in <listcomp>
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/DL_functions.py", line 63, in __getitem__
+    image = image['Wx']
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/numpy/lib/npyio.py", line 245, in __getitem__
+    return format.read_array(bytes,
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/numpy/lib/format.py", line 777, in read_array
+    data = _read_bytes(fp, read_size, "array data")
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/numpy/lib/format.py", line 906, in _read_bytes
+    r = fp.read(size - len(data))
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/zipfile.py", line 924, in read
+    data = self._read1(n)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/zipfile.py", line 1000, in _read1
+    data = self._decompressor.decompress(data, n)
+KeyboardInterrupt

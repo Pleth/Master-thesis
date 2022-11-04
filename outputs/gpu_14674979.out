@@ -1,0 +1,200 @@
+Thu Nov  3 21:31:53 2022       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 515.65.01    Driver Version: 515.65.01    CUDA Version: 11.7     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  Tesla V100-PCIE...  On   | 00000000:58:00.0 Off |                    0 |
+| N/A   32C    P0    26W / 250W |      0MiB / 32768MiB |      0%   E. Process |
+|                               |                      |                  N/A |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++-----------------------------------------------------------------------------+
+/appl/cuda/11.6.0/samples/bin/x86_64/linux/release/deviceQuery Starting...
+
+ CUDA Device Query (Runtime API) version (CUDART static linking)
+
+Detected 1 CUDA Capable device(s)
+
+Device 0: "Tesla V100-PCIE-32GB"
+  CUDA Driver Version / Runtime Version          11.7 / 11.6
+  CUDA Capability Major/Minor version number:    7.0
+  Total amount of global memory:                 32511 MBytes (34089926656 bytes)
+  (080) Multiprocessors, (064) CUDA Cores/MP:    5120 CUDA Cores
+  GPU Max Clock rate:                            1380 MHz (1.38 GHz)
+  Memory Clock rate:                             877 Mhz
+  Memory Bus Width:                              4096-bit
+  L2 Cache Size:                                 6291456 bytes
+  Maximum Texture Dimension Size (x,y,z)         1D=(131072), 2D=(131072, 65536), 3D=(16384, 16384, 16384)
+  Maximum Layered 1D Texture Size, (num) layers  1D=(32768), 2048 layers
+  Maximum Layered 2D Texture Size, (num) layers  2D=(32768, 32768), 2048 layers
+  Total amount of constant memory:               65536 bytes
+  Total amount of shared memory per block:       49152 bytes
+  Total shared memory per multiprocessor:        98304 bytes
+  Total number of registers available per block: 65536
+  Warp size:                                     32
+  Maximum number of threads per multiprocessor:  2048
+  Maximum number of threads per block:           1024
+  Max dimension size of a thread block (x,y,z): (1024, 1024, 64)
+  Max dimension size of a grid size    (x,y,z): (2147483647, 65535, 65535)
+  Maximum memory pitch:                          2147483647 bytes
+  Texture alignment:                             512 bytes
+  Concurrent copy and kernel execution:          Yes with 7 copy engine(s)
+  Run time limit on kernels:                     No
+  Integrated GPU sharing Host Memory:            No
+  Support host page-locked memory mapping:       Yes
+  Alignment requirement for Surfaces:            Yes
+  Device has ECC support:                        Enabled
+  Device supports Unified Addressing (UVA):      Yes
+  Device supports Managed Memory:                Yes
+  Device supports Compute Preemption:            Yes
+  Supports Cooperative Kernel Launch:            Yes
+  Supports MultiDevice Co-op Kernel Launch:      Yes
+  Device PCI Domain ID / Bus ID / location ID:   0 / 88 / 0
+  Compute Mode:
+     < Exclusive Process (many threads in one process is able to use ::cudaSetDevice() with this device) >
+
+deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 11.7, CUDA Runtime Version = 11.6, NumDevs = 1
+Result = PASS
+Deep_google
+batch_size =  128 lr =  1e-05 wd =  0.001
+4724 1008 1016
+cuda:0
+1 1.4938057352182321
+2 1.0903038042869535
+3 1.0552513292035646
+4 1.0162072284659727
+5 0.9807746923141415
+6 0.934404384978841
+7 0.8986140756057946
+8 0.8780139356119768
+9 0.8283217555885088
+10 0.8220670632040168
+Train R2 - DI: 0.306
+Val R2 - DI: 0.070
+Test R2 - DI: 0.100
+11 0.7788803345262751
+12 0.7451911024074248
+13 0.7199954871501486
+14 0.6886225132796847
+15 0.6570165165393258
+16 0.6356401048808861
+17 0.5899769209079274
+18 0.563626322829047
+19 0.5150954321367472
+20 0.48684645882609734
+Train R2 - DI: 0.641
+Val R2 - DI: -0.028
+Test R2 - DI: 0.053
+21 0.45493279802506503
+22 0.4153630714059179
+23 0.39187315833154723
+24 0.3810756985511344
+25 0.3404148032764173
+26 0.30668727191800693
+27 0.29163586374160905
+28 0.25783401061477146
+29 0.22888896158193756
+30 0.22302569990234794
+Train R2 - DI: 0.874
+Val R2 - DI: -0.119
+Test R2 - DI: 0.025
+31 0.20335403808994276
+32 0.19523956835471806
+33 0.19098448405116417
+34 0.17580979119964216
+35 0.16378331761002843
+36 0.1589017849570104
+37 0.1494284531734032
+38 0.13401957820220886
+39 0.14236609664233835
+40 0.12727057933807373
+Train R2 - DI: 0.942
+Val R2 - DI: -0.230
+Test R2 - DI: -0.117
+41 0.1249457664730991
+42 0.11764778085778468
+43 0.10618956282318497
+44 0.10623845063105768
+45 0.11586514140568377
+46 0.10028931513037548
+47 0.09713177305348943
+48 0.09596093571181019
+49 0.0904907098356997
+50 0.09216607795755405
+Train R2 - DI: 0.975
+Val R2 - DI: -0.214
+Test R2 - DI: -0.079
+51 0.08495642558989334
+52 0.08706650634080954
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 14674979: <testjob> in cluster <dcc> Exited
+
+Job <testjob> was submitted from host <n-62-30-6> by user <s174503> in cluster <dcc> at Thu Nov  3 21:31:27 2022
+Job was executed on host(s) <n-62-20-16>, in queue <gpuv100>, as user <s174503> in cluster <dcc> at Thu Nov  3 21:31:53 2022
+</zhome/fd/6/127382> was used as the home directory.
+</zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis> was used as the working directory.
+Started at Thu Nov  3 21:31:53 2022
+Terminated at Thu Nov  3 22:18:50 2022
+Results reported at Thu Nov  3 22:18:50 2022
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q gpuv100
+#BSUB -J testjob
+#BSUB -n 1
+#BSUB -gpu "num=1:mode=exclusive_process"
+#BSUB -W 03:00
+#BSUB -R "rusage[mem=5GB]"
+#BSUB -o outputs/gpu_%J.out
+#BSUB -e outputs/errors/gpu_%J.err
+
+nvidia-smi
+module load cuda/11.6
+
+/appl/cuda/11.6.0/samples/bin/x86_64/linux/release/deviceQuery
+
+source $HOME/miniconda3/bin/activate
+source venv_1/bin/activate
+
+python3 main.py Deep_google
+
+------------------------------------------------------------
+
+TERM_OWNER: job killed by owner.
+Exited with exit code 130.
+
+Resource usage summary:
+
+    CPU time :                                   2306.51 sec.
+    Max Memory :                                 2256 MB
+    Average Memory :                             2151.83 MB
+    Total Requested Memory :                     5120.00 MB
+    Delta Memory :                               2864.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                8
+    Run time :                                   2817 sec.
+    Turnaround time :                            2843 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <outputs/errors/gpu_14674979.err> for stderr output of this job.
+

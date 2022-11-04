@@ -32,6 +32,7 @@ from torch.nn import Module
 from torch.nn import BatchNorm2d
 from torch.optim import SGD
 from torch.optim import Adam
+import torch.optim as optim
 from torch.nn import CrossEntropyLoss
 from torch.nn import MSELoss
 from torch.nn.init import kaiming_uniform_
@@ -154,6 +155,7 @@ def train_model(train_dl, val_dl,test_dl, model, epochs, lr,mom=0.9,wd=0.0,id=id
     # criterion = CrossEntropyLoss()
     # optimizer = SGD(model.parameters(), lr=lr, momentum=mom,weight_decay=wd)
     optimizer = Adam(model.parameters(), lr=lr,weight_decay=wd)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.92)
     # enumerate epochs
     for epoch in range(epochs):
         model.train()
@@ -190,7 +192,7 @@ def train_model(train_dl, val_dl,test_dl, model, epochs, lr,mom=0.9,wd=0.0,id=id
         print(epoch+1, epoch_loss / len(train_dl.dataset))
         loss_save.append(epoch_loss / len(train_dl.dataset))
 
-        if ((epoch+1) % 1 == 0) & ((epoch+1)>=1):
+        if ((epoch+1) % 10 == 0) & ((epoch+1)>=2):
             model.eval()
             with torch.no_grad():
                 if yhat.size()[1] == 1:
@@ -226,7 +228,7 @@ def train_model(train_dl, val_dl,test_dl, model, epochs, lr,mom=0.9,wd=0.0,id=id
         with open("training/R2_val_"+id+".csv", 'w', newline='') as myfile:
             wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
             wr.writerow(R2_val)
-
+    scheduler.step()
     print(max_acc)
 
 # evaluate the model

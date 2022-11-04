@@ -1,0 +1,21 @@
+Loaded module: cuda/11.6
+Traceback (most recent call last):
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/main.py", line 679, in <module>
+    train_dl, val_dl, test_dl = prepare_data(path,labelsFile,batch_size,nr_tar=1)
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/DL_functions.py", line 138, in prepare_data
+    train_dl = DataLoader(train, batch_size=batch_size, shuffle=True)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/utils/data/dataloader.py", line 359, in __init__
+    batch_sampler = BatchSampler(sampler, batch_size, drop_last)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/utils/data/sampler.py", line 225, in __init__
+    raise ValueError("batch_size should be a positive integer value, "
+ValueError: batch_size should be a positive integer value, but got batch_size=128
+Traceback (most recent call last):
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/main.py", line 679, in <module>
+    train_dl, val_dl, test_dl = prepare_data(path,labelsFile,batch_size,nr_tar=1)
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/DL_functions.py", line 138, in prepare_data
+    train_dl = DataLoader(train, batch_size=batch_size, shuffle=True)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/utils/data/dataloader.py", line 359, in __init__
+    batch_sampler = BatchSampler(sampler, batch_size, drop_last)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/utils/data/sampler.py", line 225, in __init__
+    raise ValueError("batch_size should be a positive integer value, "
+ValueError: batch_size should be a positive integer value, but got batch_size=128

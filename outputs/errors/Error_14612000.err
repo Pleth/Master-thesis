@@ -1,0 +1,28 @@
+Traceback (most recent call last):
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/main.py", line 8, in <module>
+    from functions import *
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/functions.py", line 8, in <module>
+    import tsfel
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/tsfel/__init__.py", line 1, in <module>
+    from tsfel.utils import *
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/tsfel/utils/__init__.py", line 1, in <module>
+    from tsfel.utils.gSheetsFilters import *
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/tsfel/utils/gSheetsFilters.py", line 6, in <module>
+    from oauth2client.service_account import ServiceAccountCredentials
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/oauth2client/service_account.py", line 25, in <module>
+    from oauth2client import client
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/oauth2client/client.py", line 45, in <module>
+    from oauth2client import crypt
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/oauth2client/crypt.py", line 45, in <module>
+    from oauth2client import _openssl_crypt
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/oauth2client/_openssl_crypt.py", line 16, in <module>
+    from OpenSSL import crypto
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/OpenSSL/__init__.py", line 8, in <module>
+    from OpenSSL import crypto, SSL
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 986, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 680, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 846, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 941, in get_code
+  File "<frozen importlib._bootstrap_external>", line 1040, in get_data
+KeyboardInterrupt

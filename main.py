@@ -655,7 +655,7 @@ if __name__ == '__main__':
         print(len(train_dl.dataset), len(val_dl.dataset), len(test_dl.dataset))
 
         model = ImageRegression_class(224*224,1)
-        train_model(train_dl, val_dl,test_dl, model, 100, 1e-6,0.0,0.001,'IMLinReg')
+        train_model(train_dl, val_dl,test_dl, model, 100, 1e-5,0.0,0.001,'IMLinReg')
         
         model_test = ImageRegression_class(224*224,1)
         model_test.load_state_dict(torch.load("models/model_IMLinReg.pt"))
@@ -666,15 +666,23 @@ if __name__ == '__main__':
     if sys.argv[1] == 'Deep_google':
         print('Deep_google')
         
-        batch_size = 64
+        batch_size = int(sys.argv[2])
+        lr = float(sys.argv[3])
+        wd = float(sys.argv[4])
+        epoch_nr = int(sys.argv[5])
+
+        print('batch_size = ',batch_size,'lr = ',lr,'wd = ',wd)
+
         nr_tar=1
         path = 'DL_synth_data'
         labelsFile = 'DL_synth_data/labelsfile'
         train_dl, val_dl, test_dl = prepare_data(path,labelsFile,batch_size,nr_tar=1)
         print(len(train_dl.dataset), len(val_dl.dataset), len(test_dl.dataset))
 
+        id = 'GoogleNet_'+sys.argv[6]
+
         model = MyGoogleNet(in_fts=1,num_class=1)
-        train_model(train_dl, val_dl, test_dl, model, 100, 1e-5,0.0,0.001,'GoogleNet')
+        train_model(train_dl, val_dl, test_dl, model, epoch_nr, lr,0.0,wd,id)
 
         model.eval()
         acc = evaluate_model(test_dl, model)
