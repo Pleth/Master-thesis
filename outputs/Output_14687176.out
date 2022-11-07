@@ -1,0 +1,84 @@
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 1 / 5
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 2 / 5
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 3 / 5
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 4 / 5
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 5 / 5
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 1 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 2 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 3 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 4 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 5 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 6 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 7 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 1 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 2 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 3 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 4 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 5 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 6 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 7 / 7
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 1 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 2 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 3 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 4 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 5 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 6 / 6
+1155 1164 1134 1140 1522 1458
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 14687176: <Tests> in cluster <dcc> Done
+
+Job <Tests> was submitted from host <n-62-27-23> by user <s174503> in cluster <dcc> at Mon Nov  7 13:14:02 2022
+Job was executed on host(s) <4*n-62-31-7>, in queue <hpc>, as user <s174503> in cluster <dcc> at Mon Nov  7 13:14:03 2022
+</zhome/fd/6/127382> was used as the home directory.
+</zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis> was used as the working directory.
+Started at Mon Nov  7 13:14:03 2022
+Terminated at Mon Nov  7 13:36:51 2022
+Results reported at Mon Nov  7 13:36:51 2022
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q hpc
+#BSUB -J Tests
+#BSUB -n 4
+#BSUB -R "span[hosts=1]"
+#BSUB -R "rusage[mem=4GB]"
+#BSUB -W 02:00
+#BSUB -o outputs/Output_%J.out
+#BSUB -e outputs/errors/Error_%J.err
+
+source $HOME/miniconda3/bin/activate
+source venv_1/bin/activate
+
+python3 main.py synth_dataset_create
+
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   2151.35 sec.
+    Max Memory :                                 1478 MB
+    Average Memory :                             1187.54 MB
+    Total Requested Memory :                     16384.00 MB
+    Delta Memory :                               14906.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                33
+    Run time :                                   1384 sec.
+    Turnaround time :                            1369 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <outputs/errors/Error_14687176.err> for stderr output of this job.
+

@@ -1,7 +1,7 @@
 #!/bin/sh
 #BSUB -q hpc
 #BSUB -J Tests
-#BSUB -n 16
+#BSUB -n 4
 #BSUB -R "span[hosts=1]"
 #BSUB -R "rusage[mem=4GB]"
 #BSUB -W 02:00

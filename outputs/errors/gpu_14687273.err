@@ -1,0 +1,43 @@
+Loaded module: cuda/11.6
+Traceback (most recent call last):
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/main.py", line 699, in <module>
+    acc = evaluate_model(test_dl, model)
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/DL_functions.py", line 246, in evaluate_model
+    yhat = model(inputs)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1130, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/DL_functions.py", line 383, in forward
+    x = self.inception_3b(x)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1130, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/DL_functions.py", line 344, in forward
+    x = torch.cat([out1, out2, out3, out4], dim=1)
+RuntimeError: CUDA out of memory. Tried to allocate 736.00 MiB (GPU 0; 15.78 GiB total capacity; 13.69 GiB already allocated; 221.69 MiB free; 14.40 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF
+Traceback (most recent call last):
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/main.py", line 699, in <module>
+    acc = evaluate_model(test_dl, model)
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/DL_functions.py", line 246, in evaluate_model
+    yhat = model(inputs)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1130, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/DL_functions.py", line 383, in forward
+    x = self.inception_3b(x)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1130, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/DL_functions.py", line 344, in forward
+    x = torch.cat([out1, out2, out3, out4], dim=1)
+RuntimeError: CUDA out of memory. Tried to allocate 736.00 MiB (GPU 0; 15.78 GiB total capacity; 13.69 GiB already allocated; 221.69 MiB free; 14.40 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF
+Traceback (most recent call last):
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/main.py", line 699, in <module>
+    acc = evaluate_model(test_dl, model)
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/DL_functions.py", line 246, in evaluate_model
+    yhat = model(inputs)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1130, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/DL_functions.py", line 383, in forward
+    x = self.inception_3b(x)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1130, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/DL_functions.py", line 344, in forward
+    x = torch.cat([out1, out2, out3, out4], dim=1)
+RuntimeError: CUDA out of memory. Tried to allocate 736.00 MiB (GPU 0; 15.78 GiB total capacity; 13.69 GiB already allocated; 221.69 MiB free; 14.40 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF
