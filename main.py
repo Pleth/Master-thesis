@@ -685,7 +685,7 @@ if __name__ == '__main__':
         print('batch_size = ',batch_size,'lr = ',lr,'wd = ',wd)
 
         nr_tar=1
-        test_nr = float(sys.argv[7])
+        test_nr = int(sys.argv[7])
         path = 'DL_synth_data'
         labelsFile = 'DL_synth_data/labelsfile'
         train_dl, val_dl, test_dl = prepare_data(path,labelsFile,batch_size,nr_tar=1,test_nr=test_nr)

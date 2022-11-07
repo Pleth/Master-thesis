@@ -156,23 +156,31 @@ def prepare_data(path,labelsFile,batch_size,nr_tar,test_nr):
         train_dl = DataLoader(ConcatDataset([split1,split4,split5,split6,split7]), batch_size=batch_size, shuffle=True)
         val_dl = DataLoader(split3, batch_size=batch_size, shuffle=False)
         test_dl = DataLoader(split2, batch_size=batch_size, shuffle=False)
-    if test_nr == 4:
+    if test_nr == 3:
         train_dl = DataLoader(ConcatDataset([split1,split2,split3,split4,split5]), batch_size=batch_size, shuffle=True)
         val_dl = DataLoader(split6, batch_size=batch_size, shuffle=False)
         test_dl = DataLoader(split7, batch_size=batch_size, shuffle=False)
-    if test_nr == 5:
+    if test_nr == 4:
         train_dl = DataLoader(ConcatDataset([split1,split2,split3,split4,split7]), batch_size=batch_size, shuffle=True)
         val_dl = DataLoader(split5, batch_size=batch_size, shuffle=False)
         test_dl = DataLoader(split6, batch_size=batch_size, shuffle=False)
-    if test_nr == 6:
+    if test_nr == 5:
         train_dl = DataLoader(ConcatDataset([split2,split3,split4,split5,split6]), batch_size=batch_size, shuffle=True)
         val_dl = DataLoader(split1, batch_size=batch_size, shuffle=False)
         test_dl = DataLoader(split7, batch_size=batch_size, shuffle=False)
-    if test_nr == 7:
+    if test_nr == 6:
         train_dl = DataLoader(ConcatDataset([split1,split2,split3,split6,split7]), batch_size=batch_size, shuffle=True)
         val_dl = DataLoader(split5, batch_size=batch_size, shuffle=False)
         test_dl = DataLoader(split4, batch_size=batch_size, shuffle=False)
 
+    if test_nr == 112:
+        train = CustomDataset(labelsFile+"_train.csv", path+'/train/', sourceTransform, nr_tar)
+        val = CustomDataset(labelsFile+"_val.csv", path+'/val/', sourceTransform, nr_tar)
+        test = CustomDataset(labelsFile+"_test.csv", path+'/test/', sourceTransform, nr_tar)
+        
+        train_dl = DataLoader(train, batch_size=batch_size, shuffle=True)
+        val_dl = DataLoader(val, batch_size=batch_size, shuffle=False)
+        test_dl = DataLoader(test, batch_size=batch_size, shuffle=False)
     return train_dl, val_dl, test_dl
 
 # train the model
@@ -253,21 +261,22 @@ def train_model(train_dl, val_dl,test_dl, model, epochs, lr,mom=0.9,wd=0.0,id=id
                 torch.save(model.state_dict(), "models/model_"+id+".pt")
                 max_acc = acc_v
 
+            with open("training/R2_train_"+id+".csv", 'w', newline='') as myfile:
+                wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
+                wr.writerow(R2_train)
+
+            with open("training/R2_val_"+id+".csv", 'w', newline='') as myfile:
+                wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
+                wr.writerow(R2_val)
+
+            with open("training/R2_test_"+id+".csv", 'w', newline='') as myfile:
+                wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
+                wr.writerow(R2_test)
+
         with open("training/loss_save_"+id+".csv", 'w', newline='') as myfile:
             wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
             wr.writerow(loss_save)
 
-        with open("training/R2_train_"+id+".csv", 'w', newline='') as myfile:
-            wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
-            wr.writerow(R2_train)
-
-        with open("training/R2_val_"+id+".csv", 'w', newline='') as myfile:
-            wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
-            wr.writerow(R2_val)
-
-        with open("training/R2_test_"+id+".csv", 'w', newline='') as myfile:
-            wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
-            wr.writerow(R2_test)
     # scheduler.step()
     print(max_acc)
 
