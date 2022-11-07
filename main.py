@@ -442,9 +442,9 @@ if __name__ == '__main__':
         routes = []
         for i in range(len(synth_acc)): 
             routes.append(synth_acc[i].axes[0].name)
-        GM_segments, aran_segments, route_details, dists = synthetic_sample_segmentation(synth_acc,routes,segment_size=1000)
+        GM_segments, aran_segments, route_details, dists = synthetic_sample_segmentation(synth_acc,routes,segment_size=896)
         DI, cracks, alligator, potholes = calc_target(aran_segments)
-        cut = [8800,16300,20600,15500]
+        cut = [8900,16300,20600,15500]
         splits = DL_splits(aran_segments,route_details,cut)
         print(len(splits['1']),len(splits['2']),len(splits['3']),len(splits['4']),len(splits['5']),len(splits['6']))
         targets = {}
@@ -550,7 +550,7 @@ if __name__ == '__main__':
         nr_tar=1
         path = 'DL_synth_data'
         labelsFile = 'DL_synth_data/labelsfile'
-        sourceTransform = Compose([ToTensor(), Resize((224,224))]) #, Resize((224,224))
+        sourceTransform = Compose([ToTensor()]) #, Resize((224,224))
         # load dataset
         train = CustomDataset(labelsFile+"_train.csv", path+'/train/', sourceTransform, nr_tar) 
         val = CustomDataset(labelsFile+"_val.csv", path+'/val/', sourceTransform, nr_tar)
@@ -561,18 +561,29 @@ if __name__ == '__main__':
         test_dl = DataLoader(test, batch_size=batch_size, shuffle=False)
         print(len(train_dl.dataset), len(val_dl.dataset), len(test_dl.dataset))
 
-        # test_features, test_labels = next(iter(test_dl))
-        # print(f"Feature batch shape: {test_features.size()}")
-        # print(f"Labels batch shape: {test_labels.size()}")
+        batch_max = []
+        batch_min = []
+        for i, (inputs, targets) in enumerate(train_dl):
+            batch_max.append(np.max(inputs.numpy()))
+            batch_min.append(np.min(inputs.numpy()))
+        for i, (inputs, targets) in enumerate(val_dl):
+            batch_max.append(np.max(inputs.numpy()))
+            batch_min.append(np.min(inputs.numpy()))
+        for i, (inputs, targets) in enumerate(test_dl):
+            batch_max.append(np.max(inputs.numpy()))
+            batch_min.append(np.min(inputs.numpy()))
+        np.max(batch_max) # 0.9969462
+        np.min(batch_min) # 1.18216e-08
 
-        # img = test_features[0] #.squeeze()
-        # img1 = img.permute(1,2,0)
-        # label = test_labels[0]
-        # plt.imshow(img1,cmap="gray")
-        # plt.imshow(img2,cmap="gray")
-        # plt.show()
+        test_features, test_labels = next(iter(test_dl))
+        print(f"Feature batch shape: {test_features.size()}")
+        print(f"Labels batch shape: {test_labels.size()}")
 
-        # img2 = img1
+        img = test_features[4] #.squeeze()
+        img1 = img.permute(1,2,0)
+        label = test_labels[4]
+        plt.imshow(img1)
+        plt.show()
 
         model = ImageRegression_class(224*224,1)
         train_model(train_dl, val_dl,test_dl, model, 100, 1e-5,0.0,0.001,'IMLinReg')
@@ -689,7 +700,7 @@ if __name__ == '__main__':
         print('Test R2 - DI: %.3f' % acc)
 
         model_test = MyGoogleNet(in_fts=1,num_class=1)
-        model_test.load_state_dict(torch.load("models/model_GoogleNet.pt"))
+        model_test.load_state_dict(torch.load("models/model_"+id+".pt"))
         model_test.eval()
         acc = evaluate_model(test_dl, model_test)
         print('Test R2 - DI: %.3f' % acc)

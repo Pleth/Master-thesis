@@ -15,6 +15,7 @@ from LiRA_functions import *
 from numpy import vstack
 from numpy import argmax
 from pandas import read_csv
+import skimage.measure
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import r2_score
 from torchvision.datasets import MNIST
@@ -73,7 +74,9 @@ class CustomDataset(torch.utils.data.Dataset):
             label[3] = self.data['Potholes'][idx]
             label = torch.Tensor(label)
         # image = Image.fromarray(image)
-        image = (image - image.min())/(image.max()-image.min()+0.001)
+        data_max = 1.842777
+        data_min = 5.690932e-09
+        image = (image - data_min)/(data_max-data_min)
 
         if self.sourceTransform:
             image = self.sourceTransform(image)
@@ -130,7 +133,7 @@ class CNN_simple(Module):
 
 def prepare_data(path,labelsFile,batch_size,nr_tar):
     # define standardization
-    sourceTransform = Compose([ToTensor(), Resize((224,224))]) # (195,150)
+    sourceTransform = Compose([ToTensor()])
     # load dataset
     train = CustomDataset(labelsFile+"_train.csv", path+'/train/', sourceTransform, nr_tar) 
     val = CustomDataset(labelsFile+"_val.csv", path+'/val/', sourceTransform, nr_tar)
@@ -414,9 +417,12 @@ def create_cwt_data(GM_segments,splits,targets,path,check):
         # fig = plt.figure()
         # ax = fig.add_subplot()
         xtest = np.array(GM_segments[i])
-        Wx, scales = cwt(xtest, 'bump')
-        np.savez_compressed(path+"/test/cwt_"+str(i).zfill(4),Wx=abs(Wx))
-        # imshow(Wx, yticks=scales, abs=1)
+        Wx, scales = cwt(xtest, 'bump',nv=31)
+        Wx = abs(Wx)
+        Wx = Wx[2:]
+        Wx_sum = skimage.measure.block_reduce(Wx, (1,4), np.sum)
+        np.savez_compressed(path+"/test/cwt_"+str(i).zfill(4),Wx=Wx_sum)
+        # imshow(Wx_sum, yticks=scales, abs=1)
         # _ = ax.axis(False)
         # ax.set_position([0,0,1,1])
         # fig.savefig(path+"/test/cwt_im_"+str(i).zfill(4)+".png")
@@ -441,8 +447,11 @@ def create_cwt_data(GM_segments,splits,targets,path,check):
         # fig = plt.figure()
         # ax = fig.add_subplot()
         xtest = np.array(GM_segments[i])
-        Wx, scales = cwt(xtest, 'bump')
-        np.savez_compressed(path+"/val/cwt_"+str(i).zfill(4),Wx=abs(Wx))
+        Wx, scales = cwt(xtest, 'bump',nv=31)
+        Wx = abs(Wx)
+        Wx = Wx[2:]
+        Wx_sum = skimage.measure.block_reduce(Wx, (1,4), np.sum)
+        np.savez_compressed(path+"/val/cwt_"+str(i).zfill(4),Wx=Wx_sum)
         # imshow(Wx, yticks=scales, abs=1)
         # _ = ax.axis(False)
         # ax.set_position([0,0,1,1])
@@ -473,8 +482,11 @@ def create_cwt_data(GM_segments,splits,targets,path,check):
         # fig = plt.figure()
         # ax = fig.add_subplot()
         xtest = np.array(GM_segments[i])
-        Wx, _ = cwt(np.array(xtest), 'bump')
-        np.savez_compressed(path+"/train/cwt_"+str(i).zfill(4),Wx=abs(Wx))
+        Wx, _ = cwt(np.array(xtest), 'bump',nv=31)
+        Wx = abs(Wx)
+        Wx = Wx[2:]
+        Wx_sum = skimage.measure.block_reduce(Wx, (1,4), np.sum)
+        np.savez_compressed(path+"/train/cwt_"+str(i).zfill(4),Wx=Wx_sum)
         # imshow(Wx, yticks=scales, abs=1)
         # _ = ax.axis(False)
         # ax.set_position([0,0,1,1])

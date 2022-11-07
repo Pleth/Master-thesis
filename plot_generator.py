@@ -985,39 +985,59 @@ plt.show()
 
 ############################### init training ####################3
 
-loss = [1.4201073178803238,1.2197471384456438,1.102263803053292,1.0117729691133837,0.9654636266121098,0.8551083895750852,0.8097121069151959,0.686358634717458,0.6325122563000921,0.5082279206621549,0.4248260345705848,0.3634555248051313,0.3206328659518863,0.28311188815400123,0.24819691946136205,0.21386718473902191,0.2055016295421026,0.18251538707060125,0.18497850256654808,0.16404387306127627]
-R2_train = [[0.05476689],[0.13283789],[0.22159388],[0.28305972],[0.26679103],[0.41900477],[0.11850037],[0.55171365],[0.66929794],[-0.08477257],[0.78313993],[0.80811954],[0.81573249],[0.7915154],[0.83969533],[0.74299802],[0.73699211],[0.91893901],[0.73387371],[0.82787491]]
-R2_val = [[-0.11871664],[-0.08918919],[-0.02747192],[-0.05770148],[-0.20730644],[-0.1412676],[-0.27056481],[-0.10127873],[-0.14387833],[-1.19271377],[-0.19965909],[-0.19830537],[-0.31485437],[-0.3079704],[-0.17166845],[-0.42048856],[-0.45377859],[-0.21794896],[-0.21673683],[-0.37192726]]
+id = 'GoogleNet_t4.csv'
+
+loss = pd.read_csv('training/loss_save_'+id,sep=',',header=None)
+loss = loss.values.reshape((np.shape(loss)[1],-1))
+R2_train = pd.read_csv('training/R2_train_'+id,sep=',',header=None)
+R2_train = R2_train.values.reshape((np.shape(R2_train)[1],-1))
+R2_val = pd.read_csv('training/R2_val_'+id,sep=',',header=None)
+R2_val = R2_val.values.reshape((np.shape(R2_val)[1],-1))
+
+points = np.linspace(10,len(loss),len(R2_train))
 
 fig, ax1 = plt.subplots()
 ax2 = ax1.twinx()
 lns1 = ax1.plot(loss,c='blue',label='Training loss')
-lns2 = ax2.plot(R2_train,c='red',label='Training R2')
-lns3 = ax2.plot(R2_val,c='green',label='Validation R2')
+lns2 = ax2.plot(points,R2_train,c='red',label='Training R2')
+lns3 = ax2.plot(points,R2_val,c='green',label='Validation R2')
 ax1.set_xlabel('Epoch')
 ax1.set_ylabel('Loss')
 ax2.set_ylabel('R2')
-ax1.set_title('GM data')
 lns = lns1+lns2+lns3
 labs = [l.get_label() for l in lns]
-ax1.legend(lns, labs, loc=3)
+ax1.legend(lns, labs, loc=9)
+ax1.set_title('R2_val = '+str(round(np.max(R2_val),3)) + ' - ' + 'R2_test = '+str('x'))
 plt.show()
 
 
-loss = [1.15534036087163,1.02653041340535,0.949121321009524,0.875211361691158,0.849516918307944,0.766897759591444,0.732962553321599,0.70869290046716,0.63488693200594,0.562006158595899,0.490760709069696,0.459813709325414,0.407268744239423,0.363245492185427,0.297828801559311,0.275774911721782,0.239582535499411,0.215390706297731,0.18535682958572,0.191541020275797,0.178190081859032,0.141488149683578,0.141584144940962,0.13437573704456,0.116496981147333,0.108849989091186,0.108652935943833,0.110004171898812,0.100595563289074,0.096534094756929,0.091026795687391,0.087697489280234,0.083688393433218]
-R2_train = [[0.08215079],[0.14460726],[0.20890162],[0.20012972],[0.28977608],[0.31705622],[0.02080245],[0.41485914],[0.37048549],[0.57666702],[0.53814047],[0.5644455],[0.59973452],[0.72358694],[0.7418733],[0.64486694],[0.75824387],[0.75514327],[0.87430446],[0.6273928],[0.88065849],[0.73496502],[0.92415656],[0.92514317],[0.93131005],[0.9480243],[0.89284226],[0.94739749],[0.91124634],[0.95328996],[0.92507583],[0.96016162],[0.94546062]]
-R2_val = [[0.0842731],[0.07370476],[0.1109139],[0.04127425],[0.07691707],[0.08431728],[-0.34673603],[0.06076277],[-0.12235015],[0.06939376],[-0.02514033],[-0.06097007],[-0.07427177],[-0.02533284],[-0.09238853],[-0.16251372],[-0.11398707],[-0.17385472],[-0.10461832],[-0.23919405],[-0.0637992],[-0.22643511],[-0.01304294],[-0.04362782],[-0.027781],[-0.04615601],[-0.11888684],[-0.04046734],[-0.07984759],[-0.0064224],[-0.04237234],[7.04074086e-05],[-0.02103737]]
+from DL_functions import *
+batch_size = 32
+nr_tar=1
+path = 'DL_synth_data'
+labelsFile = 'DL_synth_data/labelsfile'
+sourceTransform = Compose([ToTensor()]) #, Resize((224,224))
+test = CustomDataset(labelsFile+"_test.csv", path+'/test/', sourceTransform, nr_tar)
+test_dl = DataLoader(test, batch_size=batch_size, shuffle=False)
+print(len(test_dl.dataset))
 
-fig, ax1 = plt.subplots()
-ax2 = ax1.twinx()
-lns1 = ax1.plot(loss,c='blue',label='Training loss')
-lns2 = ax2.plot(R2_train,c='red',label='Training R2')
-lns3 = ax2.plot(R2_val,c='green',label='Validation R2')
-ax1.set_xlabel('Epoch')
-ax1.set_ylabel('Loss')
-ax2.set_ylabel('R2')
-ax1.set_title('Synth data')
-lns = lns1+lns2+lns3
-labs = [l.get_label() for l in lns]
-ax1.legend(lns, labs, loc=3)
+test_features, test_labels = next(iter(test_dl))
+print(f"Feature batch shape: {test_features.size()}")
+print(f"Labels batch shape: {test_labels.size()}")
+
+img = test_features[4] #.squeeze()
+img1 = img.permute(1,2,0)
+label = test_labels[4]
+print(label)
+
+
+sourceTransform = Compose([ToTensor(), Resize((224,224))]) #, Resize((224,224))
+test = CustomDataset(labelsFile+"_test.csv", path+'/test/', sourceTransform, nr_tar)
+test_dl = DataLoader(test, batch_size=batch_size, shuffle=False)
+test_features, test_labels = next(iter(test_dl))
+img = test_features[4] #.squeeze()
+img2 = img.permute(1,2,0)
+fig,axs = plt.subplots(2)
+axs[0].imshow(img1)
+axs[1].imshow(img2)
 plt.show()
