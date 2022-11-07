@@ -140,8 +140,8 @@ def prepare_data(path,labelsFile,batch_size,nr_tar):
     test = CustomDataset(labelsFile+"_test.csv", path+'/test/', sourceTransform, nr_tar)
     # prepare data loaders
     train_dl = DataLoader(train, batch_size=batch_size, shuffle=True)
-    val_dl = DataLoader(val, batch_size=batch_size*4, shuffle=False)
-    test_dl = DataLoader(test, batch_size=batch_size*4, shuffle=False)
+    val_dl = DataLoader(val, batch_size=batch_size, shuffle=False)
+    test_dl = DataLoader(test, batch_size=batch_size, shuffle=False)
     return train_dl, val_dl, test_dl
 
 # train the model
@@ -154,6 +154,7 @@ def train_model(train_dl, val_dl,test_dl, model, epochs, lr,mom=0.9,wd=0.0,id=id
     loss_save = []
     R2_train = []
     R2_val = []
+    R2_test = []
     criterion = MSELoss()
     # criterion = CrossEntropyLoss()
     # optimizer = SGD(model.parameters(), lr=lr, momentum=mom,weight_decay=wd)
@@ -209,6 +210,7 @@ def train_model(train_dl, val_dl,test_dl, model, epochs, lr,mom=0.9,wd=0.0,id=id
 
                     acc = evaluate_model(test_dl, model)
                     print('Test R2 - DI: %.3f' % acc)
+                    R2_test.append(acc)
                 else:
                     acc = evaluate_model(train_dl, model)
                     print('Train R2 - DI: %.3f' % acc[0] + ' Cracks: %.3f' % acc[1] + ' Alligator: %.3f' % acc[2] + ' Potholes: %.3f' % acc[3])
@@ -231,6 +233,10 @@ def train_model(train_dl, val_dl,test_dl, model, epochs, lr,mom=0.9,wd=0.0,id=id
         with open("training/R2_val_"+id+".csv", 'w', newline='') as myfile:
             wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
             wr.writerow(R2_val)
+
+        with open("training/R2_test_"+id+".csv", 'w', newline='') as myfile:
+            wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
+            wr.writerow(R2_test)
     scheduler.step()
     print(max_acc)
 
