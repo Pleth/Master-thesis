@@ -24,6 +24,7 @@ from torchvision.transforms import ToTensor
 from torchvision.transforms import Normalize
 from torchvision.transforms import Resize
 from torch.utils.data import DataLoader
+from torch.utils.data import ConcatDataset
 from torch.nn import Conv2d
 from torch.nn import MaxPool2d
 from torch.nn import Linear
@@ -131,17 +132,47 @@ class CNN_simple(Module):
         # X = self.act4(X)
         return X
 
-def prepare_data(path,labelsFile,batch_size,nr_tar):
+def prepare_data(path,labelsFile,batch_size,nr_tar,test_nr):
     # define standardization
     sourceTransform = Compose([ToTensor()])
-    # load dataset
-    train = CustomDataset(labelsFile+"_train.csv", path+'/train/', sourceTransform, nr_tar) 
-    val = CustomDataset(labelsFile+"_val.csv", path+'/val/', sourceTransform, nr_tar)
-    test = CustomDataset(labelsFile+"_test.csv", path+'/test/', sourceTransform, nr_tar)
-    # prepare data loaders
-    train_dl = DataLoader(train, batch_size=batch_size, shuffle=True)
-    val_dl = DataLoader(val, batch_size=batch_size, shuffle=False)
-    test_dl = DataLoader(test, batch_size=batch_size, shuffle=False)
+
+    split1 = CustomDataset(labelsFile+"_split1.csv", path+'/split1/', sourceTransform, nr_tar)
+    split2 = CustomDataset(labelsFile+"_split2.csv", path+'/split2/', sourceTransform, nr_tar)
+    split3 = CustomDataset(labelsFile+"_split3.csv", path+'/split3/', sourceTransform, nr_tar)
+    split4 = CustomDataset(labelsFile+"_split4.csv", path+'/split4/', sourceTransform, nr_tar)
+    split5 = CustomDataset(labelsFile+"_split5.csv", path+'/split5/', sourceTransform, nr_tar)
+    split6 = CustomDataset(labelsFile+"_split6.csv", path+'/split6/', sourceTransform, nr_tar)
+    split7 = CustomDataset(labelsFile+"_split7.csv", path+'/split7/', sourceTransform, nr_tar)
+    
+    if test_nr == 0:
+        train_dl = DataLoader(ConcatDataset([split3,split4,split5,split6,split7]), batch_size=batch_size, shuffle=True)
+        val_dl = DataLoader(split2, batch_size=batch_size, shuffle=False)
+        test_dl = DataLoader(split1, batch_size=batch_size, shuffle=False)
+    if test_nr == 1:
+        train_dl = DataLoader(ConcatDataset([split1,split2,split5,split6,split7]), batch_size=batch_size, shuffle=True)
+        val_dl = DataLoader(split3, batch_size=batch_size, shuffle=False)
+        test_dl = DataLoader(split4, batch_size=batch_size, shuffle=False)
+    if test_nr == 2:
+        train_dl = DataLoader(ConcatDataset([split1,split4,split5,split6,split7]), batch_size=batch_size, shuffle=True)
+        val_dl = DataLoader(split3, batch_size=batch_size, shuffle=False)
+        test_dl = DataLoader(split2, batch_size=batch_size, shuffle=False)
+    if test_nr == 4:
+        train_dl = DataLoader(ConcatDataset([split1,split2,split3,split4,split5]), batch_size=batch_size, shuffle=True)
+        val_dl = DataLoader(split6, batch_size=batch_size, shuffle=False)
+        test_dl = DataLoader(split7, batch_size=batch_size, shuffle=False)
+    if test_nr == 5:
+        train_dl = DataLoader(ConcatDataset([split1,split2,split3,split4,split7]), batch_size=batch_size, shuffle=True)
+        val_dl = DataLoader(split5, batch_size=batch_size, shuffle=False)
+        test_dl = DataLoader(split6, batch_size=batch_size, shuffle=False)
+    if test_nr == 6:
+        train_dl = DataLoader(ConcatDataset([split2,split3,split4,split5,split6]), batch_size=batch_size, shuffle=True)
+        val_dl = DataLoader(split1, batch_size=batch_size, shuffle=False)
+        test_dl = DataLoader(split7, batch_size=batch_size, shuffle=False)
+    if test_nr == 7:
+        train_dl = DataLoader(ConcatDataset([split1,split2,split3,split6,split7]), batch_size=batch_size, shuffle=True)
+        val_dl = DataLoader(split5, batch_size=batch_size, shuffle=False)
+        test_dl = DataLoader(split4, batch_size=batch_size, shuffle=False)
+
     return train_dl, val_dl, test_dl
 
 # train the model
@@ -159,7 +190,7 @@ def train_model(train_dl, val_dl,test_dl, model, epochs, lr,mom=0.9,wd=0.0,id=id
     # criterion = CrossEntropyLoss()
     # optimizer = SGD(model.parameters(), lr=lr, momentum=mom,weight_decay=wd)
     optimizer = Adam(model.parameters(), lr=lr,weight_decay=wd)
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.92)
+    # scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.92)
     # enumerate epochs
     for epoch in range(epochs):
         model.train()
@@ -237,7 +268,7 @@ def train_model(train_dl, val_dl,test_dl, model, epochs, lr,mom=0.9,wd=0.0,id=id
         with open("training/R2_test_"+id+".csv", 'w', newline='') as myfile:
             wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
             wr.writerow(R2_test)
-    scheduler.step()
+    # scheduler.step()
     print(max_acc)
 
 # evaluate the model
@@ -277,7 +308,7 @@ class ConvBlock(nn.Module):
         super(ConvBlock, self).__init__()
         self.convolution = nn.Sequential(
             nn.Conv2d(in_channels=in_fts, out_channels=out_fts, kernel_size=(k, k), stride=(s, s), padding=(p, p)),
-            nn.BatchNorm2d(out_fts),
+            nn.BatchNorm2d(out_fts,eps=0.001),
             nn.ReLU()
         )
 
@@ -291,10 +322,10 @@ class ReduceConvBlock(nn.Module):
         super(ReduceConvBlock, self).__init__()
         self.redConv = nn.Sequential(
             nn.Conv2d(in_channels=in_fts, out_channels=out_fts_1, kernel_size=(1, 1), stride=(1, 1)),
-            nn.BatchNorm2d(out_fts_1),
+            nn.BatchNorm2d(out_fts_1,eps=0.001),
             nn.ReLU(),
             nn.Conv2d(in_channels=out_fts_1, out_channels=out_fts_2, kernel_size=(k, k), stride=(1, 1), padding=(p, p)),
-            nn.BatchNorm2d(out_fts_2),
+            nn.BatchNorm2d(out_fts_2,eps=0.001),
             nn.ReLU()
         )
 
@@ -308,10 +339,10 @@ class AuxClassifier(nn.Module):
         super(AuxClassifier, self).__init__()
         self.avgpool = nn.AvgPool2d(kernel_size=(5, 5), stride=(3, 3))
         self.conv = nn.Conv2d(in_channels=in_fts, out_channels=128, kernel_size=(1, 1), stride=(1, 1))
-        self.batchnorm = nn.BatchNorm2d(128)
+        self.batchnorm = nn.BatchNorm2d(128,eps=0.001)
         self.relu = nn.ReLU()
         self.fc = nn.Linear(4 * 4 * 128, 1024)
-        self.dropout = nn.Dropout(p=0.7)
+        self.dropout = nn.Dropout(p=0.5)
         self.classifier = nn.Linear(1024, num_classes)
 
     def forward(self, input_img):
@@ -337,7 +368,7 @@ class InceptionModule(nn.Module):
         self.pool_proj = nn.Sequential(
             nn.MaxPool2d(kernel_size=(1, 1), stride=(1, 1)),
             nn.Conv2d(in_channels=curr_in_fts, out_channels=f_pool_proj, kernel_size=(1, 1), stride=(1, 1)),
-            nn.BatchNorm2d(f_pool_proj),
+            nn.BatchNorm2d(f_pool_proj,eps=0.001),
             nn.ReLU()
         )
 
@@ -419,21 +450,14 @@ def create_cwt_data(GM_segments,splits,targets,path,check):
     alligator_lab = []
     pothole_lab = []
     paths = []
-    for i in tqdm(splits['3']):
-        # fig = plt.figure()
-        # ax = fig.add_subplot()
+    for i in tqdm(splits['1']):
         xtest = np.array(GM_segments[i])
         Wx, scales = cwt(xtest, 'bump',nv=31)
         Wx = abs(Wx)
         Wx = Wx[2:]
         Wx_sum = skimage.measure.block_reduce(Wx, (1,4), np.sum)
-        np.savez_compressed(path+"/test/cwt_"+str(i).zfill(4),Wx=Wx_sum)
-        # imshow(Wx_sum, yticks=scales, abs=1)
-        # _ = ax.axis(False)
-        # ax.set_position([0,0,1,1])
-        # fig.savefig(path+"/test/cwt_im_"+str(i).zfill(4)+".png")
-        # plt.close(fig)
-
+        np.savez_compressed(path+"/split1/cwt_"+str(i).zfill(4),Wx=Wx_sum)
+        
         DI_lab.append(targets[0][i])
         cracks_lab.append(targets[1][i])
         alligator_lab.append(targets[2][i])
@@ -442,7 +466,7 @@ def create_cwt_data(GM_segments,splits,targets,path,check):
 
     d = {'cwt_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
     df = pd.DataFrame(d)
-    df.to_csv(path+"/labelsfile_test.csv",index=False)
+    df.to_csv(path+"/labelsfile_split1.csv",index=False)
 
     DI_lab = []
     cracks_lab = []
@@ -450,20 +474,13 @@ def create_cwt_data(GM_segments,splits,targets,path,check):
     pothole_lab = []
     paths = []
     for i in tqdm(splits['2']):
-        # fig = plt.figure()
-        # ax = fig.add_subplot()
         xtest = np.array(GM_segments[i])
         Wx, scales = cwt(xtest, 'bump',nv=31)
         Wx = abs(Wx)
         Wx = Wx[2:]
         Wx_sum = skimage.measure.block_reduce(Wx, (1,4), np.sum)
-        np.savez_compressed(path+"/val/cwt_"+str(i).zfill(4),Wx=Wx_sum)
-        # imshow(Wx, yticks=scales, abs=1)
-        # _ = ax.axis(False)
-        # ax.set_position([0,0,1,1])
-        # fig.savefig(path+"/val/cwt_im_"+str(i).zfill(4)+".png")
-        # plt.close(fig)
-
+        np.savez_compressed(path+"/split2/cwt_"+str(i).zfill(4),Wx=Wx_sum)
+        
         DI_lab.append(targets[0][i])
         cracks_lab.append(targets[1][i])
         alligator_lab.append(targets[2][i])
@@ -472,33 +489,21 @@ def create_cwt_data(GM_segments,splits,targets,path,check):
 
     d = {'cwt_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
     df = pd.DataFrame(d)
-    df.to_csv(path+"/labelsfile_val.csv",index=False)
-    
-    if check == 'real':
-        train_split = splits['3'] + splits['4']
-    else:
-        train_split = splits['1'] + splits['4'] + splits['5'] + splits['6']
+    df.to_csv(path+"/labelsfile_split2.csv",index=False)
 
     DI_lab = []
     cracks_lab = []
     alligator_lab = []
     pothole_lab = []
     paths = []
-    for i in tqdm(train_split):
-        # fig = plt.figure()
-        # ax = fig.add_subplot()
+    for i in tqdm(splits['3']):
         xtest = np.array(GM_segments[i])
-        Wx, _ = cwt(np.array(xtest), 'bump',nv=31)
+        Wx, scales = cwt(xtest, 'bump',nv=31)
         Wx = abs(Wx)
         Wx = Wx[2:]
         Wx_sum = skimage.measure.block_reduce(Wx, (1,4), np.sum)
-        np.savez_compressed(path+"/train/cwt_"+str(i).zfill(4),Wx=Wx_sum)
-        # imshow(Wx, yticks=scales, abs=1)
-        # _ = ax.axis(False)
-        # ax.set_position([0,0,1,1])
-        # fig.savefig(path+"/train/cwt_im_"+str(i).zfill(4)+".png")
-        # plt.close(fig)
-
+        np.savez_compressed(path+"/split3/cwt_"+str(i).zfill(4),Wx=Wx_sum)
+        
         DI_lab.append(targets[0][i])
         cracks_lab.append(targets[1][i])
         alligator_lab.append(targets[2][i])
@@ -507,7 +512,164 @@ def create_cwt_data(GM_segments,splits,targets,path,check):
 
     d = {'cwt_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
     df = pd.DataFrame(d)
-    df.to_csv(path+"/labelsfile_train.csv",index=False)
+    df.to_csv(path+"/labelsfile_split3.csv",index=False)
+
+    DI_lab = []
+    cracks_lab = []
+    alligator_lab = []
+    pothole_lab = []
+    paths = []
+    for i in tqdm(splits['4']):
+        xtest = np.array(GM_segments[i])
+        Wx, scales = cwt(xtest, 'bump',nv=31)
+        Wx = abs(Wx)
+        Wx = Wx[2:]
+        Wx_sum = skimage.measure.block_reduce(Wx, (1,4), np.sum)
+        np.savez_compressed(path+"/split4/cwt_"+str(i).zfill(4),Wx=Wx_sum)
+        
+        DI_lab.append(targets[0][i])
+        cracks_lab.append(targets[1][i])
+        alligator_lab.append(targets[2][i])
+        pothole_lab.append(targets[3][i])
+        paths.append("cwt_"+str(i).zfill(4)+".npz")
+
+    d = {'cwt_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
+    df = pd.DataFrame(d)
+    df.to_csv(path+"/labelsfile_split4.csv",index=False)
+
+    DI_lab = []
+    cracks_lab = []
+    alligator_lab = []
+    pothole_lab = []
+    paths = []
+    for i in tqdm(splits['5']):
+        xtest = np.array(GM_segments[i])
+        Wx, scales = cwt(xtest, 'bump',nv=31)
+        Wx = abs(Wx)
+        Wx = Wx[2:]
+        Wx_sum = skimage.measure.block_reduce(Wx, (1,4), np.sum)
+        np.savez_compressed(path+"/split5/cwt_"+str(i).zfill(4),Wx=Wx_sum)
+        
+        DI_lab.append(targets[0][i])
+        cracks_lab.append(targets[1][i])
+        alligator_lab.append(targets[2][i])
+        pothole_lab.append(targets[3][i])
+        paths.append("cwt_"+str(i).zfill(4)+".npz")
+
+    d = {'cwt_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
+    df = pd.DataFrame(d)
+    df.to_csv(path+"/labelsfile_split5.csv",index=False)
+
+    DI_lab = []
+    cracks_lab = []
+    alligator_lab = []
+    pothole_lab = []
+    paths = []
+    for i in tqdm(splits['6']):
+        xtest = np.array(GM_segments[i])
+        Wx, scales = cwt(xtest, 'bump',nv=31)
+        Wx = abs(Wx)
+        Wx = Wx[2:]
+        Wx_sum = skimage.measure.block_reduce(Wx, (1,4), np.sum)
+        np.savez_compressed(path+"/split6/cwt_"+str(i).zfill(4),Wx=Wx_sum)
+        
+        DI_lab.append(targets[0][i])
+        cracks_lab.append(targets[1][i])
+        alligator_lab.append(targets[2][i])
+        pothole_lab.append(targets[3][i])
+        paths.append("cwt_"+str(i).zfill(4)+".npz")
+
+    d = {'cwt_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
+    df = pd.DataFrame(d)
+    df.to_csv(path+"/labelsfile_split6.csv",index=False)
+
+    DI_lab = []
+    cracks_lab = []
+    alligator_lab = []
+    pothole_lab = []
+    paths = []
+    for i in tqdm(splits['7']):
+        xtest = np.array(GM_segments[i])
+        Wx, scales = cwt(xtest, 'bump',nv=31)
+        Wx = abs(Wx)
+        Wx = Wx[2:]
+        Wx_sum = skimage.measure.block_reduce(Wx, (1,4), np.sum)
+        np.savez_compressed(path+"/split7/cwt_"+str(i).zfill(4),Wx=Wx_sum)
+        
+        DI_lab.append(targets[0][i])
+        cracks_lab.append(targets[1][i])
+        alligator_lab.append(targets[2][i])
+        pothole_lab.append(targets[3][i])
+        paths.append("cwt_"+str(i).zfill(4)+".npz")
+
+    d = {'cwt_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
+    df = pd.DataFrame(d)
+    df.to_csv(path+"/labelsfile_split7.csv",index=False)
+
+    # DI_lab = []
+    # cracks_lab = []
+    # alligator_lab = []
+    # pothole_lab = []
+    # paths = []
+    # for i in tqdm(splits['2']):
+    #     # fig = plt.figure()
+    #     # ax = fig.add_subplot()
+    #     xtest = np.array(GM_segments[i])
+    #     Wx, scales = cwt(xtest, 'bump',nv=31)
+    #     Wx = abs(Wx)
+    #     Wx = Wx[2:]
+    #     Wx_sum = skimage.measure.block_reduce(Wx, (1,4), np.sum)
+    #     np.savez_compressed(path+"/val/cwt_"+str(i).zfill(4),Wx=Wx_sum)
+    #     # imshow(Wx, yticks=scales, abs=1)
+    #     # _ = ax.axis(False)
+    #     # ax.set_position([0,0,1,1])
+    #     # fig.savefig(path+"/val/cwt_im_"+str(i).zfill(4)+".png")
+    #     # plt.close(fig)
+
+    #     DI_lab.append(targets[0][i])
+    #     cracks_lab.append(targets[1][i])
+    #     alligator_lab.append(targets[2][i])
+    #     pothole_lab.append(targets[3][i])
+    #     paths.append("cwt_"+str(i).zfill(4)+".npz")
+
+    # d = {'cwt_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
+    # df = pd.DataFrame(d)
+    # df.to_csv(path+"/labelsfile_val.csv",index=False)
+    
+    # if check == 'real':
+    #     train_split = splits['3'] + splits['4']
+    # else:
+    #     train_split = splits['1'] + splits['4'] + splits['5'] + splits['6']
+
+    # DI_lab = []
+    # cracks_lab = []
+    # alligator_lab = []
+    # pothole_lab = []
+    # paths = []
+    # for i in tqdm(train_split):
+    #     # fig = plt.figure()
+    #     # ax = fig.add_subplot()
+    #     xtest = np.array(GM_segments[i])
+    #     Wx, _ = cwt(np.array(xtest), 'bump',nv=31)
+    #     Wx = abs(Wx)
+    #     Wx = Wx[2:]
+    #     Wx_sum = skimage.measure.block_reduce(Wx, (1,4), np.sum)
+    #     np.savez_compressed(path+"/train/cwt_"+str(i).zfill(4),Wx=Wx_sum)
+    #     # imshow(Wx, yticks=scales, abs=1)
+    #     # _ = ax.axis(False)
+    #     # ax.set_position([0,0,1,1])
+    #     # fig.savefig(path+"/train/cwt_im_"+str(i).zfill(4)+".png")
+    #     # plt.close(fig)
+
+    #     DI_lab.append(targets[0][i])
+    #     cracks_lab.append(targets[1][i])
+    #     alligator_lab.append(targets[2][i])
+    #     pothole_lab.append(targets[3][i])
+    #     paths.append("cwt_"+str(i).zfill(4)+".npz")
+
+    # d = {'cwt_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
+    # df = pd.DataFrame(d)
+    # df.to_csv(path+"/labelsfile_train.csv",index=False)
 
     return
 
@@ -556,11 +718,15 @@ def DL_splits(aran_segments,route_details,cut):
        if i not in split5:
           split5.append(i)
     split6 = []
-    for i in list(cph6_aran[(cph6_aran['BeginChainage'] >= cut[3]) & (cph6_aran['BeginChainage'] > 7500)].index):
+    for i in list(cph6_aran[(cph6_aran['BeginChainage'] >= cut[3]) & (cph6_aran['BeginChainage'] <= cut[4]) & (cph6_aran['BeginChainage'] > 7500)].index):
        if i not in split6:
           split6.append(i)
+    split7 = []
+    for i in list(cph6_aran[(cph6_aran['BeginChainage'] >= cut[4]) & (cph6_aran['BeginChainage'] > 7500)].index):
+       if i not in split7:
+          split7.append(i)
     
-    splits = {'1': split1, '2': split2, '3': split3, '4': split4, '5': split5, '6': split6}
+    splits = {'1': split1, '2': split2, '3': split3, '4': split4, '5': split5, '6': split6, '7': split7}
 
     return splits
 

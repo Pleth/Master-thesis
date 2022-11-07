@@ -444,9 +444,9 @@ if __name__ == '__main__':
             routes.append(synth_acc[i].axes[0].name)
         GM_segments, aran_segments, route_details, dists = synthetic_sample_segmentation(synth_acc,routes,segment_size=896)
         DI, cracks, alligator, potholes = calc_target(aran_segments)
-        cut = [8900,16300,20600,15500]
+        cut = [8900,16300,20600,13000,17400]
         splits = DL_splits(aran_segments,route_details,cut)
-        print(len(splits['1']),len(splits['2']),len(splits['3']),len(splits['4']),len(splits['5']),len(splits['6']))
+        print(len(splits['1']),len(splits['2']),len(splits['3']),len(splits['4']),len(splits['5']),len(splits['6']),len(splits['7']))
         targets = {}
         targets[0] = DI
         targets[1] = cracks
@@ -658,7 +658,7 @@ if __name__ == '__main__':
     if sys.argv[1] == 'Deep_linear':
         print('Deep_linear')
         
-        batch_size = 64
+        batch_size = 16
         nr_tar=1
         path = 'DL_synth_data'
         labelsFile = 'DL_synth_data/labelsfile'
@@ -685,9 +685,10 @@ if __name__ == '__main__':
         print('batch_size = ',batch_size,'lr = ',lr,'wd = ',wd)
 
         nr_tar=1
+        test_nr = float(sys.argv[7])
         path = 'DL_synth_data'
         labelsFile = 'DL_synth_data/labelsfile'
-        train_dl, val_dl, test_dl = prepare_data(path,labelsFile,batch_size,nr_tar=1)
+        train_dl, val_dl, test_dl = prepare_data(path,labelsFile,batch_size,nr_tar=1,test_nr=test_nr)
         print(len(train_dl.dataset), len(val_dl.dataset), len(test_dl.dataset))
 
         id = 'GoogleNet_'+sys.argv[6]
