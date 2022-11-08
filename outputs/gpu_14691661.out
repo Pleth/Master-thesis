@@ -1,0 +1,401 @@
+Tue Nov  8 10:14:36 2022       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 515.65.01    Driver Version: 515.65.01    CUDA Version: 11.7     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  Tesla V100-PCIE...  On   | 00000000:D8:00.0 Off |                    0 |
+| N/A   25C    P0    25W / 250W |      0MiB / 32768MiB |      0%   E. Process |
+|                               |                      |                  N/A |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++-----------------------------------------------------------------------------+
+/appl/cuda/11.6.0/samples/bin/x86_64/linux/release/deviceQuery Starting...
+
+ CUDA Device Query (Runtime API) version (CUDART static linking)
+
+Detected 1 CUDA Capable device(s)
+
+Device 0: "Tesla V100-PCIE-32GB"
+  CUDA Driver Version / Runtime Version          11.7 / 11.6
+  CUDA Capability Major/Minor version number:    7.0
+  Total amount of global memory:                 32511 MBytes (34089926656 bytes)
+  (080) Multiprocessors, (064) CUDA Cores/MP:    5120 CUDA Cores
+  GPU Max Clock rate:                            1380 MHz (1.38 GHz)
+  Memory Clock rate:                             877 Mhz
+  Memory Bus Width:                              4096-bit
+  L2 Cache Size:                                 6291456 bytes
+  Maximum Texture Dimension Size (x,y,z)         1D=(131072), 2D=(131072, 65536), 3D=(16384, 16384, 16384)
+  Maximum Layered 1D Texture Size, (num) layers  1D=(32768), 2048 layers
+  Maximum Layered 2D Texture Size, (num) layers  2D=(32768, 32768), 2048 layers
+  Total amount of constant memory:               65536 bytes
+  Total amount of shared memory per block:       49152 bytes
+  Total shared memory per multiprocessor:        98304 bytes
+  Total number of registers available per block: 65536
+  Warp size:                                     32
+  Maximum number of threads per multiprocessor:  2048
+  Maximum number of threads per block:           1024
+  Max dimension size of a thread block (x,y,z): (1024, 1024, 64)
+  Max dimension size of a grid size    (x,y,z): (2147483647, 65535, 65535)
+  Maximum memory pitch:                          2147483647 bytes
+  Texture alignment:                             512 bytes
+  Concurrent copy and kernel execution:          Yes with 7 copy engine(s)
+  Run time limit on kernels:                     No
+  Integrated GPU sharing Host Memory:            No
+  Support host page-locked memory mapping:       Yes
+  Alignment requirement for Surfaces:            Yes
+  Device has ECC support:                        Enabled
+  Device supports Unified Addressing (UVA):      Yes
+  Device supports Managed Memory:                Yes
+  Device supports Compute Preemption:            Yes
+  Supports Cooperative Kernel Launch:            Yes
+  Supports MultiDevice Co-op Kernel Launch:      Yes
+  Device PCI Domain ID / Bus ID / location ID:   0 / 216 / 0
+  Compute Mode:
+     < Exclusive Process (many threads in one process is able to use ::cudaSetDevice() with this device) >
+
+deviceQuery, CUDA Driver = CUDART, CUDA Driver Version = 11.7, CUDA Runtime Version = 11.6, NumDevs = 1
+Result = PASS
+Deep_google
+batch_size =  128 lr =  1e-06 wd =  10.0
+5261 1164 1155
+cuda:0
+1 4.463890338664589
+2 3.9571672119448063
+3 3.568506863017065
+4 3.294186654187862
+5 3.030034442383897
+6 2.8461327805670464
+7 2.711638002222515
+8 2.579849394753142
+9 2.4527397006665135
+10 2.3458793801378555
+Train R2 - DI: -1.117
+Val R2 - DI: -0.872
+Test R2 - DI: -0.924
+11 2.2471619812487376
+12 2.1674814314426203
+13 2.1101563007200292
+14 2.0495944009990072
+15 1.98928436546855
+16 1.9242292065467248
+17 1.889525837962606
+18 1.8377969331261867
+19 1.7910315602071791
+20 1.7360626414483364
+Train R2 - DI: -0.569
+Val R2 - DI: -0.387
+Test R2 - DI: -0.439
+21 1.7221447870183457
+22 1.66811214533851
+23 1.6366662827763487
+24 1.6015680248667998
+25 1.5784208135807885
+26 1.5640786837498242
+27 1.5534048526827724
+28 1.5016280632919967
+29 1.4892492398656472
+30 1.482499768787907
+Train R2 - DI: -0.361
+Val R2 - DI: -0.233
+Test R2 - DI: -0.284
+31 1.4476605468185155
+32 1.4291789863662923
+33 1.4146857939390056
+34 1.4057734822778278
+35 1.385610797925948
+36 1.3674430611570443
+37 1.362016548495899
+38 1.3500285936702545
+39 1.3257906480425552
+40 1.31654584081516
+Train R2 - DI: -0.188
+Val R2 - DI: -0.117
+Test R2 - DI: -0.164
+41 1.3057502984456792
+42 1.2895226956456134
+43 1.2712497519825918
+44 1.292298114587544
+45 1.250267819734246
+46 1.2521586921211205
+47 1.2518782232496997
+48 1.2306819174412515
+49 1.21391631167462
+50 1.1965447950444732
+Train R2 - DI: -0.091
+Val R2 - DI: -0.053
+Test R2 - DI: -0.104
+51 1.2150815062549172
+52 1.1922378259066777
+53 1.176777387510527
+54 1.1696600556668164
+55 1.1648895067081912
+56 1.1645253973187568
+57 1.1590681121934392
+58 1.1634297285712596
+59 1.1370754409167187
+60 1.1367545782262167
+Train R2 - DI: -0.029
+Val R2 - DI: -0.010
+Test R2 - DI: -0.065
+61 1.1210143207665337
+62 1.1140407300894988
+63 1.1066164762614412
+64 1.0993841360377123
+65 1.106578783489547
+66 1.1013479940770265
+67 1.085107373570426
+68 1.0789716668714477
+69 1.07241832045316
+70 1.0652173186771499
+Train R2 - DI: 0.015
+Val R2 - DI: 0.016
+Test R2 - DI: -0.040
+71 1.0626500369795056
+72 1.0564302656274855
+73 1.0463053754948093
+74 1.0542139075958463
+75 1.0389087597831215
+76 1.0417293030552663
+77 1.034029611864146
+78 1.0306530050668534
+79 1.0352841825386436
+80 1.0200445953939967
+Train R2 - DI: 0.045
+Val R2 - DI: 0.041
+Test R2 - DI: -0.022
+81 1.0199712218270287
+82 1.0068118224985085
+83 1.0136116136051678
+84 1.0110940377174324
+85 1.0029488237858997
+86 1.004470288572237
+87 0.9929636241229082
+88 0.9893132547669664
+89 0.9795931577909086
+90 0.982273615238173
+Train R2 - DI: 0.075
+Val R2 - DI: 0.055
+Test R2 - DI: -0.003
+91 0.9673632461860184
+92 0.9726100611926892
+93 0.9595205684144151
+94 0.9721632948440192
+95 0.9608572117844092
+96 0.9608242388144121
+97 0.9601442507749455
+98 0.9515286837664649
+99 0.9570152618159498
+100 0.9477516490455544
+Train R2 - DI: 0.140
+Val R2 - DI: 0.076
+Test R2 - DI: 0.030
+101 0.9536534595786336
+102 0.9519318949698133
+103 0.9453105364795693
+104 0.933745277503488
+105 0.9446054896436429
+106 0.9302219071217849
+107 0.9311834175399537
+108 0.9331386703385348
+109 0.9234025303661721
+110 0.9282995067243679
+Train R2 - DI: 0.154
+Val R2 - DI: 0.086
+Test R2 - DI: 0.039
+111 0.920796729339617
+112 0.9137734444144561
+113 0.9298537985450572
+114 0.9221799588038019
+115 0.9167512943934543
+116 0.9218816153225031
+117 0.9203966876962434
+118 0.9225966385665717
+119 0.9130479766261643
+120 0.9132067797370248
+Train R2 - DI: 0.160
+Val R2 - DI: 0.093
+Test R2 - DI: 0.040
+121 0.910922537827034
+122 0.9082980200696459
+123 0.9090988479102888
+124 0.8980019394491725
+125 0.9025297920030008
+126 0.9012628037583758
+127 0.9004678916532353
+128 0.8895058022934863
+129 0.8967684329156526
+130 0.8901340144370767
+Train R2 - DI: 0.185
+Val R2 - DI: 0.098
+Test R2 - DI: 0.052
+131 0.8936277847227954
+132 0.892502436436666
+133 0.8914453042276321
+134 0.8833361067284289
+135 0.8845514157860254
+136 0.8810891287563827
+137 0.871599772905039
+138 0.8852552677193334
+139 0.8764992562611051
+140 0.8796518351772942
+Train R2 - DI: 0.205
+Val R2 - DI: 0.110
+Test R2 - DI: 0.063
+141 0.8791875212257341
+142 0.8777241370757708
+143 0.8753498924070836
+144 0.8723158786741415
+145 0.8754313898911338
+146 0.8781413827597744
+147 0.8595317561088055
+148 0.8634060063848839
+149 0.8710986915264173
+150 0.8609130874012749
+Train R2 - DI: 0.201
+Val R2 - DI: 0.113
+Test R2 - DI: 0.061
+151 0.8606032985422779
+152 0.8670390521000375
+153 0.8655533606256964
+154 0.8676206255181165
+155 0.8592125925132246
+156 0.8545998323300201
+157 0.8557502281142377
+158 0.8601472051939886
+159 0.858139690644069
+160 0.8602953263390452
+Train R2 - DI: 0.211
+Val R2 - DI: 0.117
+Test R2 - DI: 0.063
+161 0.8479696273622438
+162 0.8463163535147651
+163 0.8454313376878427
+164 0.851399543948827
+165 0.8505359318654724
+166 0.8436962009450597
+167 0.8453049507573448
+168 0.8481677697369228
+169 0.8459243459000014
+170 0.8429490089971651
+Train R2 - DI: 0.215
+Val R2 - DI: 0.117
+Test R2 - DI: 0.064
+171 0.8395754617331396
+172 0.837144544291827
+173 0.8490590988921249
+174 0.840730357818154
+175 0.8354303316344012
+176 0.8343199530247839
+177 0.8389387573495244
+178 0.8371641757347311
+179 0.8384063926583301
+180 0.8339938243585175
+Train R2 - DI: 0.209
+Val R2 - DI: 0.126
+Test R2 - DI: 0.062
+181 0.8250142450773134
+182 0.8415128299886794
+183 0.8344953589918858
+184 0.830874366070059
+185 0.8303448232582961
+186 0.8301161177777854
+187 0.8290541992965159
+188 0.8313710620321264
+189 0.8294832823825322
+190 0.8181719087394239
+Train R2 - DI: 0.248
+Val R2 - DI: 0.120
+Test R2 - DI: 0.083
+191 0.8285490995780345
+192 0.8277677541290303
+193 0.8225156291880279
+194 0.8302306230927892
+195 0.8253468655742319
+196 0.8248131961066604
+197 0.8238216651933906
+198 0.8101957787682951
+199 0.8175777831790882
+200 0.8216008533658331
+Train R2 - DI: 0.243
+Val R2 - DI: 0.127
+Test R2 - DI: 0.078
+0.127157818740384
+Test R2 - DI: 0.078
+Test R2 - DI: 0.078
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 14691661: <testjob> in cluster <dcc> Done
+
+Job <testjob> was submitted from host <n-62-30-1> by user <s174503> in cluster <dcc> at Tue Nov  8 10:14:35 2022
+Job was executed on host(s) <n-62-20-16>, in queue <gpuv100>, as user <s174503> in cluster <dcc> at Tue Nov  8 10:14:36 2022
+</zhome/fd/6/127382> was used as the home directory.
+</zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis> was used as the working directory.
+Started at Tue Nov  8 10:14:36 2022
+Terminated at Tue Nov  8 11:15:26 2022
+Results reported at Tue Nov  8 11:15:26 2022
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q gpuv100
+#BSUB -J testjob
+#BSUB -n 1
+#BSUB -gpu "num=1:mode=exclusive_process"
+#BSUB -W 11:00
+#BSUB -R "rusage[mem=5GB]"
+#BSUB -o outputs/gpu_%J.out
+#BSUB -e outputs/errors/gpu_%J.err
+
+nvidia-smi
+module load cuda/11.6
+
+/appl/cuda/11.6.0/samples/bin/x86_64/linux/release/deviceQuery
+
+source $HOME/miniconda3/bin/activate
+source venv_1/bin/activate
+
+python3 main.py Deep_google 128 1e-6 10 200 2_1 0
+#python3 main.py Deep_google 128 1e-6 10 100 3_4 1
+#python3 main.py Deep_google 128 1e-6 10 100 3_2 2
+#python3 main.py Deep_google 128 1e-6 10 100 6_7 3
+#python3 main.py Deep_google 128 1e-6 10 100 5_6 4
+#python3 main.py Deep_google 128 1e-6 10 100 1_7 5
+#python3 main.py Deep_google 128 1e-6 10 100 5_4 6
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   3216.74 sec.
+    Max Memory :                                 2241 MB
+    Average Memory :                             2204.17 MB
+    Total Requested Memory :                     5120.00 MB
+    Delta Memory :                               2879.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                8
+    Run time :                                   3759 sec.
+    Turnaround time :                            3651 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <outputs/errors/gpu_14691661.err> for stderr output of this job.
+

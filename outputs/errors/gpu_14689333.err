@@ -1,0 +1,32 @@
+Loaded module: cuda/11.6
+Traceback (most recent call last):
+  File "/zhome/fd/6/127382/miniconda3/bin/conda", line 13, in <module>
+    sys.exit(main())
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/conda/cli/main.py", line 142, in main
+    from ..activate import main as activator_main
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/conda/activate.py", line 22, in <module>
+    from .base.context import ROOT_ENV_NAME, context, locate_prefix_by_name
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/conda/base/context.py", line 32, in <module>
+    from ..common.configuration import (Configuration, ConfigurationLoadError, MapParameter,
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/conda/common/configuration.py", line 36, in <module>
+    from .path import expand
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/conda/common/path.py", line 17, in <module>
+    from distutils.spawn import find_executable
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 982, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 925, in _find_spec
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/_distutils_hack/__init__.py", line 90, in find_spec
+    return method()
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/_distutils_hack/__init__.py", line 101, in spec_for_distutils
+    mod = importlib.import_module('setuptools._distutils')
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/setuptools/__init__.py", line 8, in <module>
+    import _distutils_hack.override  # noqa: F401
+  File "<frozen importlib._bootstrap>", line 1007, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 986, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 680, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 846, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 941, in get_code
+  File "<frozen importlib._bootstrap_external>", line 1040, in get_data
+KeyboardInterrupt

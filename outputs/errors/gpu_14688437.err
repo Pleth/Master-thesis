@@ -1,0 +1,9 @@
+Loaded module: cuda/11.6
+Exception ignored in: <function NpzFile.__del__ at 0x7f1f12d47550>
+Traceback (most recent call last):
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/numpy/lib/npyio.py", line 215, in __del__
+    self.close()
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/numpy/lib/npyio.py", line 212, in close
+    self.f = None  # break reference cycle
+KeyboardInterrupt: 
+Terminated

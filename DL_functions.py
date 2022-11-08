@@ -135,15 +135,16 @@ class CNN_simple(Module):
 def prepare_data(path,labelsFile,batch_size,nr_tar,test_nr):
     # define standardization
     sourceTransform = Compose([ToTensor()])
-
-    split1 = CustomDataset(labelsFile+"_split1.csv", path+'/split1/', sourceTransform, nr_tar)
-    split2 = CustomDataset(labelsFile+"_split2.csv", path+'/split2/', sourceTransform, nr_tar)
-    split3 = CustomDataset(labelsFile+"_split3.csv", path+'/split3/', sourceTransform, nr_tar)
-    split4 = CustomDataset(labelsFile+"_split4.csv", path+'/split4/', sourceTransform, nr_tar)
-    split5 = CustomDataset(labelsFile+"_split5.csv", path+'/split5/', sourceTransform, nr_tar)
-    split6 = CustomDataset(labelsFile+"_split6.csv", path+'/split6/', sourceTransform, nr_tar)
-    split7 = CustomDataset(labelsFile+"_split7.csv", path+'/split7/', sourceTransform, nr_tar)
     
+    if test_nr < 100:
+        split1 = CustomDataset(labelsFile+"_split1.csv", path+'/split1/', sourceTransform, nr_tar)
+        split2 = CustomDataset(labelsFile+"_split2.csv", path+'/split2/', sourceTransform, nr_tar)
+        split3 = CustomDataset(labelsFile+"_split3.csv", path+'/split3/', sourceTransform, nr_tar)
+        split4 = CustomDataset(labelsFile+"_split4.csv", path+'/split4/', sourceTransform, nr_tar)
+        split5 = CustomDataset(labelsFile+"_split5.csv", path+'/split5/', sourceTransform, nr_tar)
+        split6 = CustomDataset(labelsFile+"_split6.csv", path+'/split6/', sourceTransform, nr_tar)
+        split7 = CustomDataset(labelsFile+"_split7.csv", path+'/split7/', sourceTransform, nr_tar)
+        
     if test_nr == 0:
         train_dl = DataLoader(ConcatDataset([split3,split4,split5,split6,split7]), batch_size=batch_size, shuffle=True)
         val_dl = DataLoader(split2, batch_size=batch_size, shuffle=False)
@@ -198,7 +199,7 @@ def train_model(train_dl, val_dl,test_dl, model, epochs, lr,mom=0.9,wd=0.0,id=id
     # criterion = CrossEntropyLoss()
     # optimizer = SGD(model.parameters(), lr=lr, momentum=mom,weight_decay=wd)
     optimizer = Adam(model.parameters(), lr=lr,weight_decay=wd)
-    # scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.92)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.92)
     # enumerate epochs
     for epoch in range(epochs):
         model.train()
@@ -277,7 +278,7 @@ def train_model(train_dl, val_dl,test_dl, model, epochs, lr,mom=0.9,wd=0.0,id=id
             wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
             wr.writerow(loss_save)
 
-    # scheduler.step()
+    scheduler.step()
     print(max_acc)
 
 # evaluate the model

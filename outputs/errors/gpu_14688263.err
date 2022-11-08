@@ -1,0 +1,19 @@
+Loaded module: cuda/11.6
+Traceback (most recent call last):
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/main.py", line 696, in <module>
+    train_model(train_dl, val_dl, test_dl, model, epoch_nr, lr,0.0,wd,id)
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/DL_functions.py", line 186, in train_model
+    optimizer.step()
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/optim/lr_scheduler.py", line 65, in wrapper
+    return wrapped(*args, **kwargs)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/optim/optimizer.py", line 113, in wrapper
+    return func(*args, **kwargs)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/autograd/grad_mode.py", line 27, in decorate_context
+    return func(*args, **kwargs)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/optim/adam.py", line 157, in step
+    adam(params_with_grad,
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/optim/adam.py", line 213, in adam
+    func(params,
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/optim/adam.py", line 256, in _single_tensor_adam
+    step_t += 1
+KeyboardInterrupt

@@ -1,0 +1,21 @@
+Loaded module: cuda/11.6
+Traceback (most recent call last):
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/runpy.py", line 197, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/runpy.py", line 87, in _run_code
+    exec(code, run_globals)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/utils/bottleneck/__main__.py", line 229, in <module>
+    main()
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/utils/bottleneck/__main__.py", line 207, in main
+    cprofile_prof = run_cprofile(code, globs)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/utils/bottleneck/__main__.py", line 75, in run_cprofile
+    exec(code, globs, None)
+  File "main.py", line 704, in <module>
+    model_test.load_state_dict(torch.load("models/model_GoogleNet_"+id+".pt")) # ,map_location=torch.device('cpu')
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/serialization.py", line 699, in load
+    with _open_file_like(f, 'rb') as opened_file:
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/serialization.py", line 230, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+  File "/zhome/fd/6/127382/miniconda3/lib/python3.9/site-packages/torch/serialization.py", line 211, in __init__
+    super(_open_file, self).__init__(open(name, mode))
+FileNotFoundError: [Errno 2] No such file or directory: 'models/model_GoogleNet_GoogleNet_2_1.pt'

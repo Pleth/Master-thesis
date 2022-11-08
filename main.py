@@ -701,7 +701,7 @@ if __name__ == '__main__':
         print('Test R2 - DI: %.3f' % acc)
 
         model_test = MyGoogleNet(in_fts=1,num_class=1)
-        model_test.load_state_dict(torch.load("models/model_GoogleNet_"+id+".pt")) # ,map_location=torch.device('cpu')
+        model_test.load_state_dict(torch.load("models/model_"+id+".pt")) # ,map_location=torch.device('cpu')
         model_test.eval()
         acc = evaluate_model(test_dl, model_test)
         print('Test R2 - DI: %.3f' % acc)
