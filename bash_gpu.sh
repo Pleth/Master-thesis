@@ -16,6 +16,6 @@ module load cuda/11.6
 source $HOME/miniconda3/bin/activate
 source venv_1/bin/activate
 
-python3 main.py Deep_google 128 1e-6 10 200 2_4 7
-python3 main.py Deep_google 128 1e-6 10 200 shuffle 99
-python3 main.py CNN_simple 128 1e-6 10 100 2_4 7
+python3 main.py Deep_google 128 1e-6 10 400 2_4_test2 7
+python3 main.py Deep_google 128 1e-6 10 400 shuffle_test2 99
+#python3 main.py CNN_simple 128 1e-6 10 100 2_4 7

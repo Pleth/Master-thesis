@@ -674,14 +674,14 @@ if __name__ == '__main__':
 
         id = 'CNN_simple_'+sys.argv[6]
 
-        model = CNN_simple(in_fts=1)
+        model = CNN_simple(1)
         train_model(train_dl, val_dl, test_dl, model, epoch_nr, lr,0.0,wd,id)
 
         model.eval()
         acc = evaluate_model(test_dl, model)
         print('Test R2 - DI: %.3f' % acc)
 
-        model_test = CNN_simple(in_fts=1)
+        model_test = CNN_simple(1)
         model_test.load_state_dict(torch.load("models/model_"+id+".pt")) # ,map_location=torch.device('cpu')
         model_test.eval()
         acc = evaluate_model(test_dl, model_test)

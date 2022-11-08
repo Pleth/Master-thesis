@@ -1,0 +1,5 @@
+Loaded module: cuda/11.6
+Traceback (most recent call last):
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/main.py", line 677, in <module>
+    model = CNN_simple(in_fts=1)
+TypeError: __init__() got an unexpected keyword argument 'in_fts'
