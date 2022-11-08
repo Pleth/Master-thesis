@@ -90,46 +90,54 @@ class CNN_simple(Module):
     # define model elements
     def __init__(self, n_channels):
         super(CNN_simple, self).__init__()
-        # input to first hidden layer
-        self.hidden1 = Conv2d(n_channels, 32, (3,3))
-        kaiming_uniform_(self.hidden1.weight, nonlinearity='relu')
+        self.hidden1 = Conv2d(n_channels, 64, (3,3))
         self.act1 = ReLU()
-        # first pooling layer
-        self.pool1 = MaxPool2d((2,2), stride=(2,2))
-        # second hidden layer
-        self.hidden2 = Conv2d(32, 32, (3,3))
-        kaiming_uniform_(self.hidden2.weight, nonlinearity='relu')
+        self.hidden2 = Conv2d(64, 64, (3,3))
         self.act2 = ReLU()
-        # second pooling layer
-        self.pool2 = MaxPool2d((2,2), stride=(2,2))
-        # fully connected layer
-        self.hidden3 = Linear(54144, 100)
-        kaiming_uniform_(self.hidden3.weight, nonlinearity='relu')
-        self.act3 = ReLU()
-        # output layer
-        self.hidden4 = Linear(100, 4)
-        # xavier_uniform_(self.hidden4.weight)
-        # self.act4 = Softmax(dim=1)
+        self.pool1 = MaxPool2d((2,2), stride=(2,2))
+        self.batch1 = BatchNorm2d(64)
 
-    # forward propagate input
+        self.hidden3 = Conv2d(64, 128, (3,3))
+        self.act3 = ReLU()
+        self.hidden4 = Conv2d(128, 128, (3,3))
+        self.act4 = ReLU()
+        self.pool2 = MaxPool2d((2,2), stride=(2,2))
+        self.batch2 = BatchNorm2d(128)
+
+        self.hidden5 = Conv2d(128, 256, (3,3))
+        self.act5 = ReLU()
+        self.pool3 = MaxPool2d((2,2), stride=(2,2))
+        self.batch3 = BatchNorm2d(256)
+
+        self.hidden6 = Linear(160000, 512)
+        self.act6 = ReLU()
+        self.hidden7 = Linear(512, 1)
+
     def forward(self, X):
-        # input to first hidden layer
         X = self.hidden1(X)
         X = self.act1(X)
-        X = self.pool1(X)
-        # second hidden layer
         X = self.hidden2(X)
         X = self.act2(X)
-        X = self.pool2(X)
-        # flatten
-        # print(X.shape)
-        X = X.view(X.size(0), -1)
-        # third hidden layer
+        X = self.pool1(X)
+        X = self.batch1(X)
+
         X = self.hidden3(X)
         X = self.act3(X)
-        # output layer
         X = self.hidden4(X)
-        # X = self.act4(X)
+        X = self.act4(X)
+        X = self.pool2(X)
+        X = self.batch2(X)
+
+        X = self.hidden5(X)
+        X = self.act3(X)
+        X = self.pool3(X)
+        X = self.batch3(X)
+        
+        X = X.view(X.size(0), -1)
+        X = self.hidden6(X)
+        X = self.act6(X)
+        # output layer
+        X = self.hidden7(X)
         return X
 
 def prepare_data(path,labelsFile,batch_size,nr_tar,test_nr):
@@ -173,6 +181,17 @@ def prepare_data(path,labelsFile,batch_size,nr_tar,test_nr):
         train_dl = DataLoader(ConcatDataset([split1,split2,split3,split6,split7]), batch_size=batch_size, shuffle=True)
         val_dl = DataLoader(split5, batch_size=batch_size, shuffle=False)
         test_dl = DataLoader(split4, batch_size=batch_size, shuffle=False)
+    if test_nr == 7:
+        train_dl = DataLoader(ConcatDataset([split1,split3,split5,split6,split7]), batch_size=batch_size, shuffle=True)
+        val_dl = DataLoader(split2, batch_size=batch_size, shuffle=False)
+        test_dl = DataLoader(split4, batch_size=batch_size, shuffle=False)
+
+    if test_nr == 99:
+        total_dataset = ConcatDataset([split1,split2,split3,split4,split5,split6,split7])
+        train_dataset, test_dataset, val_dataset = torch.utils.data.random_split(total_dataset, [len(total_dataset)-2000, 1000, 1000])
+        train_dl = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        val_dl = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+        test_dl = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)    
 
     if test_nr == 112:
         train = CustomDataset(labelsFile+"_train.csv", path+'/train/', sourceTransform, nr_tar)

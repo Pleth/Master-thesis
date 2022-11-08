@@ -985,7 +985,7 @@ plt.show()
 
 ############################### init training ####################3
 
-id = 'GoogleNet_t7.csv'
+id = 'GoogleNet_1_2.csv'
 
 loss = pd.read_csv('training/loss_save_'+id,sep=',',header=None)
 loss = loss.values.reshape((np.shape(loss)[1],-1))
@@ -993,22 +993,26 @@ R2_train = pd.read_csv('training/R2_train_'+id,sep=',',header=None)
 R2_train = R2_train.values.reshape((np.shape(R2_train)[1],-1))
 R2_val = pd.read_csv('training/R2_val_'+id,sep=',',header=None)
 R2_val = R2_val.values.reshape((np.shape(R2_val)[1],-1))
+R2_test = pd.read_csv('training/R2_test_'+id,sep=',',header=None)
+R2_test = R2_test.values.reshape((np.shape(R2_test)[1],-1))
 
 points = np.linspace(10,len(loss),len(R2_train))
 r2_max = np.max(R2_train) if np.max(R2_train) > np.max(R2_val) else np.max(R2_val)
+r2_max = r2_max if r2_max > np.max(R2_test) else np.max(R2_test)
 fig, ax1 = plt.subplots()
 ax2 = ax1.twinx()
 lns1 = ax1.plot(loss,c='blue',label='Training loss')
 lns2 = ax2.plot(points,R2_train,c='red',label='Training R2')
 lns3 = ax2.plot(points,R2_val,c='green',label='Validation R2')
+lns4 = ax2.plot(points,R2_test,c='yellow',label='Test R2')
 ax1.set_xlabel('Epoch')
 ax1.set_ylabel('Loss')
 ax2.set_ylabel('R2')
 ax2.set_ylim([0,r2_max+0.1])
-lns = lns1+lns2+lns3
+lns = lns1+lns2+lns3+lns4
 labs = [l.get_label() for l in lns]
 ax1.legend(lns, labs, loc=9)
-ax1.set_title('R2_val = '+str(round(np.max(R2_val),3)) + ' - ' + 'R2_test = '+str('x'))
+ax1.set_title(id+' - R2_val = '+str(round(np.max(R2_val),3)) + ' - ' + 'R2_test = '+str('x'))
 plt.show()
 
 
