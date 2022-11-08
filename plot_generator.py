@@ -985,7 +985,7 @@ plt.show()
 
 ############################### init training ####################3
 
-id = 'GoogleNet_1_2.csv'
+id = 'GoogleNet_shuffle_test2.csv'
 
 loss = pd.read_csv('training/loss_save_'+id,sep=',',header=None)
 loss = loss.values.reshape((np.shape(loss)[1],-1))
@@ -1014,6 +1014,7 @@ labs = [l.get_label() for l in lns]
 ax1.legend(lns, labs, loc=9)
 ax1.set_title(id+' - R2_val = '+str(round(np.max(R2_val),3)) + ' - ' + 'R2_test = '+str('x'))
 plt.show()
+
 
 
 from DL_functions import *

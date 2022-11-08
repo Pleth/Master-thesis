@@ -188,10 +188,10 @@ def prepare_data(path,labelsFile,batch_size,nr_tar,test_nr):
 
     if test_nr == 99:
         total_dataset = ConcatDataset([split1,split2,split3,split4,split5,split6,split7])
-        train_dataset, test_dataset, val_dataset = torch.utils.data.random_split(total_dataset, [len(total_dataset)-2000, 1000, 1000])
+        train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(total_dataset, [len(total_dataset)-2000, 1000, 1000])
         train_dl = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-        val_dl = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
-        test_dl = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)    
+        val_dl = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+        test_dl = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)    
 
     if test_nr == 112:
         train = CustomDataset(labelsFile+"_train.csv", path+'/train/', sourceTransform, nr_tar)
