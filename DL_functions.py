@@ -111,6 +111,7 @@ class CNN_simple(Module):
 
         self.hidden6 = Linear(160000, 512)
         self.act6 = ReLU()
+        self.dropout = nn.Dropout(p=0.5)
         self.hidden7 = Linear(512, 1)
 
     def forward(self, X):
@@ -136,7 +137,7 @@ class CNN_simple(Module):
         X = X.view(X.size(0), -1)
         X = self.hidden6(X)
         X = self.act6(X)
-        # output layer
+        X = self.dropout(X)
         X = self.hidden7(X)
         return X
 
@@ -371,7 +372,7 @@ class AuxClassifier(nn.Module):
         self.batchnorm = nn.BatchNorm2d(128,eps=0.001)
         self.relu = nn.ReLU()
         self.fc = nn.Linear(4 * 4 * 128, 1024)
-        self.dropout = nn.Dropout(p=0.5)
+        self.dropout = nn.Dropout(p=0.7)
         self.classifier = nn.Linear(1024, num_classes)
 
     def forward(self, input_img):
