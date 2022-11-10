@@ -205,7 +205,7 @@ def prepare_data(path,labelsFile,batch_size,nr_tar,test_nr):
     return train_dl, val_dl, test_dl
 
 # train the model
-def train_model(train_dl, val_dl,test_dl, model, epochs, lr,mom=0.9,wd=0.0,id=id):
+def train_model(train_dl, val_dl,test_dl, model, epochs, lr,mom=0.9,wd=0.0,id=id,crit='adam'):
     # define the optimization
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(device)
@@ -217,8 +217,12 @@ def train_model(train_dl, val_dl,test_dl, model, epochs, lr,mom=0.9,wd=0.0,id=id
     R2_test = []
     criterion = MSELoss()
     # criterion = CrossEntropyLoss()
-    # optimizer = SGD(model.parameters(), lr=lr, momentum=mom,weight_decay=wd)
-    optimizer = Adam(model.parameters(), lr=lr,weight_decay=wd)
+    if crit == 'adam':
+        print('Using Adam')
+        optimizer = Adam(model.parameters(), lr=lr,weight_decay=wd)
+    else:
+        print('Using SGD')
+        optimizer = SGD(model.parameters(), lr=lr, momentum=mom,weight_decay=wd)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.92)
     # enumerate epochs
     for epoch in range(epochs):
