@@ -3,7 +3,7 @@
 #BSUB -J testjob
 #BSUB -n 1
 #BSUB -gpu "num=1:mode=exclusive_process"
-#BSUB -W 12:00
+#BSUB -W 10:00
 #BSUB -R "rusage[mem=5GB]"
 #BSUB -o outputs/gpu_%J.out
 #BSUB -e outputs/errors/gpu_%J.err
