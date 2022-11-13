@@ -667,6 +667,7 @@ if __name__ == '__main__':
 
         nr_tar=1
         test_nr = int(sys.argv[7])
+        crit = sys.argv[8]
         path = 'DL_synth_data'
         labelsFile = 'DL_synth_data/labelsfile'
         train_dl, val_dl, test_dl = prepare_data(path,labelsFile,batch_size,nr_tar=1,test_nr=test_nr)
@@ -675,7 +676,7 @@ if __name__ == '__main__':
         id = 'CNN_simple_'+sys.argv[6]
 
         model = CNN_simple(1)
-        train_model(train_dl, val_dl, test_dl, model, epoch_nr, lr,0.0,wd,id)
+        train_model(train_dl, val_dl, test_dl, model, epoch_nr, lr,0.0,wd,id,crit)
 
         model.eval()
         acc = evaluate_model(test_dl, model)
@@ -709,7 +710,7 @@ if __name__ == '__main__':
         id = 'GoogleNet_'+sys.argv[6]
 
         model = MyGoogleNet(in_fts=1,num_class=1)
-        train_model(train_dl, val_dl, test_dl, model, epoch_nr, lr,0.9,wd,id,crit=crit)
+        train_model(train_dl, val_dl, test_dl, model, epoch_nr, lr,0.9,wd,id,crit)
 
         model.eval()
         acc = evaluate_model(test_dl, model)
