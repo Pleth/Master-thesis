@@ -23,6 +23,41 @@ if __name__ == '__main__':
 
     if sys.argv[1] == 'synth_test':
         print('synth_test')
+        # synth_acc = synthetic_data()
+        # routes = []
+        # for i in range(len(synth_acc)): 
+        #     routes.append(synth_acc[i].axes[0].name)
+
+        # synth_segments, aran_segments, route_details = synthetic_segmentation(synth_acc,routes,segment_size=5,overlap=0)
+
+        # features,feature_names = feature_extraction(synth_segments,'synth_data/extracted_features',fs=250)
+
+        # DI, cracks, aliigator, potholes = calc_target(aran_segments)
+        
+        # gridsearch = 1
+        # verbose = 0
+        # n_jobs = -1 # 4
+        # if sys.argv[2] == 'train':
+        #     model = False
+        # elif sys.argv[2] == 'test':
+        #     model = 1
+
+        # cut = [10500,18500,15000]
+
+        # cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split3')
+        # DI = pd.DataFrame(DI)
+        # DI_test = DI.iloc[splits['3']].reset_index(drop=True)
+        # DI_train = DI.iloc[splits['1']+splits['2']+splits['4']+splits['5']].reset_index(drop=True)
+        
+        # scores_RandomForest_DI = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_synth', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
+        
+        # print(scores_RandomForest_DI['R2'][1])
+        # print(scores_RandomForest_DI['R2'][0])
+
+        # rf_train = joblib.load('models/RandomForest_best_model_DI_synth.sav')
+        # print(rf_train.best_estimator_)
+
+        print('GM_synth_split_test')
         synth_acc = synthetic_data()
         routes = []
         for i in range(len(synth_acc)): 
@@ -44,24 +79,121 @@ if __name__ == '__main__':
 
         cut = [10500,18500,15000]
 
-        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split3')
-        DI = pd.DataFrame(DI)
-        DI_test = DI.iloc[splits['3']].reset_index(drop=True)
-        DI_train = DI.iloc[splits['1']+splits['2']+splits['4']+splits['5']].reset_index(drop=True)
+        #### split 1
+        print('---------SPLIT 1--------')
+        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split1')
         
-        scores_RandomForest_DI = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_synth', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
+        DI = pd.DataFrame(DI)
+        DI_test = DI.iloc[splits['1']].reset_index(drop=True)
+        DI_train = DI.iloc[splits['2']+splits['3']+splits['4']+splits['5']].reset_index(drop=True)
+
+        scores_RandomForest_DI = method_RandomForest(X_train, X_test, DI_train, DI_test, 'DI_synth_split1', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
         
         print(scores_RandomForest_DI['R2'][1])
         print(scores_RandomForest_DI['R2'][0])
 
-        rf_train = joblib.load('models/RandomForest_best_model_DI_synth.sav')
+        rf_train = joblib.load('models/RandomForest_best_model_DI_synth_split1.sav')
         print(rf_train.best_estimator_)
 
+        print('---------SPLIT 2--------')
+        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split2')
+        
+        DI = pd.DataFrame(DI)
+        DI_test = DI.iloc[splits['2']].reset_index(drop=True)
+        DI_train = DI.iloc[splits['1']+splits['3']+splits['4']+splits['5']].reset_index(drop=True)
+
+        scores_RandomForest_DI = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_synth_split2', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
+        
+        print(scores_RandomForest_DI['R2'][1])
+        print(scores_RandomForest_DI['R2'][0])
+
+        rf_train = joblib.load('models/RandomForest_best_model_DI_synth_split2.sav')
+        print(rf_train.best_estimator_)
+
+        print('---------SPLIT 3--------')
+        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split3')
+        
+        DI = pd.DataFrame(DI)
+        DI_test = DI.iloc[splits['3']].reset_index(drop=True)
+        DI_train = DI.iloc[splits['1']+splits['2']+splits['4']+splits['5']].reset_index(drop=True)
+
+        scores_RandomForest_DI = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_synth_split3', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
+        
+        print(scores_RandomForest_DI['R2'][1])
+        print(scores_RandomForest_DI['R2'][0])
+
+        rf_train = joblib.load('models/RandomForest_best_model_DI_synth_split3.sav')
+        print(rf_train.best_estimator_)
+
+        print('---------SPLIT 4--------')
+        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split4')
+        
+        DI = pd.DataFrame(DI)
+        DI_test = DI.iloc[splits['4']].reset_index(drop=True)
+        DI_train = DI.iloc[splits['1']+splits['2']+splits['3']+splits['5']].reset_index(drop=True)
+
+        scores_RandomForest_DI = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_synth_split4', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
+        
+        print(scores_RandomForest_DI['R2'][1])
+        print(scores_RandomForest_DI['R2'][0])
+
+        rf_train = joblib.load('models/RandomForest_best_model_DI_synth_split4.sav')
+        print(rf_train.best_estimator_)
+
+        print('---------SPLIT 5--------')
+        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split5')
+        
+        DI = pd.DataFrame(DI)
+        DI_test = DI.iloc[splits['5']].reset_index(drop=True)
+        DI_train = DI.iloc[splits['1']+splits['2']+splits['3']+splits['4']].reset_index(drop=True)
+
+        scores_RandomForest_DI = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_synth_split5', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
+        
+        print(scores_RandomForest_DI['R2'][1])
+        print(scores_RandomForest_DI['R2'][0])
+
+        rf_train = joblib.load('models/RandomForest_best_model_DI_synth_split5.sav')
+        print(rf_train.best_estimator_)
 
 
     ################################################## TESTS - 45 km/h speed #################################################
     if sys.argv[1] == '45km_test':
         print('45km_test')
+        # synth_acc = test_synthetic_data()
+        # routes = []
+        # for i in range(len(synth_acc)): 
+        #     routes.append(synth_acc[i].axes[0].name)
+
+        # synth_segments, aran_segments, route_details, laser_segments = test_segmentation(synth_acc,routes,segment_size=5,overlap=0)
+        
+        # features,feature_names = feature_extraction(synth_segments,'synth_data/tests/features_45km',fs=250)
+
+        # DI, cracks, aliigator, potholes = calc_target(aran_segments)
+        
+        # gridsearch = 1
+        # verbose = 0
+        # n_jobs = -1 # 4
+        # if sys.argv[2] == 'train':
+        #     model = False
+        # elif sys.argv[2] == 'test':
+        #     model = 1
+
+        # cut = [10500,18400,15000]
+
+        # cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split3')
+        # DI = pd.DataFrame(DI)
+        # DI_test = DI.iloc[splits['3']].reset_index(drop=True)
+        # DI_train = DI.iloc[splits['1']+splits['2']+splits['4']+splits['5']].reset_index(drop=True)
+
+        # scores_RandomForest_DI = method_RandomForest(X_train, X_test, DI_train, DI_test, 'DI_45km', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
+        
+        # print(scores_RandomForest_DI['R2'][1])
+        # print(scores_RandomForest_DI['R2'][0])
+
+        # rf_train = joblib.load('models/RandomForest_best_model_DI_45km.sav')
+        # print(rf_train.best_estimator_)
+
+        print('GM_45km_split_test')
         synth_acc = test_synthetic_data()
         routes = []
         for i in range(len(synth_acc)): 
@@ -83,23 +215,120 @@ if __name__ == '__main__':
 
         cut = [10500,18400,15000]
 
-        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split3')
+        #### split 1
+        print('---------SPLIT 1--------')
+        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split1')
+        
         DI = pd.DataFrame(DI)
-        DI_test = DI.iloc[splits['3']].reset_index(drop=True)
-        DI_train = DI.iloc[splits['1']+splits['2']+splits['4']+splits['5']].reset_index(drop=True)
+        DI_test = DI.iloc[splits['1']].reset_index(drop=True)
+        DI_train = DI.iloc[splits['2']+splits['3']+splits['4']+splits['5']].reset_index(drop=True)
 
-        scores_RandomForest_DI = method_RandomForest(X_train, X_test, DI_train, DI_test, 'DI_45km', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
+        scores_RandomForest_DI = method_RandomForest(X_train, X_test, DI_train, DI_test, 'DI_45km_split1', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
         
         print(scores_RandomForest_DI['R2'][1])
         print(scores_RandomForest_DI['R2'][0])
 
-        rf_train = joblib.load('models/RandomForest_best_model_DI_45km.sav')
+        rf_train = joblib.load('models/RandomForest_best_model_DI_45km_split1.sav')
         print(rf_train.best_estimator_)
 
+        print('---------SPLIT 2--------')
+        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split2')
+        
+        DI = pd.DataFrame(DI)
+        DI_test = DI.iloc[splits['2']].reset_index(drop=True)
+        DI_train = DI.iloc[splits['1']+splits['3']+splits['4']+splits['5']].reset_index(drop=True)
+
+        scores_RandomForest_DI = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_45km_split2', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
+        
+        print(scores_RandomForest_DI['R2'][1])
+        print(scores_RandomForest_DI['R2'][0])
+
+        rf_train = joblib.load('models/RandomForest_best_model_DI_45km_split2.sav')
+        print(rf_train.best_estimator_)
+
+        print('---------SPLIT 3--------')
+        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split3')
+        
+        DI = pd.DataFrame(DI)
+        DI_test = DI.iloc[splits['3']].reset_index(drop=True)
+        DI_train = DI.iloc[splits['1']+splits['2']+splits['4']+splits['5']].reset_index(drop=True)
+
+        scores_RandomForest_DI = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_45km_split3', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
+        
+        print(scores_RandomForest_DI['R2'][1])
+        print(scores_RandomForest_DI['R2'][0])
+
+        rf_train = joblib.load('models/RandomForest_best_model_DI_45km_split3.sav')
+        print(rf_train.best_estimator_)
+
+        print('---------SPLIT 4--------')
+        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split4')
+        
+        DI = pd.DataFrame(DI)
+        DI_test = DI.iloc[splits['4']].reset_index(drop=True)
+        DI_train = DI.iloc[splits['1']+splits['2']+splits['3']+splits['5']].reset_index(drop=True)
+
+        scores_RandomForest_DI = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_45km_split4', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
+        
+        print(scores_RandomForest_DI['R2'][1])
+        print(scores_RandomForest_DI['R2'][0])
+
+        rf_train = joblib.load('models/RandomForest_best_model_DI_45km_split4.sav')
+        print(rf_train.best_estimator_)
+
+        print('---------SPLIT 5--------')
+        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split5')
+        
+        DI = pd.DataFrame(DI)
+        DI_test = DI.iloc[splits['5']].reset_index(drop=True)
+        DI_train = DI.iloc[splits['1']+splits['2']+splits['3']+splits['4']].reset_index(drop=True)
+
+        scores_RandomForest_DI = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_45km_split5', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
+        
+        print(scores_RandomForest_DI['R2'][1])
+        print(scores_RandomForest_DI['R2'][0])
+
+        rf_train = joblib.load('models/RandomForest_best_model_DI_45km_split5.sav')
+        print(rf_train.best_estimator_)
 
     ################################################## TESTS - (laser5+laser21)/2/1e3 #################################################
     if sys.argv[1] == 'laser_test':
         print('laser_test')
+        # synth_acc = test_synthetic_data()
+        # routes = []
+        # for i in range(len(synth_acc)): 
+        #     routes.append(synth_acc[i].axes[0].name)
+
+        # synth_segments, aran_segments, route_details, laser_segments = test_segmentation(synth_acc,routes,segment_size=5,overlap=0)
+
+        # features,feature_names = feature_extraction(laser_segments,'synth_data/tests/features_laser',fs=250)
+
+        # DI, cracks, aliigator, potholes = calc_target(aran_segments)
+        
+        # gridsearch = 1
+        # verbose = 0
+        # n_jobs = -1 # 4
+        # if sys.argv[2] == 'train':
+        #     model = False
+        # elif sys.argv[2] == 'test':
+        #     model = 1
+
+        # cut = [10500,18400,15000]
+
+        # cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split3')
+        # DI = pd.DataFrame(DI)
+        # DI_test = DI.iloc[splits['3']].reset_index(drop=True)
+        # DI_train = DI.iloc[splits['1']+splits['2']+splits['4']+splits['5']].reset_index(drop=True)
+
+        # scores_RandomForest_DI        = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_laser', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
+
+        # print(scores_RandomForest_DI['R2'][1])
+        # print(scores_RandomForest_DI['R2'][0])
+
+        # rf_train = joblib.load('models/RandomForest_best_model_DI_laser.sav')
+        # print(rf_train.best_estimator_)
+
+        print('GM_45km_split_test')
         synth_acc = test_synthetic_data()
         routes = []
         for i in range(len(synth_acc)): 
@@ -121,17 +350,80 @@ if __name__ == '__main__':
 
         cut = [10500,18400,15000]
 
+        #### split 1
+        print('---------SPLIT 1--------')
+        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split1')
+        
+        DI = pd.DataFrame(DI)
+        DI_test = DI.iloc[splits['1']].reset_index(drop=True)
+        DI_train = DI.iloc[splits['2']+splits['3']+splits['4']+splits['5']].reset_index(drop=True)
+
+        scores_RandomForest_DI = method_RandomForest(X_train, X_test, DI_train, DI_test, 'DI_laser_split1', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
+        
+        print(scores_RandomForest_DI['R2'][1])
+        print(scores_RandomForest_DI['R2'][0])
+
+        rf_train = joblib.load('models/RandomForest_best_model_DI_laser_split1.sav')
+        print(rf_train.best_estimator_)
+
+        print('---------SPLIT 2--------')
+        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split2')
+        
+        DI = pd.DataFrame(DI)
+        DI_test = DI.iloc[splits['2']].reset_index(drop=True)
+        DI_train = DI.iloc[splits['1']+splits['3']+splits['4']+splits['5']].reset_index(drop=True)
+
+        scores_RandomForest_DI = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_laser_split2', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
+        
+        print(scores_RandomForest_DI['R2'][1])
+        print(scores_RandomForest_DI['R2'][0])
+
+        rf_train = joblib.load('models/RandomForest_best_model_DI_laser_split2.sav')
+        print(rf_train.best_estimator_)
+
+        print('---------SPLIT 3--------')
         cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split3')
+        
         DI = pd.DataFrame(DI)
         DI_test = DI.iloc[splits['3']].reset_index(drop=True)
         DI_train = DI.iloc[splits['1']+splits['2']+splits['4']+splits['5']].reset_index(drop=True)
 
-        scores_RandomForest_DI        = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_laser', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
-
+        scores_RandomForest_DI = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_laser_split3', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
+        
         print(scores_RandomForest_DI['R2'][1])
         print(scores_RandomForest_DI['R2'][0])
 
-        rf_train = joblib.load('models/RandomForest_best_model_DI_laser.sav')
+        rf_train = joblib.load('models/RandomForest_best_model_DI_laser_split3.sav')
+        print(rf_train.best_estimator_)
+
+        print('---------SPLIT 4--------')
+        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split4')
+        
+        DI = pd.DataFrame(DI)
+        DI_test = DI.iloc[splits['4']].reset_index(drop=True)
+        DI_train = DI.iloc[splits['1']+splits['2']+splits['3']+splits['5']].reset_index(drop=True)
+
+        scores_RandomForest_DI = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_laser_split4', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
+        
+        print(scores_RandomForest_DI['R2'][1])
+        print(scores_RandomForest_DI['R2'][0])
+
+        rf_train = joblib.load('models/RandomForest_best_model_DI_laser_split4.sav')
+        print(rf_train.best_estimator_)
+
+        print('---------SPLIT 5--------')
+        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split5')
+        
+        DI = pd.DataFrame(DI)
+        DI_test = DI.iloc[splits['5']].reset_index(drop=True)
+        DI_train = DI.iloc[splits['1']+splits['2']+splits['3']+splits['4']].reset_index(drop=True)
+
+        scores_RandomForest_DI = method_RandomForest(X_train,X_test, DI_train, DI_test, 'DI_laser_split5', model=model, gridsearch=gridsearch, cv_in=[cv_train,split_test], verbose=verbose,n_jobs=n_jobs)
+        
+        print(scores_RandomForest_DI['R2'][1])
+        print(scores_RandomForest_DI['R2'][0])
+
+        rf_train = joblib.load('models/RandomForest_best_model_DI_laser_split5.sav')
         print(rf_train.best_estimator_)
         
 
@@ -453,6 +745,29 @@ if __name__ == '__main__':
         targets[2] = alligator
         targets[3] = potholes
         create_cwt_data(GM_segments,splits,targets,'DL_synth_data','synth')
+
+        # fig,ax = plt.subplots(1,2)
+        # for i in range(len(splits)):
+        #     if i < 4:
+        #         ax[0].scatter(x=aran_segments['LongitudeFrom'][splits[str(i+1)]],y=aran_segments['LatitudeFrom'][splits[str(i+1)]],s=1,label="split: "+str(i+1))
+                
+        #     else:
+        #         ax[1].scatter(x=aran_segments['LongitudeFrom'][splits[str(i+1)]][2000:],y=aran_segments['LatitudeFrom'][splits[str(i+1)]][2000:],s=1,label="split: "+str(i+1))
+                
+        # ax[0].legend(loc=2)
+        # ax[1].legend()
+        # ax[0].set_title('CPH1 splits')
+        # ax[1].set_title('CPH6 splits')
+        # ax[0].set(ylabel='Latitude',xlabel="Longitude")
+        # ax[1].set(ylabel='Latitude',xlabel="Longitude")
+        # ax[1].yaxis.set_label_position("right")
+        # ax[1].yaxis.tick_right()
+        # ax[0].set_yticklabels([])
+        # ax[0].set_xticklabels([])
+        # ax[1].set_yticklabels([])
+        # ax[1].set_xticklabels([])
+
+        # plt.show()
 
     if sys.argv[1] == 'Deep':
         print('Deep')

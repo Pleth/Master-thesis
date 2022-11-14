@@ -36,10 +36,23 @@ fig,ax = plt.subplots(1,2)
 for i in range(len(splits)):
     if i < 3:
         ax[0].scatter(x=aran_segments['LongitudeFrom'][splits[str(i+1)]],y=aran_segments['LatitudeFrom'][splits[str(i+1)]],s=1,label="split: "+str(i+1))
-    else:
-        ax[1].scatter(x=aran_segments['LongitudeFrom'][splits[str(i+1)]],y=aran_segments['LatitudeFrom'][splits[str(i+1)]],s=1,label="split: "+str(i+1))
+    
+ax[1].scatter(x=aran_segments['LongitudeFrom'][splits[str(3+1)]][:-4000],y=aran_segments['LatitudeFrom'][splits[str(3+1)]][:-4000],s=1,label="split: "+str(3+1))
+ax[1].scatter(x=aran_segments['LongitudeFrom'][splits[str(4+1)]][:],y=aran_segments['LatitudeFrom'][splits[str(4+1)]][:],s=1,label="split: "+str(4+1))
+
 ax[0].legend()
 ax[1].legend()
+ax[0].set_title('CPH1 splits')
+ax[1].set_title('CPH6 splits')
+ax[0].set(ylabel='Latitude',xlabel="Longitude")
+ax[1].set(ylabel='Latitude',xlabel="Longitude")
+ax[1].yaxis.set_label_position("right")
+ax[1].yaxis.tick_right()
+ax[0].set_yticklabels([])
+ax[0].set_xticklabels([])
+ax[1].set_yticklabels([])
+ax[1].set_xticklabels([])
+
 plt.show()
 
 
@@ -62,8 +75,8 @@ aran_potholes = pd.DataFrame(hdf5file['aran/trip_1/pass_1']['Pothole'], columns 
 
 DI, allig, cracks, potholes = calc_DI(aran_alligator,aran_cracks,aran_potholes)
 
-seg_len = 1 
-seg_cap = 0
+seg_len = 5 
+seg_cap = 4
 segm_nr = 0
 DI = []
 alligator = []
@@ -75,10 +88,10 @@ for i in tqdm(range(int(np.shape(aran_segments)[0]/seg_len))):
     aran_cracks = aran_details[aran_cracks.columns]
     aran_potholes = aran_details[aran_potholes.columns]
     temp_DI, temp_alligator, temp_cracks, temp_potholes = calc_DI(aran_alligator,aran_cracks,aran_potholes)
-    DI.append(np.max(temp_DI))
-    alligator.append(np.max(temp_alligator))
-    cracks.append(np.max(temp_cracks))
-    potholes.append(np.max(temp_potholes))
+    DI.append(np.mean(temp_DI))
+    alligator.append(np.mean(temp_alligator))
+    cracks.append(np.mean(temp_cracks))
+    potholes.append(np.mean(temp_potholes))
 
 
 idx_max_DI = np.argmax(DI)
@@ -88,13 +101,13 @@ idx_min_DI = np.argmin(DI)
 cr = np.array(cracks)
 cr = cr[(np.array(alligator) < 0.1) & (np.array(potholes) < 0.1)]
 idx_max_cracks = cracks.index(np.max(cr))
-idx_max_cracks = 24474-0
+# idx_max_cracks = 24474-0
 
 all = np.array(alligator)
 all = all[(np.array(cracks) < 0.1) & (np.array(potholes) < 0.1)]
 idx_max_alligator = alligator.index(np.max(all))
-idx_max_alligator = alligator.index(all[38])
-idx_max_alligator = 30774
+# idx_max_alligator = alligator.index(all[64])
+# idx_max_alligator = 30774
 
 pot = np.array(potholes)
 # pot = pot[(np.array(alligator) < 2) & (np.array(cracks) < 1.5)]
@@ -110,6 +123,8 @@ for j in range(len(potholes)):
     if alligator[j] > 0.0:
         alli += 1
 
+aran_segments = aran_segments.droplevel(0)
+aran_segments = aran_segments.reset_index()
 
 route = route_details[int(idx_max_potholes*(seg_len/5))][:7]
 p79_gps = pd.read_csv("p79/"+route+".csv")
@@ -202,64 +217,84 @@ acc = np.concatenate([acc_synth_max_potholes['synth_acc'],acc_synth_max_cracks['
 acc_max = np.max(acc)
 acc_min = np.min(acc)
 
-fig, axs = plt.subplots(2,5)
+fig, axs = plt.subplots(5,2,figsize=(6, 8))
 dist = np.concatenate([p79_details_max_potholes['Distance'],acc_synth_max_potholes['Distance']])
 axs[0,0].plot(p79_details_max_potholes['Distance'],p79_details_max_potholes['Laser5'],label='Laser 5')
 axs[0,0].plot(p79_details_max_potholes['Distance'],p79_details_max_potholes['Laser21'],label='Laser 21')
 axs[0,0].plot(p79_details_max_potholes['Distance'],(p79_details_max_potholes['Laser21']+p79_details_max_potholes['Laser5'])/2,color='green',label='quarter car')
 axs[0,0].set(xlim=(np.min(dist),np.max(dist)),ylim=(laser_min,laser_max))
-axs[0,0].legend()
-axs[0,0].set_title('Potholes: ' + str(round(potholes[idx_max_potholes],2))+'\n Cracks: '+str(round(cracks[idx_max_potholes],2))+'\n Alligator: '+str(round(alligator[idx_max_potholes],2)))
-axs[1,0].plot(acc_synth_max_potholes['Distance'],acc_synth_max_potholes['synth_acc'])
-axs[1,0].set(xlim=(np.min(dist),np.max(dist)),ylim=(acc_min,acc_max))
+# axs[0,0].legend()
+axs[0,0].set_title('Potholes: ' + str(round(potholes[idx_max_potholes],2)))
+axs[0,1].plot(acc_synth_max_potholes['Distance'],acc_synth_max_potholes['synth_acc'])
+axs[0,1].set(xlim=(np.min(dist),np.max(dist)),ylim=(acc_min,acc_max))
+axs[0,1].set_title('Synthetic z acceleration')
 
 dist = np.concatenate([p79_details_max_cracks['Distance'],acc_synth_max_cracks['Distance']])
-axs[0,1].plot(p79_details_max_cracks['Distance'],p79_details_max_cracks['Laser5'],label='Laser 5')
-axs[0,1].plot(p79_details_max_cracks['Distance'],p79_details_max_cracks['Laser21'],label='Laser 21')
-axs[0,1].plot(p79_details_max_cracks['Distance'],(p79_details_max_cracks['Laser21']+p79_details_max_cracks['Laser5'])/2,color='green',label='quarter car')
-axs[0,1].set(xlim=(np.min(dist),np.max(dist)),ylim=(laser_min,laser_max))
-axs[0,1].legend()
-axs[0,1].set_title('Potholes: ' + str(round(potholes[idx_max_cracks],2))+'\n Cracks: '+str(round(cracks[idx_max_cracks],2))+'\n Alligator: '+str(round(alligator[idx_max_cracks],2)))
+axs[1,0].plot(p79_details_max_cracks['Distance'],p79_details_max_cracks['Laser5'],label='Laser 5')
+axs[1,0].plot(p79_details_max_cracks['Distance'],p79_details_max_cracks['Laser21'],label='Laser 21')
+axs[1,0].plot(p79_details_max_cracks['Distance'],(p79_details_max_cracks['Laser21']+p79_details_max_cracks['Laser5'])/2,color='green',label='quarter car')
+axs[1,0].set(xlim=(np.min(dist),np.max(dist)),ylim=(laser_min,laser_max))
+# axs[1,0].legend()
+axs[1,0].set_title('Cracks: '+str(round(cracks[idx_max_cracks],2)))
 axs[1,1].plot(acc_synth_max_cracks['Distance'],acc_synth_max_cracks['synth_acc'])
 axs[1,1].set(xlim=(np.min(dist),np.max(dist)),ylim=(acc_min,acc_max))
 
 dist = np.concatenate([p79_details_max_alligator['Distance'],acc_synth_max_alligator['Distance']])
-axs[0,2].plot(p79_details_max_alligator['Distance'],p79_details_max_alligator['Laser5'],label='Laser 5')
-axs[0,2].plot(p79_details_max_alligator['Distance'],p79_details_max_alligator['Laser21'],label='Laser 21')
-axs[0,2].plot(p79_details_max_alligator['Distance'],(p79_details_max_alligator['Laser21']+p79_details_max_alligator['Laser5'])/2,color='green',label='quarter car')
-axs[0,2].set(xlim=(np.min(dist),np.max(dist)),ylim=(laser_min,laser_max))
-axs[0,2].legend()
-axs[0,2].set_title('Potholes: ' + str(round(potholes[idx_max_alligator],2))+'\n Cracks: '+str(round(cracks[idx_max_alligator],2))+'\n Alligator: '+str(round(alligator[idx_max_alligator],2)))
-axs[1,2].plot(acc_synth_max_alligator['Distance'],acc_synth_max_alligator['synth_acc'])
-axs[1,2].set(xlim=(np.min(dist),np.max(dist)),ylim=(acc_min,acc_max))
+axs[2,0].plot(p79_details_max_alligator['Distance'],p79_details_max_alligator['Laser5'],label='Laser 5')
+axs[2,0].plot(p79_details_max_alligator['Distance'],p79_details_max_alligator['Laser21'],label='Laser 21')
+axs[2,0].plot(p79_details_max_alligator['Distance'],(p79_details_max_alligator['Laser21']+p79_details_max_alligator['Laser5'])/2,color='green',label='quarter car')
+axs[2,0].set(xlim=(np.min(dist),np.max(dist)),ylim=(laser_min,laser_max))
+# axs[2,0].legend()
+axs[2,0].set_title('Alligator: '+str(round(alligator[idx_max_alligator],2)))
+axs[2,1].plot(acc_synth_max_alligator['Distance'],acc_synth_max_alligator['synth_acc'])
+axs[2,1].set(xlim=(np.min(dist),np.max(dist)),ylim=(acc_min,acc_max))
 
 dist = np.concatenate([p79_details_max_DI['Distance'],acc_synth_max_DI['Distance']])
-axs[0,3].plot(p79_details_max_DI['Distance'],p79_details_max_DI['Laser5'],label='Laser 5')
-axs[0,3].plot(p79_details_max_DI['Distance'],p79_details_max_DI['Laser21'],label='Laser 21')
-axs[0,3].plot(p79_details_max_DI['Distance'],(p79_details_max_DI['Laser21']+p79_details_max_DI['Laser5'])/2,color='green',label='quarter car')
-axs[0,3].set(xlim=(np.min(dist),np.max(dist)),ylim=(laser_min,laser_max))
-axs[0,3].legend()
-axs[0,3].set_title('High DI: '+str(round(DI[idx_max_DI],2)))
-axs[1,3].plot(acc_synth_max_DI['Distance'],acc_synth_max_DI['synth_acc'])
-axs[1,3].set(xlim=(np.min(dist),np.max(dist)),ylim=(acc_min,acc_max))
+axs[3,0].plot(p79_details_max_DI['Distance'],p79_details_max_DI['Laser5'],label='Laser 5')
+axs[3,0].plot(p79_details_max_DI['Distance'],p79_details_max_DI['Laser21'],label='Laser 21')
+axs[3,0].plot(p79_details_max_DI['Distance'],(p79_details_max_DI['Laser21']+p79_details_max_DI['Laser5'])/2,color='green',label='quarter car')
+axs[3,0].set(xlim=(np.min(dist),np.max(dist)),ylim=(laser_min,laser_max))
+# axs[3,0].legend()
+axs[3,0].set_title('High DI: '+str(round(DI[idx_max_DI],2)))
+axs[3,1].plot(acc_synth_max_DI['Distance'],acc_synth_max_DI['synth_acc'])
+axs[3,1].set(xlim=(np.min(dist),np.max(dist)),ylim=(acc_min,acc_max))
 
 dist = np.concatenate([p79_details_min_DI['Distance'],acc_synth_min_DI['Distance']])
-axs[0,4].plot(p79_details_min_DI['Distance'],p79_details_min_DI['Laser5'],label='Laser 5')
-axs[0,4].plot(p79_details_min_DI['Distance'],p79_details_min_DI['Laser21'],label='Laser 21')
-axs[0,4].plot(p79_details_min_DI['Distance'],(p79_details_min_DI['Laser21']+p79_details_min_DI['Laser5'])/2,color='green',label='quarter car')
-axs[0,4].set(xlim=(np.min(dist),np.max(dist)),ylim=(laser_min,laser_max))
-axs[0,4].legend()
-axs[0,4].set_title('Low DI: '+str(round(DI[idx_min_DI],2)))
-axs[1,4].plot(acc_synth_min_DI['Distance'],acc_synth_min_DI['synth_acc'])
-axs[1,4].set(xlim=(np.min(dist),np.max(dist)),ylim=(acc_min,acc_max))
+axs[4,0].plot(p79_details_min_DI['Distance']-p79_details_min_DI['Distance'].min(),p79_details_min_DI['Laser5'],label='Laser 5')
+axs[4,0].plot(p79_details_min_DI['Distance']-p79_details_min_DI['Distance'].min(),p79_details_min_DI['Laser21'],label='Laser 21')
+axs[4,0].plot(p79_details_min_DI['Distance']-p79_details_min_DI['Distance'].min(),(p79_details_min_DI['Laser21']+p79_details_min_DI['Laser5'])/2,color='green',label='quarter car')
+axs[4,0].set(xlim=(0,50),ylim=(laser_min,laser_max))
+# axs[4,0].legend()
+axs[4,0].set_title('Low DI: '+str(round(DI[idx_min_DI],2)))
+axs[4,1].plot(acc_synth_min_DI['Distance']-acc_synth_min_DI['Distance'].min(),acc_synth_min_DI['synth_acc'])
+axs[4,1].set(xlim=(0,50),ylim=(acc_min,acc_max))
 
-axs[0,0].set(ylabel='Laser distance [mm]')
-axs[1,0].set(ylabel='Synthetic z acceleration')
+axs[0,0].set(ylabel='dist [mm]')
+axs[1,0].set(ylabel='dist [mm]')
+axs[2,0].set(ylabel='dist [mm]')
+axs[3,0].set(ylabel='dist [mm]')
+axs[4,0].set(ylabel='dist [mm]',xlabel="Distance [m]")
+axs[0,1].set(ylabel='acc')
+axs[1,1].set(ylabel='acc')
+axs[2,1].set(ylabel='acc')
+axs[3,1].set(ylabel='acc')
+axs[4,1].set(ylabel='acc',xlabel="Distance [m]")
+axs[0,1].yaxis.set_label_position("right")
+axs[0,1].yaxis.tick_right()
+axs[1,1].yaxis.set_label_position("right")
+axs[1,1].yaxis.tick_right()
+axs[2,1].yaxis.set_label_position("right")
+axs[2,1].yaxis.tick_right()
+axs[3,1].yaxis.set_label_position("right")
+axs[3,1].yaxis.tick_right()
+axs[4,1].yaxis.set_label_position("right")
+axs[4,1].yaxis.tick_right()
+#for ax in axs.flat:
+    # ax.set(xlabel='Distance [m]')
+# Hide x labels and tick labels for top plots and y ticks for right plots.
 for ax in axs.flat:
-    ax.set(xlabel='Distance [m]')
-# # Hide x labels and tick labels for top plots and y ticks for right plots.
-# for ax in axs.flat:
-#     ax.label_outer()
+    ax.label_outer()
+plt.subplots_adjust(hspace=0.5)
 plt.show()
 
 
@@ -985,7 +1020,7 @@ plt.show()
 
 ############################### init training ####################3
 
-id = 'CNN_simple_2_4_2wd10.csv'
+id = 'CNN_simple_shuffle_2wd10.csv'
 
 loss = pd.read_csv('training/loss_save_'+id,sep=',',header=None)
 loss = loss.values.reshape((np.shape(loss)[1],-1))

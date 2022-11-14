@@ -1,10 +1,10 @@
 #!/bin/sh
 #BSUB -q hpc
 #BSUB -J Tests
-#BSUB -n 16
+#BSUB -n 24
 #BSUB -R "span[hosts=1]"
 #BSUB -R "rusage[mem=4GB]"
-#BSUB -W 14:00
+#BSUB -W 20:00
 #BSUB -o outputs/Output_%J.out
 #BSUB -e outputs/errors/Error_%J.err
 
