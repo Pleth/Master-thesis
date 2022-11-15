@@ -16,6 +16,6 @@ module load cuda/11.6
 source $HOME/miniconda3/bin/activate
 source venv_1/bin/activate
 
-python3 main.py CNN_simple 128 1e-5 1 200 shuffle_1wd1 99 SGD
-python3 main.py CNN_simple 128 1e-6 1 200 shuffle_1wd1 99 SGD
-python3 main.py CNN_simple 128 1e-7 1 200 shuffle_1wd1 99 SGD
+python3 main.py CNN_simple 128 1e-6 1 100 shuffle_sgd_1wd01 99 SGD
+python3 main.py CNN_simple 128 1e-6 1 300 shuffle_sgd_1wd1 99 SGD
+python3 main.py CNN_simple 128 1e-6 1 400 shuffle_sgd_1wd10 99 SGD

@@ -77,11 +77,12 @@ if __name__ == '__main__':
         elif sys.argv[2] == 'test':
             model = 1
 
-        cut = [10500,18500,15000]
+        cut = [6500,12300,17100,20950]
 
         #### split 1
         print('---------SPLIT 1--------')
-        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split1')
+        cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split1')
+        print(len(splits['1']),len(splits['2']),len(splits['3']),len(splits['4']),len(splits['5']))
         
         DI = pd.DataFrame(DI)
         DI_test = DI.iloc[splits['1']].reset_index(drop=True)
@@ -96,7 +97,7 @@ if __name__ == '__main__':
         print(rf_train.best_estimator_)
 
         print('---------SPLIT 2--------')
-        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split2')
+        cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split2')
         
         DI = pd.DataFrame(DI)
         DI_test = DI.iloc[splits['2']].reset_index(drop=True)
@@ -111,7 +112,7 @@ if __name__ == '__main__':
         print(rf_train.best_estimator_)
 
         print('---------SPLIT 3--------')
-        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split3')
+        cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split3')
         
         DI = pd.DataFrame(DI)
         DI_test = DI.iloc[splits['3']].reset_index(drop=True)
@@ -126,7 +127,7 @@ if __name__ == '__main__':
         print(rf_train.best_estimator_)
 
         print('---------SPLIT 4--------')
-        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split4')
+        cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split4')
         
         DI = pd.DataFrame(DI)
         DI_test = DI.iloc[splits['4']].reset_index(drop=True)
@@ -141,7 +142,7 @@ if __name__ == '__main__':
         print(rf_train.best_estimator_)
 
         print('---------SPLIT 5--------')
-        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split5')
+        cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split5')
         
         DI = pd.DataFrame(DI)
         DI_test = DI.iloc[splits['5']].reset_index(drop=True)
@@ -213,11 +214,12 @@ if __name__ == '__main__':
         elif sys.argv[2] == 'test':
             model = 1
 
-        cut = [10500,18400,15000]
+        cut = [6800,12500,17400,21100]
 
         #### split 1
         print('---------SPLIT 1--------')
-        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split1')
+        cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split1')
+        print(len(splits['1']),len(splits['2']),len(splits['3']),len(splits['4']),len(splits['5']))
         
         DI = pd.DataFrame(DI)
         DI_test = DI.iloc[splits['1']].reset_index(drop=True)
@@ -232,7 +234,7 @@ if __name__ == '__main__':
         print(rf_train.best_estimator_)
 
         print('---------SPLIT 2--------')
-        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split2')
+        cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split2')
         
         DI = pd.DataFrame(DI)
         DI_test = DI.iloc[splits['2']].reset_index(drop=True)
@@ -247,7 +249,7 @@ if __name__ == '__main__':
         print(rf_train.best_estimator_)
 
         print('---------SPLIT 3--------')
-        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split3')
+        cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split3')
         
         DI = pd.DataFrame(DI)
         DI_test = DI.iloc[splits['3']].reset_index(drop=True)
@@ -262,7 +264,7 @@ if __name__ == '__main__':
         print(rf_train.best_estimator_)
 
         print('---------SPLIT 4--------')
-        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split4')
+        cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split4')
         
         DI = pd.DataFrame(DI)
         DI_test = DI.iloc[splits['4']].reset_index(drop=True)
@@ -277,7 +279,7 @@ if __name__ == '__main__':
         print(rf_train.best_estimator_)
 
         print('---------SPLIT 5--------')
-        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split5')
+        cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split5')
         
         DI = pd.DataFrame(DI)
         DI_test = DI.iloc[splits['5']].reset_index(drop=True)
@@ -348,11 +350,11 @@ if __name__ == '__main__':
         elif sys.argv[2] == 'test':
             model = 1
 
-        cut = [10500,18400,15000]
+        cut = [6800,12500,17400,21100] #cut = [10500,18400,15000]
 
         #### split 1
         print('---------SPLIT 1--------')
-        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split1')
+        cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split1')
         
         DI = pd.DataFrame(DI)
         DI_test = DI.iloc[splits['1']].reset_index(drop=True)
@@ -367,7 +369,7 @@ if __name__ == '__main__':
         print(rf_train.best_estimator_)
 
         print('---------SPLIT 2--------')
-        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split2')
+        cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split2')
         
         DI = pd.DataFrame(DI)
         DI_test = DI.iloc[splits['2']].reset_index(drop=True)
@@ -382,7 +384,7 @@ if __name__ == '__main__':
         print(rf_train.best_estimator_)
 
         print('---------SPLIT 3--------')
-        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split3')
+        cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split3')
         
         DI = pd.DataFrame(DI)
         DI_test = DI.iloc[splits['3']].reset_index(drop=True)
@@ -397,7 +399,7 @@ if __name__ == '__main__':
         print(rf_train.best_estimator_)
 
         print('---------SPLIT 4--------')
-        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split4')
+        cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split4')
         
         DI = pd.DataFrame(DI)
         DI_test = DI.iloc[splits['4']].reset_index(drop=True)
@@ -412,7 +414,7 @@ if __name__ == '__main__':
         print(rf_train.best_estimator_)
 
         print('---------SPLIT 5--------')
-        cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split5')
+        cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split5')
         
         DI = pd.DataFrame(DI)
         DI_test = DI.iloc[splits['5']].reset_index(drop=True)

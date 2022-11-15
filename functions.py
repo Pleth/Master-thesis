@@ -533,7 +533,155 @@ def real_splits(features,aran_segments,route_details,cut,split_nr):
 
     return cv_train, split_test, train, test, splits
 
+def cph1_splits(features,aran_segments,route_details,cut,split_nr):
     
+    cph1 = []
+    cph6 = []
+    for i in range(len(route_details)):
+        if (route_details[i][:7] == 'CPH1_VH') | (route_details[i][:7] == 'CPH1_HH'):
+            cph1.append(i)
+        elif  (route_details[i][:7] == 'CPH6_VH') | (route_details[i][:7] == 'CPH6_HH'):
+            cph6.append(i)
+
+    cph1_aran = {}
+    for i in cph1:
+        cph1_aran[i] = aran_segments.loc[i]
+    cph1_aran = pd.concat(cph1_aran)
+
+    cph6_aran = {}
+    for i in cph6:
+        cph6_aran[i] = aran_segments.loc[i]
+    cph6_aran = pd.concat(cph6_aran)
+
+    cph1_aran.index = cph1_aran.index.get_level_values(0)
+    cph6_aran.index = cph6_aran.index.get_level_values(0)
+
+    split1 = []
+    for i in list(cph1_aran[cph1_aran['BeginChainage'] < cut[0]].index):
+       if i not in split1:
+          split1.append(i)
+    split2 = []
+    for i in list(cph1_aran[(cph1_aran['BeginChainage'] >= cut[0]) & (cph1_aran['BeginChainage'] <= cut[1]) ].index):
+       if i not in split2:
+          split2.append(i)
+    split3 = []
+    for i in list(cph1_aran[(cph1_aran['BeginChainage'] >= cut[1]) & (cph1_aran['BeginChainage'] <= cut[2]) ].index):
+       if i not in split3:
+          split3.append(i)
+    split4 = []
+    for i in list(cph1_aran[(cph1_aran['BeginChainage'] >= cut[2]) & (cph1_aran['BeginChainage'] <= cut[3]) ].index):
+       if i not in split4:
+          split4.append(i)
+    split5 = []
+    for i in list(cph1_aran[cph1_aran['BeginChainage'] > cut[3]].index):
+       if i not in split5:
+          split5.append(i)
+    
+    splits = {'1': split1, '2': split2, '3': split3, '4': split4, '5': split5}
+
+    features=features.T
+    if split_nr == 'split1':
+        train = []
+        train = features.iloc[split2].reset_index(drop=True)
+        train = pd.concat([train,features.iloc[split3].reset_index(drop=True)],ignore_index=True)
+        train = pd.concat([train,features.iloc[split4].reset_index(drop=True)],ignore_index=True)
+        train = pd.concat([train,features.iloc[split5].reset_index(drop=True)],ignore_index=True)
+        train = train.T
+        test = features.iloc[split1].reset_index(drop=True).T
+
+        split2 = list(range(0,len(splits['2'])))
+        split3 = list(range(len(split2),len(split2)+len(splits['3'])))
+        split4 = list(range(len(split2+split3),len(split2+split3)+len(splits['4'])))
+        split5 = list(range(len(split2+split3+split4),len(split2+split3+split4)+len(splits['5'])))
+
+        split_test = list(range(0,len(splits['1'])))
+        cv_train = [(split3+split4+split5,split2),
+                    (split2+split4+split5,split3),
+                    (split2+split3+split5,split4),
+                    (split2+split3+split4,split5)]
+
+    if split_nr == 'split2':
+        train = []
+        train = features.iloc[split1].reset_index(drop=True)
+        train = pd.concat([train,features.iloc[split3].reset_index(drop=True)],ignore_index=True)
+        train = pd.concat([train,features.iloc[split4].reset_index(drop=True)],ignore_index=True)
+        train = pd.concat([train,features.iloc[split5].reset_index(drop=True)],ignore_index=True)
+        train = train.T
+        test = features.iloc[split2].reset_index(drop=True).T
+
+        split1 = list(range(0,len(splits['1'])))
+        split3 = list(range(len(split1),len(split1)+len(splits['3'])))
+        split4 = list(range(len(split1+split3),len(split1+split3)+len(splits['4'])))
+        split5 = list(range(len(split1+split3+split4),len(split1+split3+split4)+len(splits['5'])))
+
+        split_test = list(range(0,len(splits['2'])))
+        cv_train = [(split3+split4+split5,split1),
+                    (split1+split4+split5,split3),
+                    (split1+split3+split5,split4),
+                    (split1+split3+split4,split5)]
+        
+    if split_nr == 'split3':
+        train = []
+        train = features.iloc[split1].reset_index(drop=True)
+        train = pd.concat([train,features.iloc[split2].reset_index(drop=True)],ignore_index=True)
+        train = pd.concat([train,features.iloc[split4].reset_index(drop=True)],ignore_index=True)
+        train = pd.concat([train,features.iloc[split5].reset_index(drop=True)],ignore_index=True)
+        train = train.T
+        test = features.iloc[split3].reset_index(drop=True).T
+
+        split1 = list(range(0,len(splits['1'])))
+        split2 = list(range(len(split1),len(split1)+len(splits['2'])))
+        split4 = list(range(len(split1+split2),len(split1+split2)+len(splits['4'])))
+        split5 = list(range(len(split1+split2+split4),len(split1+split2+split4)+len(splits['5'])))
+
+        split_test = list(range(0,len(splits['3'])))
+        cv_train = [(split2+split4+split5,split1),
+                    (split1+split4+split5,split2),
+                    (split1+split2+split5,split4),
+                    (split1+split2+split4,split5)]
+    if split_nr == 'split4':
+        train = []
+        train = features.iloc[split1].reset_index(drop=True)
+        train = pd.concat([train,features.iloc[split2].reset_index(drop=True)],ignore_index=True)
+        train = pd.concat([train,features.iloc[split3].reset_index(drop=True)],ignore_index=True)
+        train = pd.concat([train,features.iloc[split5].reset_index(drop=True)],ignore_index=True)
+        train = train.T
+        test = features.iloc[split4].reset_index(drop=True).T
+
+        split1 = list(range(0,len(splits['1'])))
+        split2 = list(range(len(split1),len(split1)+len(splits['2'])))
+        split3 = list(range(len(split1+split2),len(split1+split2)+len(splits['3'])))
+        split5 = list(range(len(split1+split2+split3),len(split1+split2+split3)+len(splits['5'])))
+
+        split_test = list(range(0,len(splits['4'])))
+        cv_train = [(split2+split3+split5,split1),
+                    (split1+split3+split5,split2),
+                    (split1+split2+split5,split3),
+                    (split1+split2+split3,split5)]
+
+    if split_nr == 'split5':
+        train = []
+        train = features.iloc[split1].reset_index(drop=True)
+        train = pd.concat([train,features.iloc[split2].reset_index(drop=True)],ignore_index=True)
+        train = pd.concat([train,features.iloc[split3].reset_index(drop=True)],ignore_index=True)
+        train = pd.concat([train,features.iloc[split4].reset_index(drop=True)],ignore_index=True)
+        train = train.T
+        test = features.iloc[split5].reset_index(drop=True).T
+
+        split1 = list(range(0,len(splits['1'])))
+        split2 = list(range(len(split1),len(split1)+len(splits['2'])))
+        split3 = list(range(len(split1+split2),len(split1+split2)+len(splits['3'])))
+        split4 = list(range(len(split1+split2+split3),len(split1+split2+split3)+len(splits['4'])))
+
+        split_test = list(range(0,len(splits['5'])))
+        cv_train = [(split2+split3+split4,split1),
+                    (split1+split3+split4,split2),
+                    (split1+split2+split4,split3),
+                    (split1+split2+split3,split4)]
+
+    return cv_train, split_test, train, test, splits
+
+
 def route_splits(features,route_details,split_nr):
 
     cph1_vh = []
