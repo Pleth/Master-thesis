@@ -1,0 +1,194 @@
+45km_test
+GM_45km_split_test
+Loaded Synthetic Profile for trip: 1 / 4
+Loaded Synthetic Profile for trip: 2 / 4
+Loaded Synthetic Profile for trip: 3 / 4
+Loaded Synthetic Profile for trip: 4 / 4
+Loaded already segmented data
+---------SPLIT 1--------
+148 148 148 138 137
+Run time: 4.61 mins
+0.6235325268038192
+0.2520756434460385
+RandomForestRegressor(max_depth=6, max_features=120, min_samples_leaf=10,
+                      n_estimators=1000)
+---------SPLIT 2--------
+Run time: 4.56 mins
+0.6323325595573808
+0.13597625355442478
+RandomForestRegressor(max_depth=6, max_features=120, min_samples_leaf=10,
+                      n_estimators=1000)
+---------SPLIT 3--------
+Run time: 4.54 mins
+0.6155816842699977
+0.267205200830122
+RandomForestRegressor(max_depth=6, max_features=110, min_samples_leaf=10,
+                      n_estimators=1000)
+---------SPLIT 4--------
+Run time: 4.59 mins
+0.5609140378245305
+0.32979870749609563
+RandomForestRegressor(max_depth=5, max_features=110, min_samples_leaf=10,
+                      n_estimators=1000)
+---------SPLIT 5--------
+Run time: 4.63 mins
+0.550195007850321
+0.2899353375068511
+RandomForestRegressor(max_depth=5, max_features=110, min_samples_leaf=10,
+                      n_estimators=1000)
+laser_test
+GM_45km_split_test
+Loaded Synthetic Profile for trip: 1 / 4
+Loaded Synthetic Profile for trip: 2 / 4
+Loaded Synthetic Profile for trip: 3 / 4
+Loaded Synthetic Profile for trip: 4 / 4
+Loaded already segmented data
+---------SPLIT 1--------
+Run time: 4.47 mins
+0.6051574655329304
+0.2138821239380847
+RandomForestRegressor(max_depth=6, max_features=110, min_samples_leaf=10,
+                      n_estimators=1000)
+---------SPLIT 2--------
+Run time: 4.39 mins
+0.6099039860847142
+0.15938034280068625
+RandomForestRegressor(max_depth=6, max_features=100, min_samples_leaf=10,
+                      n_estimators=1000)
+---------SPLIT 3--------
+Run time: 4.39 mins
+0.6125653350467951
+0.20882207963739574
+RandomForestRegressor(max_depth=6, max_features=110, min_samples_leaf=10,
+                      n_estimators=1000)
+---------SPLIT 4--------
+Run time: 4.47 mins
+0.5635791461958535
+0.423127685141123
+RandomForestRegressor(max_depth=6, max_features=110, min_samples_leaf=10,
+                      n_estimators=1000)
+---------SPLIT 5--------
+Run time: 4.5 mins
+0.5751807138887655
+0.2923281717559272
+RandomForestRegressor(max_depth=6, max_features=120, min_samples_leaf=10,
+                      n_estimators=1000)
+synth_test
+GM_synth_split_test
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 1 / 5
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 2 / 5
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 3 / 5
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 4 / 5
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 5 / 5
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 1 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 2 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 3 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 4 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 5 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 6 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 7 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 1 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 2 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 3 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 4 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 5 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 6 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 7 / 7
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 1 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 2 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 3 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 4 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 5 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 6 / 6
+Loaded already segmented data
+---------SPLIT 1--------
+949 939 949 943 948
+Run time: 40.71 mins
+0.5838356471089847
+0.21934053905366857
+RandomForestRegressor(max_depth=6, max_features=120, min_samples_leaf=20,
+                      n_estimators=1000)
+---------SPLIT 2--------
+Run time: 39.4 mins
+0.5585528420837069
+0.20689843914664796
+RandomForestRegressor(max_depth=6, max_features=120, min_samples_leaf=30,
+                      n_estimators=1000)
+---------SPLIT 3--------
+Run time: 40.54 mins
+0.5459623355960412
+0.2887970434149506
+RandomForestRegressor(max_depth=6, max_features=120, min_samples_leaf=30,
+                      n_estimators=1000)
+---------SPLIT 4--------
+Run time: 40.89 mins
+0.5638274231562219
+0.27700307892978426
+RandomForestRegressor(max_depth=6, max_features=120, min_samples_leaf=10,
+                      n_estimators=1000)
+---------SPLIT 5--------
+Run time: 40.57 mins
+0.523365202699122
+0.3467068725228434
+RandomForestRegressor(max_depth=6, max_features=120, min_samples_leaf=30,
+                      n_estimators=1000)
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 14766797: <Tests> in cluster <dcc> Done
+
+Job <Tests> was submitted from host <n-62-30-8> by user <s174503> in cluster <dcc> at Tue Nov 15 13:45:36 2022
+Job was executed on host(s) <24*n-62-21-10>, in queue <hpc>, as user <s174503> in cluster <dcc> at Tue Nov 15 13:45:37 2022
+</zhome/fd/6/127382> was used as the home directory.
+</zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis> was used as the working directory.
+Started at Tue Nov 15 13:45:37 2022
+Terminated at Tue Nov 15 17:58:49 2022
+Results reported at Tue Nov 15 17:58:49 2022
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q hpc
+#BSUB -J Tests
+#BSUB -n 24
+#BSUB -R "span[hosts=1]"
+#BSUB -R "rusage[mem=4GB]"
+#BSUB -W 20:00
+#BSUB -o outputs/Output_%J.out
+#BSUB -e outputs/errors/Error_%J.err
+
+source $HOME/miniconda3/bin/activate
+source venv_1/bin/activate
+
+python3 main.py 45km_test train
+python3 main.py laser_test train
+python3 main.py synth_test train
+
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   340412.00 sec.
+    Max Memory :                                 3434 MB
+    Average Memory :                             3045.35 MB
+    Total Requested Memory :                     98304.00 MB
+    Delta Memory :                               94870.00 MB
+    Max Swap :                                   -
+    Max Processes :                              30
+    Max Threads :                                34
+    Run time :                                   15192 sec.
+    Turnaround time :                            15193 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <outputs/errors/Error_14766797.err> for stderr output of this job.
+
