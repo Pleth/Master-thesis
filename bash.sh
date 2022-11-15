@@ -14,4 +14,6 @@ source venv_1/bin/activate
 python3 main.py synth_test train
 python3 main.py 45km_test train
 python3 main.py laser_test train
+python3 main.py GM_split_test train
+
 
