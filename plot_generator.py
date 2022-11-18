@@ -1020,8 +1020,8 @@ plt.show()
 
 ############################### init training ####################3
 
-# id = 'CNN_simple_shuffle_sgd_1wd10.csv'
-id = 'GoogleNet_2_4_test2.csv'
+# id = 'CNN_simple_shuffle_sgd_2wd15.csv'
+id = 'GoogleNet_2_4_sgd_10wd1.csv'
 
 loss = pd.read_csv('training/loss_save_'+id,sep=',',header=None)
 loss = loss.values.reshape((np.shape(loss)[1],-1))
@@ -1039,17 +1039,18 @@ fig, ax1 = plt.subplots()
 ax2 = ax1.twinx()
 lns1 = ax1.plot(loss,c='blue',label='Training loss')
 lns2 = ax2.plot(points,R2_train,c='red',label='Training R2')
-lns3 = ax2.plot(points,R2_test,c='green',label='Validation R2')
-# lns4 = ax2.plot(points,R2_test,c='yellow',label='Test R2')
+lns3 = ax2.plot(points,R2_val,c='green',label='Validation R2')
+lns4 = ax2.plot(points,R2_test,c='yellow',label='Test R2')
 ax1.set_xlabel('Epoch')
 ax1.set_ylabel('Loss')
 ax2.set_ylabel('R2')
 ax2.set_ylim([0,r2_max+0.1])
-lns = lns1+lns2+lns3#+lns4
+lns = lns1+lns2+lns3+lns4
 labs = [l.get_label() for l in lns]
 ax1.legend(lns, labs, loc=9)
 ax1.set_title(id+' - R2_val = '+str(round(np.max(R2_test),3))) #  + ' - ' + 'R2_test = '+str('x')
 plt.show()
+
 
 
 

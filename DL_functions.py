@@ -141,9 +141,12 @@ class CNN_simple(Module):
         X = self.hidden7(X)
         return X
 
-def prepare_data(path,labelsFile,batch_size,nr_tar,test_nr):
+def prepare_data(path,labelsFile,batch_size,nr_tar,test_nr,real=0):
     # define standardization
-    sourceTransform = Compose([ToTensor()])
+    if real == 1:
+        sourceTransform = Compose([ToTensor(),Resize((224,224))])
+    else:
+        sourceTransform = Compose([ToTensor()])
     
     if test_nr < 100:
         split1 = CustomDataset(labelsFile+"_split1.csv", path+'/split1/', sourceTransform, nr_tar)
@@ -707,6 +710,167 @@ def create_cwt_data(GM_segments,splits,targets,path,check):
 
     return
 
+def create_cwt_data_real(GM_segments,splits,targets,path,check):
+    from ssqueezepy import cwt
+    # from ssqueezepy.visuals import imshow
+    # import matplotlib
+    # matplotlib.use('Agg')
+    # import matplotlib.pyplot as plt
+
+    DI_lab = []
+    cracks_lab = []
+    alligator_lab = []
+    pothole_lab = []
+    paths = []
+    for i in tqdm(splits['1']):
+        xtest = np.array(GM_segments[i])
+        Wx, scales = cwt(xtest, 'bump',nv=37)
+        Wx = abs(Wx)
+        Wx = Wx[4:]
+        np.savez_compressed(path+"/split1/cwt_"+str(i).zfill(4),Wx=Wx)
+        
+        DI_lab.append(targets[0][i])
+        cracks_lab.append(targets[1][i])
+        alligator_lab.append(targets[2][i])
+        pothole_lab.append(targets[3][i])
+        paths.append("cwt_"+str(i).zfill(4)+".npz")
+
+    d = {'cwt_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
+    df = pd.DataFrame(d)
+    df.to_csv(path+"/labelsfile_split1.csv",index=False)
+
+    DI_lab = []
+    cracks_lab = []
+    alligator_lab = []
+    pothole_lab = []
+    paths = []
+    for i in tqdm(splits['2']):
+        xtest = np.array(GM_segments[i])
+        Wx, scales = cwt(xtest, 'bump',nv=37)
+        Wx = abs(Wx)
+        Wx = Wx[4:]
+        np.savez_compressed(path+"/split2/cwt_"+str(i).zfill(4),Wx=Wx)
+        
+        DI_lab.append(targets[0][i])
+        cracks_lab.append(targets[1][i])
+        alligator_lab.append(targets[2][i])
+        pothole_lab.append(targets[3][i])
+        paths.append("cwt_"+str(i).zfill(4)+".npz")
+
+    d = {'cwt_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
+    df = pd.DataFrame(d)
+    df.to_csv(path+"/labelsfile_split2.csv",index=False)
+
+    DI_lab = []
+    cracks_lab = []
+    alligator_lab = []
+    pothole_lab = []
+    paths = []
+    for i in tqdm(splits['3']):
+        xtest = np.array(GM_segments[i])
+        Wx, scales = cwt(xtest, 'bump',nv=37)
+        Wx = abs(Wx)
+        Wx = Wx[4:]
+        np.savez_compressed(path+"/split3/cwt_"+str(i).zfill(4),Wx=Wx)
+        
+        DI_lab.append(targets[0][i])
+        cracks_lab.append(targets[1][i])
+        alligator_lab.append(targets[2][i])
+        pothole_lab.append(targets[3][i])
+        paths.append("cwt_"+str(i).zfill(4)+".npz")
+
+    d = {'cwt_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
+    df = pd.DataFrame(d)
+    df.to_csv(path+"/labelsfile_split3.csv",index=False)
+
+    DI_lab = []
+    cracks_lab = []
+    alligator_lab = []
+    pothole_lab = []
+    paths = []
+    for i in tqdm(splits['4']):
+        xtest = np.array(GM_segments[i])
+        Wx, scales = cwt(xtest, 'bump',nv=37)
+        Wx = abs(Wx)
+        Wx = Wx[4:]
+        np.savez_compressed(path+"/split4/cwt_"+str(i).zfill(4),Wx=Wx)
+        
+        DI_lab.append(targets[0][i])
+        cracks_lab.append(targets[1][i])
+        alligator_lab.append(targets[2][i])
+        pothole_lab.append(targets[3][i])
+        paths.append("cwt_"+str(i).zfill(4)+".npz")
+
+    d = {'cwt_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
+    df = pd.DataFrame(d)
+    df.to_csv(path+"/labelsfile_split4.csv",index=False)
+
+    DI_lab = []
+    cracks_lab = []
+    alligator_lab = []
+    pothole_lab = []
+    paths = []
+    for i in tqdm(splits['5']):
+        xtest = np.array(GM_segments[i])
+        Wx, scales = cwt(xtest, 'bump',nv=37)
+        Wx = abs(Wx)
+        Wx = Wx[4:]
+        np.savez_compressed(path+"/split5/cwt_"+str(i).zfill(4),Wx=Wx)
+        
+        DI_lab.append(targets[0][i])
+        cracks_lab.append(targets[1][i])
+        alligator_lab.append(targets[2][i])
+        pothole_lab.append(targets[3][i])
+        paths.append("cwt_"+str(i).zfill(4)+".npz")
+
+    d = {'cwt_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
+    df = pd.DataFrame(d)
+    df.to_csv(path+"/labelsfile_split5.csv",index=False)
+
+    DI_lab = []
+    cracks_lab = []
+    alligator_lab = []
+    pothole_lab = []
+    paths = []
+    for i in tqdm(splits['6']):
+        xtest = np.array(GM_segments[i])
+        Wx, scales = cwt(xtest, 'bump',nv=37)
+        Wx = abs(Wx)
+        Wx = Wx[4:]
+        np.savez_compressed(path+"/split6/cwt_"+str(i).zfill(4),Wx=Wx)
+        
+        DI_lab.append(targets[0][i])
+        cracks_lab.append(targets[1][i])
+        alligator_lab.append(targets[2][i])
+        pothole_lab.append(targets[3][i])
+        paths.append("cwt_"+str(i).zfill(4)+".npz")
+
+    d = {'cwt_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
+    df = pd.DataFrame(d)
+    df.to_csv(path+"/labelsfile_split6.csv",index=False)
+
+    DI_lab = []
+    cracks_lab = []
+    alligator_lab = []
+    pothole_lab = []
+    paths = []
+    for i in tqdm(splits['7']):
+        xtest = np.array(GM_segments[i])
+        Wx, scales = cwt(xtest, 'bump',nv=37)
+        Wx = abs(Wx)
+        Wx = Wx[4:]
+        np.savez_compressed(path+"/split7/cwt_"+str(i).zfill(4),Wx=Wx)
+        
+        DI_lab.append(targets[0][i])
+        cracks_lab.append(targets[1][i])
+        alligator_lab.append(targets[2][i])
+        pothole_lab.append(targets[3][i])
+        paths.append("cwt_"+str(i).zfill(4)+".npz")
+
+    d = {'cwt_path': paths, 'DI': DI_lab, 'Cracks': cracks_lab, 'Alligator': alligator_lab, 'Potholes': pothole_lab}
+    df = pd.DataFrame(d)
+    df.to_csv(path+"/labelsfile_split7.csv",index=False)
+
 def DL_splits(aran_segments,route_details,cut):
 
     cph1 = []
@@ -757,6 +921,64 @@ def DL_splits(aran_segments,route_details,cut):
           split6.append(i)
     split7 = []
     for i in list(cph6_aran[(cph6_aran['BeginChainage'] >= cut[4]) & (cph6_aran['BeginChainage'] > 7500)].index):
+       if i not in split7:
+          split7.append(i)
+    
+    splits = {'1': split1, '2': split2, '3': split3, '4': split4, '5': split5, '6': split6, '7': split7}
+
+    return splits
+
+
+def DL_splits_real(aran_segments,route_details,cut):
+
+    cph1 = []
+    cph6 = []
+    for i in range(len(route_details)):
+        if (route_details[i][:7] == 'CPH1_VH') | (route_details[i][:7] == 'CPH1_HH'):
+            cph1.append(i)
+        elif  (route_details[i][:7] == 'CPH6_VH') | (route_details[i][:7] == 'CPH6_HH'):
+            cph6.append(i)
+
+    cph1_aran = {}
+    for i in cph1:
+        cph1_aran[i] = aran_segments.loc[i]
+    cph1_aran = pd.concat(cph1_aran)
+
+    cph6_aran = {}
+    for i in cph6:
+        cph6_aran[i] = aran_segments.loc[i]
+    cph6_aran = pd.concat(cph6_aran)
+
+    cph1_aran.index = cph1_aran.index.get_level_values(0)
+    cph6_aran.index = cph6_aran.index.get_level_values(0)
+
+    split1 = []
+    for i in list(cph1_aran[cph1_aran['BeginChainage'] < cut[0]].index):
+       if i not in split1:
+          split1.append(i)
+    split2 = []
+    for i in list(cph1_aran[(cph1_aran['BeginChainage'] >= cut[0]) & (cph1_aran['BeginChainage'] <= cut[1]) ].index):
+       if i not in split2:
+          split2.append(i)
+    split3 = []
+    for i in list(cph1_aran[(cph1_aran['BeginChainage'] >= cut[1]) & (cph1_aran['BeginChainage'] <= cut[2]) ].index):
+       if i not in split3:
+          split3.append(i)
+    split4 = []
+    for i in list(cph1_aran[(cph1_aran['BeginChainage'] >= cut[2]) & (cph1_aran['BeginChainage'] <= cut[3]) ].index):
+       if i not in split4:
+          split4.append(i)
+    
+    split5 = []
+    for i in list(cph1_aran[(cph1_aran['BeginChainage'] >= cut[3]) & (cph1_aran['BeginChainage'] <= cut[4]) ].index):
+       if i not in split5:
+          split5.append(i)
+    split6 = []
+    for i in list(cph1_aran[(cph1_aran['BeginChainage'] >= cut[4]) & (cph1_aran['BeginChainage'] <= cut[5]) ].index):
+       if i not in split6:
+          split6.append(i)
+    split7 = []
+    for i in list(cph1_aran[cph1_aran['BeginChainage'] > cut[5]].index):
        if i not in split7:
           split7.append(i)
     

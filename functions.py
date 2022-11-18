@@ -348,13 +348,13 @@ def method_RandomForest(features_train, features_test, y_train, y_test, id, mode
                     'n_estimators': [250]}
         parameters={'criterion': ['squared_error'],
                     'bootstrap': [True],
-                    'max_depth': [4, 5],
-                    'max_features': [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 'log2', 'sqrt'],
-                    'min_samples_leaf': [1, 4, 8, 10, 20, 30, 40],
-                    'min_samples_split': [2,10],
+                    'max_depth': [4, 5, 6],
+                    'max_features': [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 'log2', 'sqrt'],
+                    'min_samples_leaf': [1, 5, 10, 20, 30, 40, 50],
+                    'min_samples_split': [2,5,10,15],
                     'min_weight_fraction_leaf': [0.0],
-                    'oob_score': [False],
-                    'n_estimators': [200, 1000]}
+                    'oob_score': [True],
+                    'n_estimators': [250]}
         
         start_time = time.time()
         if gridsearch == 1:

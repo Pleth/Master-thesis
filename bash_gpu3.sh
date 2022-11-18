@@ -16,6 +16,7 @@ module load cuda/11.6
 source $HOME/miniconda3/bin/activate
 source venv_1/bin/activate
 
-python3 main.py Deep_google 128 1e-6 0.1 800 2_4_sgd_10wd01 7 SGD
-python3 main.py Deep_google 128 1e-6 1 800 2_4_sgd_10wd1 7 SGD
-python3 main.py Deep_google 128 1e-6 10 800 2_4_sgd_10wd10 7 SGD
+python3 main.py Deep_google 128 1e-6 1 600 2_1_sgd_wd1 0 SGD
+python3 main.py Deep_google 128 1e-6 1 600 3_4_sgd_wd1 1 SGD
+python3 main.py Deep_google 128 1e-6 1 600 6_7_sgd_wd1 3 SGD
+python3 main.py Deep_google 128 1e-6 1 600 4_5_sgd_wd1 5 SGD
