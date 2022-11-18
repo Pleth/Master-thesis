@@ -1,0 +1,224 @@
+synth_test
+GM_synth_split_test
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 1 / 5
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 2 / 5
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 3 / 5
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 4 / 5
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 5 / 5
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 1 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 2 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 3 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 4 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 5 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 6 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 7 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 1 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 2 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 3 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 4 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 5 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 6 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 7 / 7
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 1 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 2 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 3 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 4 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 5 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 6 / 6
+Loaded already segmented data
+---------SPLIT 1--------
+949 939 949 943 948
+Run time: 40.63 mins
+0.5319146002593402
+0.22001133258328331
+RandomForestRegressor(max_depth=5, max_features=0.5, min_samples_leaf=30,
+                      n_estimators=1000)
+---------SPLIT 2--------
+Run time: 36.34 mins
+0.5121650617603253
+0.19752562656787187
+RandomForestRegressor(max_depth=5, max_features=0.2, min_samples_leaf=20,
+                      n_estimators=1000)
+---------SPLIT 3--------
+Run time: 40.44 mins
+0.5140005872917941
+0.2875926915944955
+RandomForestRegressor(max_depth=5, max_features=0.5, min_samples_leaf=30,
+                      n_estimators=1000)
+---------SPLIT 4--------
+Run time: 41.62 mins
+0.4841234101296805
+0.24924260828695077
+RandomForestRegressor(max_depth=5, max_features=0.7, min_samples_leaf=40,
+                      n_estimators=1000)
+---------SPLIT 5--------
+Run time: 41.03 mins
+0.4815669529644234
+0.35587960300096777
+RandomForestRegressor(max_depth=5, max_features=0.6, min_samples_leaf=40,
+                      n_estimators=1000)
+45km_test
+GM_45km_split_test
+Loaded Synthetic Profile for trip: 1 / 4
+Loaded Synthetic Profile for trip: 2 / 4
+Loaded Synthetic Profile for trip: 3 / 4
+Loaded Synthetic Profile for trip: 4 / 4
+Loaded already segmented data
+---------SPLIT 1--------
+148 148 148 138 137
+Run time: 4.41 mins
+0.6728314527809147
+0.26039675364328485
+RandomForestRegressor(max_depth=5, max_features=0.8, min_samples_leaf=4,
+                      n_estimators=1000)
+---------SPLIT 2--------
+Run time: 4.33 mins
+0.6909649084308134
+0.155348290634162
+RandomForestRegressor(max_depth=5, max_features=0.9, n_estimators=1000)
+---------SPLIT 3--------
+Run time: 4.36 mins
+0.62611515617751
+0.2626616918937906
+RandomForestRegressor(max_depth=5, max_features=0.9, min_samples_leaf=10,
+                      n_estimators=1000)
+---------SPLIT 4--------
+Run time: 4.36 mins
+0.5957339748184965
+0.3325627642864425
+RandomForestRegressor(max_depth=5, max_features=0.7, min_samples_leaf=10,
+                      n_estimators=1000)
+---------SPLIT 5--------
+Run time: 4.45 mins
+0.584296306442637
+0.2979658215344946
+RandomForestRegressor(max_depth=5, max_features=0.9, min_samples_leaf=10,
+                      n_estimators=1000)
+laser_test
+GM_45km_split_test
+Loaded Synthetic Profile for trip: 1 / 4
+Loaded Synthetic Profile for trip: 2 / 4
+Loaded Synthetic Profile for trip: 3 / 4
+Loaded Synthetic Profile for trip: 4 / 4
+Loaded already segmented data
+---------SPLIT 1--------
+Run time: 3.91 mins
+0.6078986656471352
+0.24679768096621812
+RandomForestRegressor(max_depth=5, max_features=0.7, min_samples_leaf=8,
+                      n_estimators=1000)
+---------SPLIT 2--------
+Run time: 3.73 mins
+0.6590738694109964
+0.16518877173421753
+RandomForestRegressor(max_depth=5, max_features=0.5, min_samples_leaf=4,
+                      n_estimators=1000)
+---------SPLIT 3--------
+Run time: 3.73 mins
+0.6383646880612026
+0.20422409561516552
+RandomForestRegressor(max_depth=5, max_features=0.4, min_samples_leaf=4,
+                      n_estimators=1000)
+---------SPLIT 4--------
+Run time: 3.81 mins
+0.5887437216595954
+0.42135763980719454
+RandomForestRegressor(max_depth=5, max_features=0.4, min_samples_leaf=4,
+                      n_estimators=1000)
+---------SPLIT 5--------
+Run time: 3.97 mins
+0.6340910717190651
+0.3340409239703097
+RandomForestRegressor(max_depth=5, max_features=0.9, n_estimators=1000)
+GM_split_test
+Loaded already segmented data
+---------SPLIT 1--------
+Run time: 8.24 mins
+0.45370922012029546
+0.10773013238154538
+RandomForestRegressor(max_depth=4, max_features=0.2, n_estimators=1000)
+---------SPLIT 2--------
+Run time: 8.16 mins
+0.4008053460109663
+0.27185813657541
+RandomForestRegressor(max_depth=5, max_features=0.4, min_samples_leaf=40,
+                      n_estimators=1000)
+---------SPLIT 3--------
+Run time: 8.19 mins
+0.5129879688371832
+0.15329261348214052
+RandomForestRegressor(max_depth=5, max_features=0.2, n_estimators=1000)
+---------SPLIT 4--------
+Run time: 8.61 mins
+0.4506915043361469
+0.3495088785745979
+RandomForestRegressor(max_depth=5, max_features=0.7, min_samples_leaf=20,
+                      n_estimators=1000)
+---------SPLIT 5--------
+Run time: 8.12 mins
+0.35419417523638086
+0.24489569054242233
+RandomForestRegressor(max_depth=4, max_features=0.1, min_samples_leaf=40,
+                      n_estimators=1000)
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 14790766: <Tests> in cluster <dcc> Done
+
+Job <Tests> was submitted from host <n-62-30-8> by user <s174503> in cluster <dcc> at Wed Nov 16 23:22:21 2022
+Job was executed on host(s) <24*n-62-31-14>, in queue <hpc>, as user <s174503> in cluster <dcc> at Wed Nov 16 23:22:22 2022
+</zhome/fd/6/127382> was used as the home directory.
+</zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis> was used as the working directory.
+Started at Wed Nov 16 23:22:22 2022
+Terminated at Thu Nov 17 04:10:37 2022
+Results reported at Thu Nov 17 04:10:37 2022
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q hpc
+#BSUB -J Tests
+#BSUB -n 24
+#BSUB -R "span[hosts=1]"
+#BSUB -R "rusage[mem=4GB]"
+#BSUB -W 20:00
+#BSUB -o outputs/Output_%J.out
+#BSUB -e outputs/errors/Error_%J.err
+
+source $HOME/miniconda3/bin/activate
+source venv_1/bin/activate
+
+python3 main.py synth_test train
+python3 main.py 45km_test train
+python3 main.py laser_test train
+python3 main.py GM_split_test train
+
+
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   369827.00 sec.
+    Max Memory :                                 3381 MB
+    Average Memory :                             2943.25 MB
+    Total Requested Memory :                     98304.00 MB
+    Delta Memory :                               94923.00 MB
+    Max Swap :                                   -
+    Max Processes :                              30
+    Max Threads :                                34
+    Run time :                                   17401 sec.
+    Turnaround time :                            17296 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <outputs/errors/Error_14790766.err> for stderr output of this job.
+

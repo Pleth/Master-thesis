@@ -1648,3 +1648,68 @@ Test R2 - DI: 0.264
 0.18766398989435673
 Test R2 - DI: 0.264
 Test R2 - DI: 0.249
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 14772626: <testjob> in cluster <dcc> Exited
+
+Job <testjob> was submitted from host <n-62-30-8> by user <s174503> in cluster <dcc> at Tue Nov 15 21:22:00 2022
+Job was executed on host(s) <n-62-20-13>, in queue <gpuv100>, as user <s174503> in cluster <dcc> at Tue Nov 15 21:22:01 2022
+</zhome/fd/6/127382> was used as the home directory.
+</zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis> was used as the working directory.
+Started at Tue Nov 15 21:22:01 2022
+Terminated at Wed Nov 16 09:22:17 2022
+Results reported at Wed Nov 16 09:22:17 2022
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q gpuv100
+#BSUB -J testjob
+#BSUB -n 1
+#BSUB -gpu "num=1:mode=exclusive_process"
+#BSUB -W 12:00
+#BSUB -R "rusage[mem=5GB]"
+#BSUB -o outputs/gpu_%J.out
+#BSUB -e outputs/errors/gpu_%J.err
+
+nvidia-smi
+module load cuda/11.6
+
+/appl/cuda/11.6.0/samples/bin/x86_64/linux/release/deviceQuery
+
+source $HOME/miniconda3/bin/activate
+source venv_1/bin/activate
+
+python3 main.py CNN_simple 128 1e-6 1 400 2_4_sgd_2wd5 7 SGD
+python3 main.py CNN_simple 128 1e-6 5 400 2_4_sgd_2wd5 7 SGD
+python3 main.py CNN_simple 128 1e-6 10 400 2_4_sgd_2wd10 7 SGD
+python3 main.py CNN_simple 128 1e-6 15 400 2_4_sgd_2wd15 7 SGD
+------------------------------------------------------------
+
+TERM_RUNLIMIT: job killed after reaching LSF run time limit.
+Exited with exit code 140.
+
+Resource usage summary:
+
+    CPU time :                                   39604.00 sec.
+    Max Memory :                                 2264 MB
+    Average Memory :                             2217.47 MB
+    Total Requested Memory :                     5120.00 MB
+    Delta Memory :                               2856.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                8
+    Run time :                                   43216 sec.
+    Turnaround time :                            43217 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <outputs/errors/gpu_14772626.err> for stderr output of this job.
+
