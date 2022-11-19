@@ -1234,3 +1234,36 @@ if __name__ == '__main__':
         model_test.eval()
         acc = evaluate_model(test_dl, model_test)
         print('Test R2 - DI: %.3f' % acc)
+
+    if sys.argv[1] == 'Deep_google_deep_deep':
+        print('Deep_google_deep_deep')
+        
+        batch_size = int(sys.argv[2])
+        lr = float(sys.argv[3])
+        wd = float(sys.argv[4])
+        epoch_nr = int(sys.argv[5])
+
+        print('batch_size = ',batch_size,'lr = ',lr,'wd = ',wd)
+
+        nr_tar=1
+        test_nr = int(sys.argv[7])
+        crit = sys.argv[8]
+        path = 'DL_synth_data'
+        labelsFile = 'DL_synth_data/labelsfile'
+        train_dl, val_dl, test_dl = prepare_data(path,labelsFile,batch_size,nr_tar=1,test_nr=test_nr)
+        print(len(train_dl.dataset), len(val_dl.dataset), len(test_dl.dataset))
+
+        id = 'GoogleNet_deep_'+sys.argv[6]
+
+        model = MyGoogleNet_deep(in_fts=1,num_class=1)
+        train_model2(train_dl, val_dl, test_dl, model, epoch_nr, lr,0.9,wd,id,crit)
+
+        model.eval()
+        acc = evaluate_model(test_dl, model)
+        print('Test R2 - DI: %.3f' % acc)
+
+        model_test = MyGoogleNet_deep(in_fts=1,num_class=1)
+        model_test.load_state_dict(torch.load("models/model_"+id+".pt")) # ,map_location=torch.device('cpu')
+        model_test.eval()
+        acc = evaluate_model(test_dl, model_test)
+        print('Test R2 - DI: %.3f' % acc)

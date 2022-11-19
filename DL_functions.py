@@ -340,6 +340,108 @@ def evaluate_model(test_dl, model):
     acc = r2_score(actuals, predictions) #,multioutput='raw_values'
     return acc
 
+
+# train the model
+def train_model2(train_dl, val_dl,test_dl, model, epochs, lr,mom=0.9,wd=0.0,id=id,crit='adam'):
+    # define the optimization
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print(device)
+    model = model.to(device)
+    max_acc = -5
+    loss_save = []
+    R2_train = []
+    R2_val = []
+    R2_test = []
+    criterion = MSELoss()
+    # criterion = CrossEntropyLoss()
+    if crit == 'adam':
+        print('Using Adam')
+        optimizer = Adam(model.parameters(), lr=lr,weight_decay=wd)
+    else:
+        print('Using SGD')
+        optimizer = SGD(model.parameters(), lr=lr, momentum=mom,weight_decay=wd)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=8, gamma=0.92)
+    # enumerate epochs
+    for epoch in range(epochs):
+        model.train()
+        epoch_loss = 0.0
+        running_loss = 0.0
+        # enumerate mini batches
+        for i, (inputs, targets) in enumerate(train_dl):
+            inputs, targets = inputs.to(device), targets.to(device)
+            # clear the gradients
+            optimizer.zero_grad()
+            # compute the model output
+            # yhat, aux1, aux2 = model(inputs)
+            yhat, aux1, aux2 = model(inputs)
+            # calculate loss
+            # loss = criterion(yhat, targets.unsqueeze(1).float()) + 0.3 * criterion(aux1,targets.unsqueeze(1).float()) + 0.3 * criterion(aux2,targets.unsqueeze(1).float())
+            # loss = criterion(yhat,targets)
+            if len(targets.size()) == 1:
+                loss = criterion(yhat, targets.unsqueeze(1).float()) + 0.3 * criterion(aux1,targets.unsqueeze(1).float()) + 0.3 * criterion(aux2,targets.unsqueeze(1).float())
+            else:
+                loss = criterion(yhat,targets)
+            # credit assignment
+            loss.backward()
+            # update model weights
+            optimizer.step()
+
+            epoch_loss += yhat.shape[0] * loss.item()
+
+            # print statistics
+            running_loss += loss.item()
+            if i % 1 == 0:    
+                # print('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, running_loss / 2000))
+                running_loss = 0.0
+        # print epoch loss
+        print(epoch+1, epoch_loss / len(train_dl.dataset))
+        loss_save.append(epoch_loss / len(train_dl.dataset))
+
+        if ((epoch+1) % 10 == 0) & ((epoch+1)>=2):
+            model.eval()
+            with torch.no_grad():
+                if yhat.size()[1] == 1:
+                    acc_t = evaluate_model(train_dl, model)
+                    print('Train R2 - DI: %.3f' % acc_t)
+                    R2_train.append(acc_t)
+
+                    acc_v = evaluate_model(val_dl, model)
+                    print('Val R2 - DI: %.3f' % acc_v)
+                    R2_val.append(acc_v)
+
+                    acc = evaluate_model(test_dl, model)
+                    print('Test R2 - DI: %.3f' % acc)
+                    R2_test.append(acc)
+                else:
+                    acc = evaluate_model(train_dl, model)
+                    print('Train R2 - DI: %.3f' % acc[0] + ' Cracks: %.3f' % acc[1] + ' Alligator: %.3f' % acc[2] + ' Potholes: %.3f' % acc[3])
+
+                    acc = evaluate_model(val_dl, model)
+                    print('Val R2 - DI: %.3f' % acc[0] + ' Cracks: %.3f' % acc[1] + ' Alligator: %.3f' % acc[2] + ' Potholes: %.3f' % acc[3])
+
+            if acc_v > max_acc:
+                torch.save(model.state_dict(), "models/model_"+id+".pt")
+                max_acc = acc_v
+
+            with open("training/R2_train_"+id+".csv", 'w', newline='') as myfile:
+                wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
+                wr.writerow(R2_train)
+
+            with open("training/R2_val_"+id+".csv", 'w', newline='') as myfile:
+                wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
+                wr.writerow(R2_val)
+
+            with open("training/R2_test_"+id+".csv", 'w', newline='') as myfile:
+                wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
+                wr.writerow(R2_test)
+
+        with open("training/loss_save_"+id+".csv", 'w', newline='') as myfile:
+            wr = csv.writer(myfile, quoting=csv.QUOTE_NONNUMERIC)
+            wr.writerow(loss_save)
+
+    scheduler.step()
+    print(max_acc)
+
 class ConvBlock(nn.Module):
     def __init__(self, in_fts, out_fts, k, s, p):
         super(ConvBlock, self).__init__()
@@ -474,6 +576,61 @@ class MyGoogleNet(nn.Module):
         # else:
         #     return x
         return out1
+        
+class MyGoogleNet_deep(nn.Module):
+    def __init__(self, in_fts=3, num_class=1000):
+        super(MyGoogleNet, self).__init__()
+        self.conv1 = ConvBlock(in_fts, 64, 7, 2, 3)
+        self.maxpool1 = nn.MaxPool2d(kernel_size=(3, 3), stride=(2, 2), padding=(1, 1))
+        self.conv2 = nn.Sequential(
+            ConvBlock(64, 64, 1, 1, 0),
+            ConvBlock(64, 192, 3, 1, 1)
+        )
+
+        self.inception_3a = InceptionModule(192, 64, 96, 128, 16, 32, 32)
+        self.inception_3b = InceptionModule(256, 128, 128, 192, 32, 96, 64)
+        self.inception_4a = InceptionModule(480, 192, 96, 208, 16, 48, 64)
+        self.inception_4b = InceptionModule(512, 160, 112, 224, 24, 64, 64)
+        self.inception_4c = InceptionModule(512, 128, 128, 256, 24, 64, 64)
+        self.inception_4d = InceptionModule(512, 112, 144, 288, 32, 64, 64)
+        self.inception_4e = InceptionModule(528, 256, 160, 320, 32, 128, 128)
+        self.inception_5a = InceptionModule(832, 256, 160, 320, 32, 128, 128)
+        self.inception_5b = InceptionModule(832, 384, 192, 384, 48, 128, 128)
+
+        self.aux_classifier1 = AuxClassifier(512, num_class)
+        self.aux_classifier2 = AuxClassifier(528, num_class)
+        self.avgpool = nn.AdaptiveAvgPool2d(output_size=(7, 7))
+        self.classifier = nn.Sequential(
+            nn.Dropout(p=0.4),
+            nn.Linear(1024 * 7 * 7, num_class)
+        )
+
+    def forward(self, input_img):
+        N = input_img.shape[0]
+        x = self.conv1(input_img)
+        x = self.maxpool1(x)
+        x = self.conv2(x)
+        x = self.maxpool1(x)
+        x = self.inception_3a(x)
+        x = self.inception_3b(x)
+        x = self.maxpool1(x)
+        x = self.inception_4a(x)
+        out1 = self.aux_classifier1(x)
+        x = self.inception_4b(x)
+        x = self.inception_4c(x)
+        x = self.inception_4d(x)
+        out2 = self.aux_classifier2(x)
+        x = self.inception_4e(x)
+        x = self.maxpool1(x)
+        x = self.inception_5a(x)
+        x = self.inception_5b(x)
+        x = self.avgpool(x)
+        x = x.reshape(N, -1)
+        x = self.classifier(x)
+        if self.training == True:
+            return [x, out1, out2]
+        else:
+            return x
 
 def create_cwt_data(GM_segments,splits,targets,path,check):
     from ssqueezepy import cwt

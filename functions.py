@@ -384,7 +384,7 @@ def method_RandomForest(features_train, features_test, y_train, y_test, id, mode
         MAE_train = mean_absolute_error(train_y,train_pred)
 
         print('oob')
-        print(rf_train.oob_score_)
+        print(rf_train.best_estimator_.oob_score_)
 
     return {"R2":[r2 ,r2_train], "MSE": [MSE, MSE_train], "RMSE": [RMSE, RMSE_train], "MAE": [MAE, MAE_train],"Gridsearchcv_obj": rf_train}
 

@@ -1019,9 +1019,9 @@ plt.show()
 
 
 ############################### init training ####################3
-
+# 2_1 3_4 4_5 6_7
 # id = 'CNN_simple_shuffle_sgd_2wd15.csv'
-id = 'GoogleNet_6_7_sgd_wd1.csv'
+id = 'CNN_simple_2_4_sgd_10wd10.csv'
 
 loss = pd.read_csv('training/loss_save_'+id,sep=',',header=None)
 loss = loss.values.reshape((np.shape(loss)[1],-1))
@@ -1040,15 +1040,16 @@ ax2 = ax1.twinx()
 lns1 = ax1.plot(loss,c='blue',label='Training loss')
 lns2 = ax2.plot(points,R2_train,c='red',label='Training R2')
 lns3 = ax2.plot(points,R2_val,c='green',label='Validation R2')
-lns4 = ax2.plot(points,R2_test,c='yellow',label='Test R2')
+# lns4 = ax2.plot(points,R2_test,c='yellow',label='Test R2')
 ax1.set_xlabel('Epoch')
 ax1.set_ylabel('Loss')
 ax2.set_ylabel('R2')
-ax2.set_ylim([0,r2_max+0.1])
-lns = lns1+lns2+lns3+lns4
+ax2.set_ylim([0,0.5])#r2_max+0.1
+# ax2.set_xlim([0,400])
+lns = lns1+lns2+lns3#+lns4
 labs = [l.get_label() for l in lns]
 ax1.legend(lns, labs, loc=9)
-ax1.set_title(id+' - R2_val = '+str(round(np.max(R2_test),3))) #  + ' - ' + 'R2_test = '+str('x')
+ax1.set_title('R2_val = '+str(round(np.max(R2_val),3)) + '\n' + 'R2_test = '+str(round(np.max(R2_test),3)))
 plt.show()
 
 
@@ -1233,3 +1234,119 @@ label = train_labels[0]
 plt.imshow(img1)
 plt.show()
 print(f"Label: {label}")
+
+
+
+
+
+
+
+
+synth_acc = synthetic_data()
+routes = []
+for i in range(len(synth_acc)): 
+    routes.append(synth_acc[i].axes[0].name)
+GM_segments, aran_segments, route_details, dists = synthetic_sample_segmentation(synth_acc,routes,segment_size=896)
+DI, cracks, alligator, potholes = calc_target(aran_segments)
+cut = [8900,16300,20600,13000,17400]
+splits = DL_splits(aran_segments,route_details,cut)
+print(len(splits['1']),len(splits['2']),len(splits['3']),len(splits['4']),len(splits['5']),len(splits['6']),len(splits['7']))
+
+
+fig,ax = plt.subplots(1,2)
+for i in range(len(splits)):
+    if i < 4:
+        ax[0].scatter(x=aran_segments['LongitudeFrom'][splits[str(i+1)]],y=aran_segments['LatitudeFrom'][splits[str(i+1)]],s=1,label="split: "+str(i+1))
+    else:
+        ax[1].scatter(x=aran_segments['LongitudeFrom'][splits[str(i+1)]][:],y=aran_segments['LatitudeFrom'][splits[str(i+1)]][:],s=1,label="split: "+str(i+1))
+        # ax[1].scatter(x=aran_segments['LongitudeFrom'][splits[str(4+1)]][:],y=aran_segments['LatitudeFrom'][splits[str(4+1)]][:],s=1,label="split: "+str(4+1))
+
+ax[0].legend(loc='upper left')
+ax[1].legend()
+ax[0].set_title('CPH1 splits')
+ax[1].set_title('CPH6 splits')
+ax[0].set(ylabel='Latitude',xlabel="Longitude")
+ax[1].set(ylabel='Latitude',xlabel="Longitude")
+ax[1].yaxis.set_label_position("right")
+ax[1].yaxis.tick_right()
+ax[0].set_yticklabels([])
+ax[0].set_xticklabels([])
+ax[1].set_yticklabels([])
+ax[1].set_xticklabels([])
+
+plt.show()
+
+
+
+
+
+
+
+
+
+fig, ax1 = plt.subplots()
+
+id = 'GoogleNet_2_4_sgd_10wd01.csv'
+
+loss = pd.read_csv('training/loss_save_'+id,sep=',',header=None)
+loss = loss.values.reshape((np.shape(loss)[1],-1))
+R2_train = pd.read_csv('training/R2_train_'+id,sep=',',header=None)
+R2_train = R2_train.values.reshape((np.shape(R2_train)[1],-1))
+R2_val = pd.read_csv('training/R2_val_'+id,sep=',',header=None)
+R2_val = R2_val.values.reshape((np.shape(R2_val)[1],-1))
+R2_test = pd.read_csv('training/R2_test_'+id,sep=',',header=None)
+R2_test = R2_test.values.reshape((np.shape(R2_test)[1],-1))
+
+points = np.linspace(10,len(loss),len(R2_train))
+r2_max = np.max(R2_train) if np.max(R2_train) > np.max(R2_val) else np.max(R2_val)
+r2_max = r2_max if r2_max > np.max(R2_test) else np.max(R2_test)
+lns2 = ax1.plot(points,R2_train,'b',label='train R2 (wd=0.1)')
+lns3 = ax1.plot(points,R2_val,'bx',label='test R2 (wd=0.1)')
+
+id = 'GoogleNet_2_4_sgd_10wd1.csv'
+
+loss = pd.read_csv('training/loss_save_'+id,sep=',',header=None)
+loss = loss.values.reshape((np.shape(loss)[1],-1))
+R2_train = pd.read_csv('training/R2_train_'+id,sep=',',header=None)
+R2_train = R2_train.values.reshape((np.shape(R2_train)[1],-1))
+R2_val = pd.read_csv('training/R2_val_'+id,sep=',',header=None)
+R2_val = R2_val.values.reshape((np.shape(R2_val)[1],-1))
+R2_test = pd.read_csv('training/R2_test_'+id,sep=',',header=None)
+R2_test = R2_test.values.reshape((np.shape(R2_test)[1],-1))
+
+points = np.linspace(10,len(loss),len(R2_train))
+r2_max = np.max(R2_train) if np.max(R2_train) > np.max(R2_val) else np.max(R2_val)
+r2_max = r2_max if r2_max > np.max(R2_test) else np.max(R2_test)
+lns4 = ax1.plot(points,R2_train,'r',label='train R2 (wd=1)')
+lns5 = ax1.plot(points,R2_val,'rx',label='val R2 (wd=1)')
+
+
+id = 'GoogleNet_2_4_sgd_10wd10.csv'
+
+loss = pd.read_csv('training/loss_save_'+id,sep=',',header=None)
+loss = loss.values.reshape((np.shape(loss)[1],-1))
+R2_train = pd.read_csv('training/R2_train_'+id,sep=',',header=None)
+R2_train = R2_train.values.reshape((np.shape(R2_train)[1],-1))
+R2_val = pd.read_csv('training/R2_val_'+id,sep=',',header=None)
+R2_val = R2_val.values.reshape((np.shape(R2_val)[1],-1))
+R2_test = pd.read_csv('training/R2_test_'+id,sep=',',header=None)
+R2_test = R2_test.values.reshape((np.shape(R2_test)[1],-1))
+
+points = np.linspace(10,len(loss),len(R2_train))
+r2_max = np.max(R2_train) if np.max(R2_train) > np.max(R2_val) else np.max(R2_val)
+r2_max = r2_max if r2_max > np.max(R2_test) else np.max(R2_test)
+lns6 = ax1.plot(points,R2_train,'g',label='train R2 (wd=10)')
+lns7 = ax1.plot(points,R2_val,'gx',label='test R2 (wd=10)')
+
+# lns4 = ax2.plot(points,R2_test,c='yellow',label='Test R2')
+ax1.set_xlabel('Epoch')
+ax1.set_ylabel('Loss')
+ax1.set_ylabel('R2')
+ax1.set_ylim([0,0.5])#r2_max+0.1
+ax1.set_xlim([0,400])
+lns = lns2+lns3+lns4+lns5+lns6+lns6
+labs = [l.get_label() for l in lns]
+ax1.legend(lns, labs, loc=2)
+# ax1.set_title('R2_val = '+str(round(np.max(R2_val),3)) + '\n' + 'R2_test = '+str(round(np.max(R2_test),3)))
+ax1.set_title('Weight decay tuning')
+plt.show()
