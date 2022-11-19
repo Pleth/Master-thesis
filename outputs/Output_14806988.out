@@ -1,0 +1,59 @@
+290 317 319 303 314 294 303
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 14806988: <Tests> in cluster <dcc> Done
+
+Job <Tests> was submitted from host <n-62-30-5> by user <s174503> in cluster <dcc> at Fri Nov 18 21:58:03 2022
+Job was executed on host(s) <4*n-62-30-23>, in queue <hpc>, as user <s174503> in cluster <dcc> at Fri Nov 18 21:58:04 2022
+</zhome/fd/6/127382> was used as the home directory.
+</zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis> was used as the working directory.
+Started at Fri Nov 18 21:58:04 2022
+Terminated at Fri Nov 18 22:01:30 2022
+Results reported at Fri Nov 18 22:01:30 2022
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q hpc
+#BSUB -J Tests
+#BSUB -n 4
+#BSUB -R "span[hosts=1]"
+#BSUB -R "rusage[mem=4GB]"
+#BSUB -W 02:00
+#BSUB -o outputs/Output_%J.out
+#BSUB -e outputs/errors/Error_%J.err
+
+source $HOME/miniconda3/bin/activate
+source venv_1/bin/activate
+
+python3 main.py Dataset_create
+
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   350.64 sec.
+    Max Memory :                                 306 MB
+    Average Memory :                             241.25 MB
+    Total Requested Memory :                     16384.00 MB
+    Delta Memory :                               16078.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                6
+    Run time :                                   251 sec.
+    Turnaround time :                            207 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <outputs/errors/Error_14806988.err> for stderr output of this job.
+
