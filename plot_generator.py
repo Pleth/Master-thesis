@@ -1084,3 +1084,152 @@ fig,axs = plt.subplots(2)
 axs[0].imshow(img1)
 axs[1].imshow(img2)
 plt.show()
+
+
+
+
+
+plt.hist(dists)
+plt.title('Distance driven in meters')
+plt.xlabel('Meters')
+plt.show()
+
+
+
+
+from ssqueezepy import cwt
+synth_acc = synthetic_data()
+routes = []
+for i in range(len(synth_acc)): 
+    routes.append(synth_acc[i].axes[0].name)
+GM_segments, aran_segments, route_details, dists = synthetic_sample_segmentation(synth_acc,routes,segment_size=896)
+DI, cracks, alligator, potholes = calc_target(aran_segments)
+idx = np.argmax(DI)
+
+acc = GM_segments[idx]
+xtest = np.array(GM_segments[idx])
+Wx, scales = cwt(xtest, 'bump',nv=31)
+Wx = abs(Wx)
+Wx = Wx[2:]
+Wx_sum = skimage.measure.block_reduce(Wx, (1,4), np.sum)
+
+fig = plt.figure(figsize=(10,2))
+plt.plot(acc)
+plt.xlabel('Samples')
+plt.ylabel("Acceleration")
+plt.show()
+
+min_val = np.min(Wx) if np.min(Wx) < np.min(Wx_sum) else np.min(Wx_sum)
+max_val = np.max(Wx) if np.max(Wx) > np.max(Wx_sum) else np.max(Wx_sum)
+
+fig,ax = plt.subplots(2,1,figsize=(10,4))
+ax[0].imshow(Wx,vmin=min_val, vmax=max_val)
+ax[1].imshow(Wx_sum,vmin=min_val, vmax=max_val)
+ax[0].set(ylabel='Frequency',xlabel="Time")
+ax[1].set(ylabel='Frequency',xlabel="Time")
+plt.show()
+
+idx_min = np.argmin(DI)
+
+acc = GM_segments[idx_min]
+xtest = np.array(GM_segments[idx_min])
+Wx, scales = cwt(xtest, 'bump',nv=31)
+Wx = abs(Wx)
+Wx = Wx[2:]
+Wx_sum_min = skimage.measure.block_reduce(Wx, (1,4), np.sum)
+
+
+min_val = np.min(Wx_sum) if np.min(Wx_sum) < np.min(Wx_sum_min) else np.min(Wx_sum_min)
+max_val = np.max(Wx_sum) if np.max(Wx_sum) > np.max(Wx_sum_min) else np.max(Wx_sum_min)
+
+fig,ax = plt.subplots(1,2,figsize=(6,2))
+img1 = ax[1].imshow(Wx_sum,vmin=min_val, vmax=max_val)
+img2 = ax[0].imshow(Wx_sum_min,vmin=min_val, vmax=max_val)
+ax[1].set_title('DI: '+str(np.round(DI[idx],2)))
+ax[0].set_title('DI: '+str(np.round(DI[idx_min],2)))
+ax[0].set(ylabel='Frequency',xlabel="Time")
+ax[1].set(ylabel='Frequency',xlabel="Time")
+
+plt.colorbar(img1,ax=ax[1])
+plt.colorbar(img2,ax=ax[0])
+plt.show()
+
+
+#####################################################################################
+from skimage.transform import resize
+GM_segments, aran_segments, route_details, dists = GM_sample_segmentation(segment_size=150)
+DI, cracks, alligator, potholes = calc_target(aran_segments)
+idx = np.argmax(DI)
+
+acc = GM_segments[idx]
+xtest = np.array(GM_segments[idx])
+Wx, scales = cwt(xtest, 'bump',nv=37)
+Wx = abs(Wx)
+Wx_sum = Wx[4:]
+Wx_res = resize(Wx_sum, (224, 244))
+
+fig = plt.figure(figsize=(10,2))
+plt.plot(acc)
+plt.xlabel('Samples')
+plt.ylabel("Acceleration")
+plt.show()
+
+
+min_val = np.min(Wx_res) if np.min(Wx_res) < np.min(Wx_sum) else np.min(Wx_sum)
+max_val = np.max(Wx_res) if np.max(Wx_res) > np.max(Wx_sum) else np.max(Wx_sum)
+
+fig,ax = plt.subplots(1,2,figsize=(10,4))
+ax[0].imshow(Wx_sum,vmin=min_val, vmax=max_val)
+ax[1].imshow(Wx_res,vmin=min_val, vmax=max_val)
+ax[0].set(ylabel='Frequency',xlabel="Time")
+ax[1].set(ylabel='Frequency',xlabel="Time")
+plt.show()
+
+idx_min = np.argmin(DI)
+
+acc = GM_segments[idx_min]
+xtest = np.array(GM_segments[idx_min])
+Wx, scales = cwt(xtest, 'bump',nv=37)
+Wx = abs(Wx)
+Wx_sum_min = Wx[4:]
+Wx_res_min = resize(Wx_sum_min, (224, 244))
+
+min_val = np.min(Wx_res) if np.min(Wx_res) < np.min(Wx_res_min) else np.min(Wx_res_min)
+max_val = np.max(Wx_res) if np.max(Wx_res) > np.max(Wx_res_min) else np.max(Wx_res_min)
+
+fig,ax = plt.subplots(1,2,figsize=(6,2))
+img1 = ax[1].imshow(Wx_res,vmin=min_val, vmax=max_val)
+img2 = ax[0].imshow(Wx_res_min,vmin=min_val, vmax=max_val)
+ax[1].set_title('DI: '+str(np.round(DI[idx],2)))
+ax[0].set_title('DI: '+str(np.round(DI[idx_min],2)))
+ax[0].set(ylabel='Frequency',xlabel="Time")
+ax[1].set(ylabel='Frequency',xlabel="Time")
+
+plt.colorbar(img1,ax=ax[1])
+plt.colorbar(img2,ax=ax[0])
+plt.show()
+
+
+
+
+
+
+
+
+
+
+batch_size = 16
+path = 'DL_synth_data'
+labelsFile = 'DL_synth_data/labelsfile'
+train_dl, val_dl, test_dl = prepare_data(path,labelsFile,batch_size,nr_tar=1,test_nr=7,real=1)
+print(len(train_dl.dataset), len(val_dl.dataset), len(test_dl.dataset))
+
+train_features, train_labels = next(iter(train_dl))
+print(f"Feature batch shape: {train_features.size()}")
+print(f"Labels batch shape: {train_labels.size()}")
+img = train_features[0] #.squeeze()
+img1 = img.permute(1,2,0)
+label = train_labels[0]
+plt.imshow(img1)
+plt.show()
+print(f"Label: {label}")

@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_synth_split1.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
 
         print('---------SPLIT 2--------')
         cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split2')
@@ -111,7 +111,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_synth_split2.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
 
         print('---------SPLIT 3--------')
         cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split3')
@@ -127,7 +127,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_synth_split3.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
 
         print('---------SPLIT 4--------')
         cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split4')
@@ -143,7 +143,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_synth_split4.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
 
         print('---------SPLIT 5--------')
         cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split5')
@@ -159,7 +159,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_synth_split5.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
 
 
     if sys.argv[1] == 'synth_test_both':
@@ -236,7 +236,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_synth_split1_b.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
 
         print('---------SPLIT 2--------')
         cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split2')
@@ -252,7 +252,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_synth_split2_b.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
 
         print('---------SPLIT 3--------')
         cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split3')
@@ -268,8 +268,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_synth_split3_b.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
 
         print('---------SPLIT 4--------')
         cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split4')
@@ -285,7 +284,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_synth_split4_b.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
 
         print('---------SPLIT 5--------')
         cv_train, split_test, X_train, X_test, splits = real_splits(features,aran_segments,route_details,cut,'split5')
@@ -301,7 +300,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_synth_split5_b.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
 
 
     ################################################## TESTS - 45 km/h speed #################################################
@@ -379,7 +378,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_45km_split1.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
 
         print('---------SPLIT 2--------')
         cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split2')
@@ -395,7 +394,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_45km_split2.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
 
         print('---------SPLIT 3--------')
         cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split3')
@@ -411,7 +410,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_45km_split3.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
 
         print('---------SPLIT 4--------')
         cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split4')
@@ -427,7 +426,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_45km_split4.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
 
         print('---------SPLIT 5--------')
         cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split5')
@@ -443,7 +442,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_45km_split5.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
 
     ################################################## TESTS - (laser5+laser21)/2/1e3 #################################################
     if sys.argv[1] == 'laser_test':
@@ -519,7 +518,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_laser_split1.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
 
         print('---------SPLIT 2--------')
         cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split2')
@@ -535,7 +534,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_laser_split2.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
 
         print('---------SPLIT 3--------')
         cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split3')
@@ -551,7 +550,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_laser_split3.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
 
         print('---------SPLIT 4--------')
         cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split4')
@@ -567,7 +566,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_laser_split4.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
 
         print('---------SPLIT 5--------')
         cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split5')
@@ -583,7 +582,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_laser_split5.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
  
 
     ########################################################### GREEN MOBILITY TEST ##############################################################
@@ -691,7 +690,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_GM_split1.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
 
         print('---------SPLIT 2--------')
         cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split2')
@@ -707,7 +706,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_GM_split2.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
 
         print('---------SPLIT 3--------')
         cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split3')
@@ -723,7 +722,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_GM_split3.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
 
         print('---------SPLIT 4--------')
         cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split4')
@@ -754,7 +753,7 @@ if __name__ == '__main__':
 
         rf_train = joblib.load('models/RandomForest_best_model_DI_GM_split5.sav')
         print(rf_train.best_estimator_)
-        print(rf_train.oob_score_)
+        # print(rf_train.oob_score_)
 
 
     if sys.argv[1] == 'GM_route_test':

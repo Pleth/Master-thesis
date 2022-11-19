@@ -348,7 +348,7 @@ def method_RandomForest(features_train, features_test, y_train, y_test, id, mode
                     'n_estimators': [250]}
         parameters={'criterion': ['squared_error'],
                     'bootstrap': [True],
-                    'max_depth': [4, 5, 6],
+                    'max_depth': [4, 5],
                     'max_features': [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 'log2', 'sqrt'],
                     'min_samples_leaf': [1, 5, 10, 20, 30, 40, 50],
                     'min_samples_split': [2,5,10,15],
@@ -382,6 +382,10 @@ def method_RandomForest(features_train, features_test, y_train, y_test, id, mode
         MSE_train = mean_squared_error(train_y,train_pred, squared=True)
         RMSE_train = mean_squared_error(train_y,train_pred, squared=False)
         MAE_train = mean_absolute_error(train_y,train_pred)
+
+        print('oob')
+        print(rf_train.oob_score_)
+
     return {"R2":[r2 ,r2_train], "MSE": [MSE, MSE_train], "RMSE": [RMSE, RMSE_train], "MAE": [MAE, MAE_train],"Gridsearchcv_obj": rf_train}
 
 def real_splits(features,aran_segments,route_details,cut,split_nr):
