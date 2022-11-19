@@ -1021,7 +1021,7 @@ plt.show()
 ############################### init training ####################3
 
 # id = 'CNN_simple_shuffle_sgd_2wd15.csv'
-id = 'GoogleNet_2_4_sgd_10wd1.csv'
+id = 'GoogleNet_6_7_sgd_wd1.csv'
 
 loss = pd.read_csv('training/loss_save_'+id,sep=',',header=None)
 loss = loss.values.reshape((np.shape(loss)[1],-1))
