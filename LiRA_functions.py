@@ -1,3 +1,5 @@
+# All functions from this file is from https://lab.compute.dtu.dk/lira/acceleration_alignment
+
 import numpy as np
 from scipy import interpolate
 from tqdm.auto import tqdm

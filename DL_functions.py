@@ -522,6 +522,9 @@ class InceptionModule(nn.Module):
         return x
 
 class MyGoogleNet(nn.Module):
+    # The layers and implemention of GoogleNet and its classes from 
+    # https://sahiltinky94.medium.com/know-about-googlenet-and-implementation-using-pytorch-92f827d675db
+    # Few changes has been made, the inclusion of batch norm and changes it from classification to regression.
     def __init__(self, in_fts=3, num_class=1000):
         super(MyGoogleNet, self).__init__()
         self.conv1 = ConvBlock(in_fts, 64, 7, 2, 3)
@@ -578,6 +581,9 @@ class MyGoogleNet(nn.Module):
         return out1
         
 class MyGoogleNet_deep(nn.Module):
+    # The layers and implemention of GoogleNet and its classes from 
+    # https://sahiltinky94.medium.com/know-about-googlenet-and-implementation-using-pytorch-92f827d675db
+    # Few changes has been made, the inclusion of batch norm and changes it from classification to regression.
     def __init__(self, in_fts=3, num_class=1000):
         super(MyGoogleNet_deep, self).__init__()
         self.conv1 = ConvBlock(in_fts, 64, 7, 2, 3)

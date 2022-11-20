@@ -1021,7 +1021,7 @@ plt.show()
 ############################### init training ####################3
 # 2_1 3_4 4_5 6_7
 # id = 'CNN_simple_shuffle_sgd_2wd15.csv'
-id = 'CNN_simple_2_4_sgd_10wd10.csv'
+id = 'GoogleNet_2_4_sgd_10wd1.csv'
 
 loss = pd.read_csv('training/loss_save_'+id,sep=',',header=None)
 loss = loss.values.reshape((np.shape(loss)[1],-1))
@@ -1085,6 +1085,8 @@ fig,axs = plt.subplots(2)
 axs[0].imshow(img1)
 axs[1].imshow(img2)
 plt.show()
+
+
 
 
 
@@ -1252,10 +1254,9 @@ cut = [8900,16300,20600,13000,17400]
 splits = DL_splits(aran_segments,route_details,cut)
 print(len(splits['1']),len(splits['2']),len(splits['3']),len(splits['4']),len(splits['5']),len(splits['6']),len(splits['7']))
 
-
 fig,ax = plt.subplots(1,2)
 for i in range(len(splits)):
-    if i < 4:
+    if i < 7:
         ax[0].scatter(x=aran_segments['LongitudeFrom'][splits[str(i+1)]],y=aran_segments['LatitudeFrom'][splits[str(i+1)]],s=1,label="split: "+str(i+1))
     else:
         ax[1].scatter(x=aran_segments['LongitudeFrom'][splits[str(i+1)]][:],y=aran_segments['LatitudeFrom'][splits[str(i+1)]][:],s=1,label="split: "+str(i+1))
@@ -1277,16 +1278,56 @@ ax[1].set_xticklabels([])
 plt.show()
 
 
+GM_segments, aran_segments, route_details, dists = GM_sample_segmentation(segment_size=150)
+DI, cracks, alligator, potholes = calc_target(aran_segments)
+cut = [4400,8000,11800,16500,20300,22400]
+splits = DL_splits_real(aran_segments,route_details,cut)
+print(len(splits['1']),len(splits['2']),len(splits['3']),len(splits['4']),len(splits['5']),len(splits['6']),len(splits['7']))
+
+fig,ax = plt.subplots(1)
+for i in range(len(splits)):
+    if i < 7:
+        ax.scatter(x=aran_segments['LongitudeFrom'][splits[str(i+1)]],y=aran_segments['LatitudeFrom'][splits[str(i+1)]],s=1,label="split: "+str(i+1))
+    
+ax.legend(loc='upper left')
+ax.set_title('CPH1 splits')
+ax.set(ylabel='Latitude',xlabel="Longitude")
+ax.set_yticklabels([])
+ax.set_xticklabels([])
+plt.show()
 
 
 
+GM_segments, aran_segments, route_details = GM_segmentation(segment_size=5,overlap=0)
 
+features,feature_names = feature_extraction(GM_segments,'aligned_data/features_split',fs=50)
+
+DI, cracks, aliigator, potholes = calc_target(aran_segments)
+
+cut = [5700,11500,17000,21700]
+
+#### split 1
+print('---------SPLIT 1--------')
+cv_train, split_test, X_train, X_test, splits = cph1_splits(features,aran_segments,route_details,cut,'split1')
+
+
+fig,ax = plt.subplots(1)
+for i in range(len(splits)):
+    if i < 5:
+        ax.scatter(x=aran_segments['LongitudeFrom'][splits[str(i+1)]],y=aran_segments['LatitudeFrom'][splits[str(i+1)]],s=1,label="split: "+str(i+1))
+    
+ax.legend(loc='upper left')
+ax.set_title('CPH1 splits')
+ax.set(ylabel='Latitude',xlabel="Longitude")
+ax.set_yticklabels([])
+ax.set_xticklabels([])
+plt.show()
 
 
 
 fig, ax1 = plt.subplots()
 
-id = 'GoogleNet_2_4_sgd_10wd01.csv'
+id = 'GoogleNet_real_r_2_4_sgd_10wd01.csv'
 
 loss = pd.read_csv('training/loss_save_'+id,sep=',',header=None)
 loss = loss.values.reshape((np.shape(loss)[1],-1))
@@ -1303,7 +1344,7 @@ r2_max = r2_max if r2_max > np.max(R2_test) else np.max(R2_test)
 lns2 = ax1.plot(points,R2_train,'b',label='train R2 (wd=0.1)')
 lns3 = ax1.plot(points,R2_val,'bx',label='test R2 (wd=0.1)')
 
-id = 'GoogleNet_2_4_sgd_10wd1.csv'
+id = 'GoogleNet_real_r_2_4_sgd_10wd1.csv'
 
 loss = pd.read_csv('training/loss_save_'+id,sep=',',header=None)
 loss = loss.values.reshape((np.shape(loss)[1],-1))
@@ -1321,7 +1362,7 @@ lns4 = ax1.plot(points,R2_train,'r',label='train R2 (wd=1)')
 lns5 = ax1.plot(points,R2_val,'rx',label='val R2 (wd=1)')
 
 
-id = 'GoogleNet_2_4_sgd_10wd10.csv'
+id = 'GoogleNet_real_r_2_4_sgd_10wd10.csv'
 
 loss = pd.read_csv('training/loss_save_'+id,sep=',',header=None)
 loss = loss.values.reshape((np.shape(loss)[1],-1))
@@ -1344,9 +1385,23 @@ ax1.set_ylabel('Loss')
 ax1.set_ylabel('R2')
 ax1.set_ylim([0,0.5])#r2_max+0.1
 ax1.set_xlim([0,400])
-lns = lns2+lns3+lns4+lns5+lns6+lns6
+lns = lns2+lns3+lns4+lns5+lns6+lns7
 labs = [l.get_label() for l in lns]
 ax1.legend(lns, labs, loc=2)
 # ax1.set_title('R2_val = '+str(round(np.max(R2_val),3)) + '\n' + 'R2_test = '+str(round(np.max(R2_test),3)))
 ax1.set_title('Weight decay tuning')
 plt.show()
+
+
+
+test = [0.173,0.315,0.327,0.185,0.061]
+test = [0.378,0.347,0.294,0.366,0.391]
+test = [187,264,339,213,59]
+test = [299,245,242,283,320]
+test = [187,259,356,74,52]
+test = [301,284,242,307,334]
+test = [115,273,153,349,258]
+test = [306,277,286,253,276]
+test = np.array(test)/1000
+np.mean(test)
+np.std(test)
