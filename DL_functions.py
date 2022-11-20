@@ -579,7 +579,7 @@ class MyGoogleNet(nn.Module):
         
 class MyGoogleNet_deep(nn.Module):
     def __init__(self, in_fts=3, num_class=1000):
-        super(MyGoogleNet, self).__init__()
+        super(MyGoogleNet_deep, self).__init__()
         self.conv1 = ConvBlock(in_fts, 64, 7, 2, 3)
         self.maxpool1 = nn.MaxPool2d(kernel_size=(3, 3), stride=(2, 2), padding=(1, 1))
         self.conv2 = nn.Sequential(

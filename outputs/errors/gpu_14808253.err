@@ -1,0 +1,19 @@
+Loaded module: cuda/11.6
+Traceback (most recent call last):
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/main.py", line 1258, in <module>
+    model = MyGoogleNet_deep(in_fts=1,num_class=1)
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/DL_functions.py", line 582, in __init__
+    super(MyGoogleNet, self).__init__()
+TypeError: super(type, obj): obj must be an instance or subtype of type
+Traceback (most recent call last):
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/main.py", line 1258, in <module>
+    model = MyGoogleNet_deep(in_fts=1,num_class=1)
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/DL_functions.py", line 582, in __init__
+    super(MyGoogleNet, self).__init__()
+TypeError: super(type, obj): obj must be an instance or subtype of type
+Traceback (most recent call last):
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/main.py", line 1258, in <module>
+    model = MyGoogleNet_deep(in_fts=1,num_class=1)
+  File "/zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis/DL_functions.py", line 582, in __init__
+    super(MyGoogleNet, self).__init__()
+TypeError: super(type, obj): obj must be an instance or subtype of type

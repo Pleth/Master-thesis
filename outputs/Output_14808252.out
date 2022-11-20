@@ -1,0 +1,125 @@
+synth_test_both
+GM_synth_split_test
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 1 / 5
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 2 / 5
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 3 / 5
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 4 / 5
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 5 / 5
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 1 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 2 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 3 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 4 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 5 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 6 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 7 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 1 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 2 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 3 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 4 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 5 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 6 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 7 / 7
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 1 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 2 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 3 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 4 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 5 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 6 / 6
+Loaded already segmented data
+---------SPLIT 1--------
+1558 1619 1547 1356 1460
+Run time: 51.53 mins
+oob
+0.3781489360989141
+0.4233633806046577
+0.17302091517721696
+RandomForestRegressor(max_depth=5, max_features=0.3, min_samples_leaf=50,
+                      n_estimators=250, oob_score=True)
+---------SPLIT 2--------
+Run time: 48.65 mins
+oob
+0.34673046193694457
+0.39780159787863956
+0.3154155662234799
+RandomForestRegressor(max_depth=5, max_features=0.3, min_samples_leaf=40,
+                      min_samples_split=15, n_estimators=250, oob_score=True)
+---------SPLIT 3--------
+Run time: 52.68 mins
+oob
+0.29394250448242454
+0.32716709286884094
+0.3832998126614324
+RandomForestRegressor(max_depth=4, max_features=0.5, min_samples_leaf=40,
+                      n_estimators=250, oob_score=True)
+---------SPLIT 4--------
+Run time: 54.45 mins
+oob
+0.3663579994771139
+0.4126345009553375
+0.18547726337833426
+RandomForestRegressor(max_depth=5, max_features=0.3, min_samples_leaf=40,
+                      n_estimators=250, oob_score=True)
+---------SPLIT 5--------
+Run time: 53.31 mins
+oob
+0.3912478637235193
+0.441927577391209
+0.031076569541290233
+RandomForestRegressor(max_depth=5, max_features=0.3, min_samples_leaf=30,
+                      min_samples_split=15, n_estimators=250, oob_score=True)
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 14808252: <Tests> in cluster <dcc> Done
+
+Job <Tests> was submitted from host <n-62-30-5> by user <s174503> in cluster <dcc> at Sat Nov 19 20:27:21 2022
+Job was executed on host(s) <24*n-62-11-50>, in queue <hpc>, as user <s174503> in cluster <dcc> at Sat Nov 19 20:27:22 2022
+</zhome/fd/6/127382> was used as the home directory.
+</zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis> was used as the working directory.
+Started at Sat Nov 19 20:27:22 2022
+Terminated at Sun Nov 20 00:49:29 2022
+Results reported at Sun Nov 20 00:49:29 2022
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q hpc
+#BSUB -J Tests
+#BSUB -n 24
+#BSUB -R "span[hosts=1]"
+#BSUB -R "rusage[mem=4GB]"
+#BSUB -W 20:00
+#BSUB -o outputs/Output_%J.out
+#BSUB -e outputs/errors/Error_%J.err
+
+source $HOME/miniconda3/bin/activate
+source venv_1/bin/activate
+
+python3 main.py synth_test_both train
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   368593.00 sec.
+    Max Memory :                                 3750 MB
+    Average Memory :                             3590.79 MB
+    Total Requested Memory :                     98304.00 MB
+    Delta Memory :                               94554.00 MB
+    Max Swap :                                   -
+    Max Processes :                              30
+    Max Threads :                                34
+    Run time :                                   15811 sec.
+    Turnaround time :                            15728 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <outputs/errors/Error_14808252.err> for stderr output of this job.
+

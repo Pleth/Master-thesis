@@ -1,0 +1,93 @@
+synth_test
+GM_synth_split_test
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 1 / 5
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 2 / 5
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 3 / 5
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 4 / 5
+Loaded Synthetic Profile for trip: 1 / 4 - passage: 5 / 5
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 1 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 2 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 3 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 4 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 5 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 6 / 7
+Loaded Synthetic Profile for trip: 2 / 4 - passage: 7 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 1 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 2 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 3 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 4 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 5 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 6 / 7
+Loaded Synthetic Profile for trip: 3 / 4 - passage: 7 / 7
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 1 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 2 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 3 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 4 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 5 / 6
+Loaded Synthetic Profile for trip: 4 / 4 - passage: 6 / 6
+Loaded already segmented data
+---------SPLIT 1--------
+949 939 949 943 948
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@hpc.dtu.dk>
+Subject: Job 14808243: <Tests> in cluster <dcc> Exited
+
+Job <Tests> was submitted from host <n-62-30-5> by user <s174503> in cluster <dcc> at Sat Nov 19 20:17:20 2022
+Job was executed on host(s) <24*n-62-31-12>, in queue <hpc>, as user <s174503> in cluster <dcc> at Sat Nov 19 20:17:20 2022
+</zhome/fd/6/127382> was used as the home directory.
+</zhome/fd/6/127382/Desktop/MasterThesis/Master-thesis> was used as the working directory.
+Started at Sat Nov 19 20:17:20 2022
+Terminated at Sat Nov 19 20:25:35 2022
+Results reported at Sat Nov 19 20:25:35 2022
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/sh
+#BSUB -q hpc
+#BSUB -J Tests
+#BSUB -n 24
+#BSUB -R "span[hosts=1]"
+#BSUB -R "rusage[mem=4GB]"
+#BSUB -W 20:00
+#BSUB -o outputs/Output_%J.out
+#BSUB -e outputs/errors/Error_%J.err
+
+source $HOME/miniconda3/bin/activate
+source venv_1/bin/activate
+
+python3 main.py synth_test train
+python3 main.py 45km_test train
+python3 main.py laser_test train
+python3 main.py GM_split_test train
+
+
+
+------------------------------------------------------------
+
+TERM_OWNER: job killed by owner.
+Exited with exit code 130.
+
+Resource usage summary:
+
+    CPU time :                                   9888.17 sec.
+    Max Memory :                                 3263 MB
+    Average Memory :                             1696.17 MB
+    Total Requested Memory :                     98304.00 MB
+    Delta Memory :                               95041.00 MB
+    Max Swap :                                   -
+    Max Processes :                              30
+    Max Threads :                                34
+    Run time :                                   534 sec.
+    Turnaround time :                            495 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <outputs/errors/Error_14808243.err> for stderr output of this job.
+
